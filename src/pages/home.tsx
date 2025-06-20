@@ -1,16 +1,22 @@
-import StatsSection from "./components/home/stats-section";
-import WhyUs from "./components/home/why-us";
-import FancySection from "./components/home/fancy-section";
-import HeroSection from "./components/home/hero";
-import InfoSection from "./components/home/info-section";
-import JoinUs from "./components/shared/join-us";
+// pages/index.tsx
+import { fetchProducts } from '@/lib/db/products';
+import { ProductCard } from '@/components/ProductCard';
+import { useEffect, useState } from 'react';
+import { Product } from '@/utils/types/product';
 
 const Home = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchProducts().then(setProducts).catch(console.error);
+  }, []);
+
   return (
-    <main className="mt-4 md:mt-8">
-      <section className="flex justify-center items-center justify-self-center h-[70vh] lg:h-[95vh]">
-        Hello Augwell Engineer
-      </section>
+    <main className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      jjj
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
     </main>
   );
 };

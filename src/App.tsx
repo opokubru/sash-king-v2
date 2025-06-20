@@ -1,12 +1,13 @@
-import { lazy } from "react";
-import { Toaster } from "react-hot-toast";
-import { Route, Routes } from "react-router-dom";
+import { lazy } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { Route, Routes } from 'react-router-dom';
 
-import ScrollToTop from "./components/shared/scroll_to_top";
-import { motion, useScroll } from "framer-motion";
-import MainLayout from "./layout/main_layout";
-import NotFound from "./components/shared/not_found";
-const Home = lazy(() => import("./pages/home"));
+import ScrollToTop from './components/shared/scroll_to_top';
+import { motion, useScroll } from 'framer-motion';
+import MainLayout from './layout/main_layout';
+import NotFound from './components/shared/not_found';
+import AdminPage from './pages/admin';
+const Home = lazy(() => import('./pages/home'));
 
 function App() {
   const { scrollYProgress } = useScroll();
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route path="" element={<Home />} />
+            <Route path="admin" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
