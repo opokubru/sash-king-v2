@@ -1,18 +1,18 @@
-import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Input, Textarea } from "@nextui-org/react";
-import { CustomButton } from "@/components/shared/shared_customs";
-import toast from "react-hot-toast";
-import { useState } from "react";
-import { variables } from "@/utils/env";
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Input, Textarea } from '@nextui-org/react';
+import { CustomButton } from '@/components/shared/shared_customs';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { variables } from '@/utils/env';
 
 // Define Zod validation schema
 const supportSchema = z.object({
-  name: z.string().min(1, "Your name is required."),
-  email: z.string().email("Please enter a valid email address."),
+  name: z.string().min(1, 'Your name is required.'),
+  email: z.string().email('Please enter a valid email address.'),
   phone: z.string().optional(),
-  message: z.string().optional()
+  message: z.string().optional(),
 });
 
 type RequestFormData = z.infer<typeof supportSchema>;
@@ -22,12 +22,12 @@ const Support = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors }
+    formState: { errors },
   } = useForm<RequestFormData>({
     resolver: zodResolver(supportSchema),
     defaultValues: {
-      phone: ""
-    }
+      phone: '',
+    },
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -38,27 +38,27 @@ const Support = () => {
 
     const data_to_send = {
       ...data,
-      subject: "Support needed - Augwell Technologies"
+      subject: 'Support needed - Sneakz',
     };
 
     try {
       setIsLoading(true);
 
       await fetch(variables.formspree, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data_to_send)
+        body: JSON.stringify(data_to_send),
       });
 
       reset(),
         toast.success(
-          "Details submitted successfully, we will contact you soon!"
+          'Details submitted successfully, we will contact you soon!',
         );
     } catch (error) {
       // Show error message if submission fails
-      toast.error("Failed to submit, Please try again");
+      toast.error('Failed to submit, Please try again');
     } finally {
       setIsLoading(false); // Always reset loading state, regardless of success or failure
     }

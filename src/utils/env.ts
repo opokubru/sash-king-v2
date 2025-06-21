@@ -1,12 +1,11 @@
-// const environment = import.meta.env;
+const environment = import.meta.env;
 
 
 
 
 export const variables = {
   formspree: "https://formspree.io/f/xwpkjvle",
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-
+  SUPABASE_URL: environment.VITE_SUPABASE_ANON_KEY,
+  SUPABASE_ANON_KEY: environment.VITE_SUPABASE_URL,
 
 };

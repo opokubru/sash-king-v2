@@ -17,10 +17,6 @@ export default function NavbarComponent() {
 
   const navigate = useNavigate();
 
-  // const { onOpenChange } = useDisclosure();
-
-  //   const isUseCase = pathname.includes("use-cases");
-
   return (
     <>
       <Navbar
@@ -28,7 +24,7 @@ export default function NavbarComponent() {
         onMenuOpenChange={setIsMenuOpen}
         isBordered
         {...{
-          ariaLabel: 'Augwell Technologies Navbar',
+          ariaLabel: 'Sneakz Navbar',
         }}
         maxWidth="2xl"
         className="bg-white w-full"
@@ -41,12 +37,12 @@ export default function NavbarComponent() {
 
         <NavbarContent className="lg:hidden pr-3" justify="center">
           <NavbarBrand as={Link} to="/" className="flex gap-x-3">
-            <img
+            {/* <img
               src="/icons/augwell_logo.png"
               className="w-[6.3rem]"
               alt="logo"
-            />
-            {/* <p className="font-bold text-sm uppercase">Augwell Technologies</p> */}
+            /> */}
+            <p className="font-bold text-sm uppercase">Sneakz</p>
           </NavbarBrand>
         </NavbarContent>
 
@@ -55,14 +51,12 @@ export default function NavbarComponent() {
           justify="center"
         >
           <NavbarBrand as={Link} to="/" className="flex gap-x-3 ">
-            <img
+            {/* <img
               src="/icons/augwell_logo.png"
               className="w-[8.3rem]"
               alt="logo"
-            />
-            {/* <p className="font-bold text-inherit uppercase">
-              Augwell Technologies
-            </p> */}
+            /> */}
+            <p className="font-bold text-inherit uppercase">Sneakz</p>
           </NavbarBrand>
           <div className="flex w-[87%] gap-x-5 justify-center items-center">
             {menuItems.map((item, index) => (
@@ -154,7 +148,11 @@ const menuItems = [
     title: 'Home',
   },
   {
-    link: '/admin',
-    title: 'Admin',
+    link: '/checkout',
+    title: 'Checkout',
+  },
+  {
+    link: '/about',
+    title: 'About Us',
   },
 ];
