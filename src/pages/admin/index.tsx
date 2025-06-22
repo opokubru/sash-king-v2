@@ -23,7 +23,12 @@ import {
   SelectItem,
 } from '@nextui-org/react';
 import { Icon } from '@iconify/react';
-import { addProduct, fetchProducts } from '@/lib/db/products';
+import {
+  addProduct,
+  deleteProduct,
+  fetchProducts,
+  updateProduct,
+} from '@/lib/db/products';
 import { supabase } from '@/lib/supabaseClient';
 import { Product } from '@/utils/types/product';
 import { CATEGORIES } from '@/utils/data/categories';
@@ -46,6 +51,14 @@ export default function AdminPage() {
 
   const [uploading, setUploading] = useState(false);
   const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onOpenChange: onDeleteOpenChange,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -85,15 +98,15 @@ export default function AdminPage() {
   };
 
   const handleSubmit = async () => {
-    const image_url = (await handleUpload()) as string;
+    let image_url = editingProduct?.image_url as string;
 
-    if (!image_url) {
-      // Don't proceed if image upload failed
-      toast.error('Product not added because image upload failed.');
-      return;
+    if (form.image) {
+      const uploaded = await handleUpload();
+      if (!uploaded) return toast.error('Image upload failed.');
+      image_url = uploaded;
     }
 
-    await addProduct({
+    const payload: Product = {
       name: form.name!,
       description: form.description!,
       price: form.price!,
@@ -101,8 +114,18 @@ export default function AdminPage() {
       discount: form.discount || 0,
       category: form.category || '',
       in_stock: form.in_stock !== false,
-    });
+    };
+
+    if (editingProduct) {
+      await updateProduct(editingProduct?.id as string, payload);
+      toast.success('Product updated!');
+    } else {
+      await addProduct(payload);
+      toast.success('Product added!');
+    }
+
     onClose();
+    setEditingProduct(null);
     setForm({
       name: '',
       description: '',
@@ -123,7 +146,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[rgba(197,195,195,0.165)] text-black px-6 py-16">
       <div className="max-w-6xl mx-auto space-y-10">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-yellow-400">
+          <h2 className="text-3xl font-bold text-yellow-500">
             Product Inventory
           </h2>
           <Button
@@ -136,8 +159,17 @@ export default function AdminPage() {
         </div>
 
         {/* Table */}
-        <Table isStriped removeWrapper aria-label="Product List">
+        <Table
+          classNames={{
+            base: 'bg-white border border-gray-300 text-black rounded-lg',
+            tr: 'hover:bg-gray-50 transition-colors border-b ',
+          }}
+          isStriped
+          removeWrapper
+          aria-label="Product List"
+        >
           <TableHeader>
+            <TableColumn>ACTIONS </TableColumn>
             <TableColumn>IMAGE</TableColumn>
             <TableColumn>NAME</TableColumn>
             <TableColumn>PRICE</TableColumn>
@@ -148,6 +180,38 @@ export default function AdminPage() {
           <TableBody>
             {products.map((p) => (
               <TableRow key={p.id}>
+                <TableCell className="flex gap-2 items-center">
+                  <button
+                    onClick={() => {
+                      setEditingProduct(p);
+                      setForm({
+                        name: p.name,
+                        description: p.description,
+                        price: p.price,
+                        image: null,
+                        image_url: p.image_url,
+                        discount: p.discount,
+                        category: p.category,
+                        in_stock: p.in_stock,
+                      });
+                      onOpen();
+                    }}
+                    className="text-blue-500 p-1 rounded-md ml-1 bg-blue-200"
+                  >
+                    <Icon icon="meteor-icons:pencil" />
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setProductToDelete(p);
+                      onDeleteOpen();
+                    }}
+                    className="text-red-500 p-1 rounded-md ml-1 bg-red-200"
+                  >
+                    <Icon icon="material-symbols:delete-rounded" />
+                  </button>
+                </TableCell>
+
                 <TableCell>
                   <Image
                     src={p.image_url}
@@ -180,8 +244,9 @@ export default function AdminPage() {
             {(onClose) => (
               <>
                 <ModalHeader className="text-yellow-400 font-bold">
-                  Add New Product
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
                 </ModalHeader>
+
                 <ModalBody className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     name="name"
@@ -234,22 +299,25 @@ export default function AdminPage() {
                     accept=".webp,image/webp"
                     onChange={handleImageChange}
                   />
-                  {form.image && (
+                  {(form.image || editingProduct?.image_url) && (
                     <div className="flex items-center gap-4">
                       <Image
-                        src={URL.createObjectURL(form.image)}
+                        src={
+                          form.image
+                            ? URL.createObjectURL(form.image)
+                            : editingProduct?.image_url
+                        }
                         width={100}
                         className="border border-yellow-400 rounded-lg"
                       />
-                      <button
-                        className="text-red-500 p-1 rounded-md ml-1 bg-red-200 flex justify-center items-center hover:text-red-700"
-                        onClick={() => setForm({ ...form, image: null })}
-                      >
-                        <Icon
-                          icon="material-symbols:delete-rounded"
-                          className=""
-                        />
-                      </button>
+                      {form.image && (
+                        <button
+                          className="text-red-500 p-1 rounded-md ml-1 bg-red-200 flex justify-center items-center hover:text-red-700"
+                          onClick={() => setForm({ ...form, image: null })}
+                        >
+                          <Icon icon="material-symbols:delete-rounded" />
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -276,6 +344,39 @@ export default function AdminPage() {
                 </ModalFooter>
               </>
             )}
+          </ModalContent>
+        </Modal>
+
+        <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
+          <ModalContent>
+            <ModalHeader className="text-red-500 font-bold">
+              Confirm Delete
+            </ModalHeader>
+            <ModalBody>
+              <p>
+                Are you sure you want to delete{' '}
+                <strong>{productToDelete?.name}</strong>?
+              </p>
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="light" onPress={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button
+                color="danger"
+                onClick={async () => {
+                  if (productToDelete) {
+                    await deleteProduct(productToDelete?.id as string);
+                    toast.success('Product deleted!');
+                    setProductToDelete(null);
+                    fetchProducts().then(setProducts);
+                    onDeleteClose();
+                  }
+                }}
+              >
+                Yes, Delete
+              </Button>
+            </ModalFooter>
           </ModalContent>
         </Modal>
       </div>

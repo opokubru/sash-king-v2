@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Product } from '@/utils/types/product';
+import { Image } from '@nextui-org/react';
+import { Link } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
@@ -26,11 +28,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       )}
 
       {/* Product Image */}
-      <img
-        src={image_url}
-        alt={name}
-        className="w-full h-60 object-cover object-center"
-      />
+
+      <Link
+        to={`/product/${product.id}`}
+        className="flex items-center justify-center h-[60%]"
+      >
+        <Image
+          isZoomed
+          src={image_url || 'https://placehold.co/400'}
+          alt={name}
+          width={140}
+          height="100%"
+          // className="flex items-center justify-center h-40 object-cover "
+        />
+      </Link>
 
       {/* Product Details */}
       <div className="p-4">

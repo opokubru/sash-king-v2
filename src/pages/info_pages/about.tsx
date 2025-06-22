@@ -40,7 +40,7 @@ const About = () => {
         transition={{ duration: 0.6 }}
         className="text-center max-w-3xl mx-auto"
       >
-        <h1 className="text-4xl font-bold mb-4 text-yellow-400">
+        <h1 className="text-4xl font-bold mb-4 text-yellow-500">
           About SNEAKZ
         </h1>
         <p className="text-lg text-gray-700">

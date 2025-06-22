@@ -7,10 +7,11 @@ import { motion, useScroll } from 'framer-motion';
 import MainLayout from './layout/main_layout';
 import NotFound from './components/shared/not_found';
 import AdminPage from './pages/admin';
-import About from './pages/info_pages';
 import PrivacyPolicy from './pages/info_pages/privacy';
 import TermsOfService from './pages/info_pages/terms-of-service';
 import Contact from './pages/info_pages/contact';
+import About from './pages/info_pages/about';
+import ProductDetail from './pages/product/product[id]';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route path="" element={<Home />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="product/:name" element={<ProductDetail />} />
 
             {/* info pages  */}
             <Route path="about" element={<About />} />

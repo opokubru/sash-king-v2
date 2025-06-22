@@ -22,3 +22,15 @@ export const addProduct = async (product: Omit<Product, 'id' | 'created_at'>): P
   if (error) throw error;
   return data as Product[];
 };
+
+
+export const deleteProduct = async (id: string) => {
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if (error) throw error;
+};
+
+export const updateProduct = async (id: string, data: Partial<Product>) => {
+  const { error } = await supabase.from('products').update(data).eq('id', id);
+  if (error) throw error;
+};
+

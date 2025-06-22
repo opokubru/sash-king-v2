@@ -42,7 +42,9 @@ export default function NavbarComponent() {
               className="w-[6.3rem]"
               alt="logo"
             /> */}
-            <p className="font-bold text-sm uppercase">Sneakz</p>
+            <p className="font-bold text-sm uppercase text-yellow-500">
+              Sneakz
+            </p>
           </NavbarBrand>
         </NavbarContent>
 
@@ -56,7 +58,9 @@ export default function NavbarComponent() {
               className="w-[8.3rem]"
               alt="logo"
             /> */}
-            <p className="font-bold text-inherit uppercase">Sneakz</p>
+            <p className="font-bold text-inherit uppercase text-yellow-500">
+              Sneakz
+            </p>
           </NavbarBrand>
           <div className="flex w-[87%] gap-x-5 justify-center items-center">
             {menuItems.map((item, index) => (
@@ -80,20 +84,11 @@ export default function NavbarComponent() {
 
         <NavbarContent justify="end" className="hidden lg:flex">
           <NavbarItem className=" gap-x-10 hidden lg:flex">
-            {/* <p className="flex gap-2 items-center">
-              <Icon icon="ph:phone-call-light" fontSize={24} />
-              <a
-                href="tel:0247902288"
-                className="text-[#1A1A1A] font-medium text-sm"
-              >
-                +233 24 790 2288
-              </a>
-            </p> */}
             <CustomButton
               onClick={() => navigate('/contact')}
-              className="bg-secondary text-white"
+              className="bg-yellow-400 text-white"
             >
-              Request Quotation
+              Contact Us
             </CustomButton>
           </NavbarItem>
         </NavbarContent>
@@ -104,9 +99,9 @@ export default function NavbarComponent() {
               <NavLink
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  `w-full text-sm text-[#1A1A1A] hover:border-b-2 border-secondary ${
+                  `w-full text-sm text-[#1A1A1A] hover:border-b-2 border-yellow-400 ${
                     isActive
-                      ? 'text-black border-b-3 border-secondary'
+                      ? 'text-black border-b-3 border-yellow-400'
                       : 'text-[#1A1A1A]'
                   }`
                 }
@@ -117,23 +112,14 @@ export default function NavbarComponent() {
             </NavbarMenuItem>
           ))}
           <div className="flex md:gap-x-4 flex-col gap-4">
-            <p className=" gap-2 items-center hidden">
-              <Icon icon="ph:phone-call-light" fontSize={24} />
-              <a
-                href="tel:0247902288"
-                className="text-[#1A1A1A] font-medium text-sm"
-              >
-                +233 24 790 2288
-              </a>
-            </p>
             <CustomButton
               onClick={() => {
                 navigate('/contact');
                 setIsMenuOpen(false);
               }}
-              className="bg-secondary text-white"
+              className="bg-yellow-400 text-white"
             >
-              Request Quotation
+              Contact Us
             </CustomButton>
           </div>
         </NavbarMenu>
@@ -144,15 +130,15 @@ export default function NavbarComponent() {
 
 const menuItems = [
   {
-    link: '/',
-    title: 'Home',
+    link: '/about',
+    title: 'About Us',
+  },
+  {
+    link: 'categories',
+    title: 'Categories',
   },
   {
     link: '/checkout',
     title: 'Checkout',
-  },
-  {
-    link: '/about',
-    title: 'About Us',
   },
 ];
