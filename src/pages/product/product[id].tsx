@@ -6,6 +6,7 @@ import { Product } from '@/utils/types/product';
 import { fetchProducts } from '@/lib/db/products';
 import { Image, Button } from '@nextui-org/react';
 import { useParams } from 'react-router-dom';
+import RelatedProducts from '../components/related-products';
 
 const ProductDetail = () => {
   const { name } = useParams();
@@ -69,6 +70,12 @@ const ProductDetail = () => {
           </Button>
         </div>
       </div>
+
+      {/* Related Products */}
+      <RelatedProducts
+        currentProductId={product.id}
+        category={product.category}
+      />
     </main>
   );
 };
