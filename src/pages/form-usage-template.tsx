@@ -44,7 +44,7 @@ const Support = () => {
     try {
       setIsLoading(true);
 
-      await fetch(variables.formspree, {
+      await fetch(variables.VITE_FORMSPREE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

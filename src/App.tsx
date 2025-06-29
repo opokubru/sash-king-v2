@@ -13,6 +13,7 @@ import Contact from './pages/info_pages/contact';
 import About from './pages/info_pages/about';
 import ProductDetail from './pages/product/product[id]';
 import Checkout from './pages/checkout/checkout';
+import AllCategoriesPage from './pages/product/categories';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             <Route path="admin" element={<AdminPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="categories" element={<AllCategoriesPage />} />
 
             {/* info pages  */}
             <Route path="about" element={<About />} />

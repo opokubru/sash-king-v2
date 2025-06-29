@@ -34,7 +34,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative bg-white rounded-2xl border border-yellow-400 shadow-md overflow-hidden"
+      className="relative bg-white rounded-2xl border border-yellow-400 shadow-md overflow-hidden h-full"
     >
       {!in_stock && (
         <div className="absolute top-3 left-3 bg-red-500 text-white text-xs px-2 py-1 rounded z-10">

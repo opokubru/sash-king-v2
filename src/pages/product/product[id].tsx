@@ -90,8 +90,8 @@ const ProductDetail = () => {
 
       {/* Related Products */}
       <RelatedProducts
-        currentProductId={product.id}
-        category={product.category}
+        currentProductId={product.id as string}
+        category={product.category as string}
       />
     </main>
   );

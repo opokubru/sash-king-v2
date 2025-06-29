@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react';
 import { fetchProducts } from '@/lib/db/products';
 import { Product } from '@/utils/types/product';
 import { ProductCard } from '@/components/ProductCard';
-import { Input, Select, SelectItem, Checkbox } from '@nextui-org/react';
+import { Input, Select, SelectItem } from '@nextui-org/react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { CATEGORIES } from '@/utils/data/categories';
 import AdGrid from './components/add-grid';
+import { useCategories } from '@/utils/hooks/categories';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
-  const [inStockOnly, setInStockOnly] = useState(false);
+  // const [inStockOnly, setInStockOnly] = useState(false);
+
+  const { categories: CATEGORIES } = useCategories();
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(console.error);
@@ -23,8 +25,8 @@ const Home = () => {
   const filtered = products.filter((p) => {
     return (
       p.name.toLowerCase().includes(query.toLowerCase()) &&
-      (category ? p.category === category : true) &&
-      (!inStockOnly || p.in_stock)
+      (category ? p.category === category : true)
+      // && (!inStockOnly || p.in_stock)
     );
   });
 
@@ -73,17 +75,15 @@ const Home = () => {
             }
           >
             <SelectItem key="">All</SelectItem>
-            {CATEGORIES.map((cat) => (
-              <SelectItem
-                key={cat.value}
-                value={cat.value}
-                // startContent={
-                //   <Icon icon={cat.icon} className="text-yellow-400" />
-                // }
-              >
-                {cat.label}
-              </SelectItem>
-            ))}
+
+            {/* ✅ Fix: Wrap in fragment or return array directly */}
+            <>
+              {CATEGORIES.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </>
           </Select>
 
           {/* <Checkbox
