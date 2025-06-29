@@ -4,20 +4,36 @@
 import { useEffect, useState } from 'react';
 import { Product } from '@/utils/types/product';
 import { fetchProducts } from '@/lib/db/products';
-import { Image, Button } from '@nextui-org/react';
+import { Image, Button, Spinner } from '@nextui-org/react';
 import { useParams } from 'react-router-dom';
 import RelatedProducts from '../components/related-products';
+import { addToCart } from '@/store/features/cart';
+import { useDispatch } from 'react-redux';
 
 const ProductDetail = () => {
   const { name } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
+  const dispatch = useDispatch();
 
-  console.log('ProductDetail rendered with name:', name);
+  const handleAddToCart = () => {
+    console.log('fired');
+    dispatch(
+      addToCart({
+        id: product?.id as string,
+        name: product?.name as string,
+        price: product?.price as number,
+        discount: product?.discount,
+        image_url: product?.image_url as string,
+        quantity: 1,
+        in_stock: product?.in_stock,
+      }),
+    );
+  };
 
   useEffect(() => {
     fetchProducts().then((all) => {
-      const found = all.find((p) => p.id === name);
-      console.log('Found product:', found);
+      const found = all.find((p) => p?.id === name);
+      // console.log('Found product:', found);
       setProduct(found || null);
     });
   }, [name]);
@@ -25,7 +41,7 @@ const ProductDetail = () => {
   if (!product) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <p>Loading...</p>
+        <Spinner size="sm" color="success" />
       </div>
     );
   }
@@ -62,6 +78,7 @@ const ProductDetail = () => {
           </p>
 
           <Button
+            onPress={() => handleAddToCart()}
             color="primary"
             className="bg-yellow-400 text-black"
             size="lg"

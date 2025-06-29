@@ -2,16 +2,18 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import globalSlice from './features/global';
+import cartSlice from './features/cart';
 
 const persistConfig = {
-	key: 'Template',
+	key: 'Sneakz',
 	storage,
-	whitelist: ["global"],
+	whitelist: ["global", "cart"],
 	blacklist: [],
 };
 
 const combinedReducers = combineReducers({
 	global: globalSlice.reducer,
+	cart: cartSlice.reducer,
 	
 });
 

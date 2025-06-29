@@ -1,0 +1,181 @@
+'use client';
+
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { PaystackButton } from 'react-paystack';
+import { useState } from 'react';
+import { variables } from '@/utils/env';
+import toast from 'react-hot-toast';
+import { CartItem, resetCart } from '@/store/features/cart';
+import { useNavigate } from 'react-router-dom';
+import { LogoComponent } from '@/components/logo-componanent';
+import { Button } from '@nextui-org/react';
+
+const publicKey = variables.VITE_PAYSTACK_PUBLIC_KEY;
+
+const Checkout = () => {
+  const { items } = useSelector((state: RootState) => state.cart);
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [tel, setTel] = useState('');
+  const [city, setCity] = useState('');
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+
+  const totalAmount = items.reduce((acc, item) => {
+    const finalPrice = item.discount
+      ? item.price - item.price * (item.discount / 100)
+      : item.price;
+    return acc + finalPrice * item.quantity;
+  }, 0);
+
+  const paystackProps = {
+    currency: 'GHS',
+    email,
+    amount: totalAmount * 100,
+    publicKey,
+    text: 'Pay Now',
+    onSuccess: async () => {
+      dispatch(resetCart());
+
+      toast.success('Payment successful! Your order is placed.', {
+        duration: 6000,
+      });
+
+      const userInfo = {
+        firstName,
+        lastName,
+        email,
+        tel,
+        location: city,
+        items: items.map((item: CartItem) => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          discount: item.discount,
+        })),
+        subject: 'New Product Order',
+        dateTime: new Date().toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+        }),
+        total: totalAmount,
+      };
+
+      await fetch(variables.VITE_FORMSPREE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userInfo),
+      });
+    },
+    onClose: () =>
+      toast.error('Payment was not completed.', {
+        duration: 5000,
+      }),
+  };
+
+  return (
+    <div className="min-h-screen px-6 py-12 bg-[rgba(197,195,195,0.165)] text-black">
+      {items.length === 0 ? (
+        <div className="flex flex-col gap-4 items-center justify-center">
+          <LogoComponent />
+          <p>You have no products in cart</p>
+          <Button onPress={() => navigate('/')}>Go Home</Button>
+        </div>
+      ) : (
+        <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+          <h1 className="text-2xl font-bold mb-6 text-yellow-500">Checkout</h1>
+
+          {/* Cart Summary */}
+          <div className="space-y-4">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex justify-between items-center border-b pb-2"
+              >
+                <div>
+                  <p className="font-semibold">{item.name}</p>
+                  <p className="text-sm text-gray-600">
+                    Qty: {item.quantity} | GHS {item.price.toFixed(2)}
+                  </p>
+                </div>
+                <p className="text-sm font-bold text-yellow-500">
+                  GHS{' '}
+                  {(
+                    item.quantity *
+                    (item.discount
+                      ? item.price - item.price * (item.discount / 100)
+                      : item.price)
+                  ).toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Total */}
+          <div className="mt-6 text-right font-bold text-lg">
+            Total: GHS {totalAmount.toFixed(2)}
+          </div>
+
+          {/* User Details Form */}
+          <div className="mt-8 space-y-4">
+            <input
+              type="text"
+              placeholder="First Name"
+              className="w-full border px-4 py-2 rounded-lg"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Last Name"
+              className="w-full border px-4 py-2 rounded-lg"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full border px-4 py-2 rounded-lg"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Phone Number"
+              className="w-full border px-4 py-2 rounded-lg"
+              value={tel}
+              onChange={(e) => setTel(e.target.value)}
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              className="w-full border px-4 py-2 rounded-lg"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+
+            <PaystackButton
+              {...paystackProps}
+              className="w-full bg-yellow-400 py-2 rounded-lg text-black font-semibold hover:opacity-90 transition"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Checkout;

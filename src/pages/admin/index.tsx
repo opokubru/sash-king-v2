@@ -94,7 +94,7 @@ export default function AdminPage() {
       return null;
     }
 
-    return `${variables.SUPABASE_URL}/storage/v1/object/public/products/${data?.path}`;
+    return `${variables.VITE_SUPABASE_URL}/storage/v1/object/public/products/${data?.path}`;
   };
 
   const handleSubmit = async () => {

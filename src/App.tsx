@@ -12,6 +12,7 @@ import TermsOfService from './pages/info_pages/terms-of-service';
 import Contact from './pages/info_pages/contact';
 import About from './pages/info_pages/about';
 import ProductDetail from './pages/product/product[id]';
+import Checkout from './pages/checkout/checkout';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="" element={<Home />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
+            <Route path="checkout" element={<Checkout />} />
 
             {/* info pages  */}
             <Route path="about" element={<About />} />

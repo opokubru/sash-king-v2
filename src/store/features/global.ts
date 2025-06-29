@@ -1,8 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState = {
-	targetOrganization: {},
-	assignedRole: Array<string>(),
+
 };
 
 const globalSlice = createSlice({

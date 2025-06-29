@@ -1,4 +1,3 @@
-import { Icon } from '@iconify/react/dist/iconify.js';
 import {
   Navbar,
   NavbarBrand,
@@ -11,11 +10,16 @@ import {
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CustomButton } from './shared_customs';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
+import { LogoComponent } from '../logo-componanent';
 
 export default function NavbarComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigate = useNavigate();
+
+  const { items } = useSelector((state: RootState) => state.cart);
 
   return (
     <>
@@ -42,9 +46,7 @@ export default function NavbarComponent() {
               className="w-[6.3rem]"
               alt="logo"
             /> */}
-            <p className="font-bold text-sm uppercase text-yellow-500">
-              Sneakz
-            </p>
+            <LogoComponent />
           </NavbarBrand>
         </NavbarContent>
 
@@ -53,14 +55,7 @@ export default function NavbarComponent() {
           justify="center"
         >
           <NavbarBrand as={Link} to="/" className="flex gap-x-3 ">
-            {/* <img
-              src="/icons/augwell_logo.png"
-              className="w-[8.3rem]"
-              alt="logo"
-            /> */}
-            <p className="font-bold text-inherit uppercase text-yellow-500">
-              Sneakz
-            </p>
+            <LogoComponent />
           </NavbarBrand>
           <div className="flex w-[87%] gap-x-5 justify-center items-center">
             {menuItems.map((item, index) => (
@@ -70,12 +65,17 @@ export default function NavbarComponent() {
                   className={({ isActive }) =>
                     `w-full text-sm text-[#1A1A1A] ${
                       isActive
-                        ? 'text-black border-b-3 border-primary'
+                        ? 'text-black border-b-3 border-yellow-500'
                         : 'text-[#1A1A1A]'
                     }`
                   }
                 >
                   {item.title}
+                  {item.title === 'Checkout' && (
+                    <span className="bg-yellow-300 rounded-full p-2 py-1 text-xs">
+                      {items.length}
+                    </span>
+                  )}
                 </NavLink>
               </NavbarItem>
             ))}
@@ -108,6 +108,7 @@ export default function NavbarComponent() {
                 to={item.link}
               >
                 {item.title}
+                <span>{item.title === 'Checkout' && items?.length}</span>
               </NavLink>
             </NavbarMenuItem>
           ))}
