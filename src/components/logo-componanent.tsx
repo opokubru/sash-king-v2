@@ -1,7 +1,9 @@
 export const LogoComponent = () => {
+  const logo = './icons/logo_1_no_bg.png';
   return (
     <div>
-      <p className="font-bold text-sm uppercase text-yellow-500">Sneakz</p>
+      {/* <p className="font-bold text-sm uppercase text-yellow-500">Sneakz</p> */}
+      <img width="50%" src={logo} />
     </div>
   );
 };

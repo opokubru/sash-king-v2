@@ -13,6 +13,7 @@ import { CustomButton } from './shared_customs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { LogoComponent } from '../logo-componanent';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 export default function NavbarComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,6 +21,34 @@ export default function NavbarComponent() {
   const navigate = useNavigate();
 
   const { items } = useSelector((state: RootState) => state.cart);
+
+  //   <header className="flex justify-between items-center mb-16">
+  //   <div className="text-2xl font-bold">TrendZone</div>
+  //   <nav className="hidden md:flex items-center gap-8">
+  //     <a href="#" className="text-gray-600 hover:text-black">
+  //       Home
+  //     </a>
+  //     <a href="#" className="text-gray-600 hover:text-black">
+  //       New Arrival
+  //     </a>
+  //     <a href="#" className="text-gray-600 hover:text-black">
+  //       Shop
+  //     </a>
+  //     <a href="#" className="text-gray-600 hover:text-black">
+  //       Contact
+  //     </a>
+  //     <a href="#" className="text-gray-600 hover:text-black">
+  //       About Us
+  //     </a>
+  //   </nav>
+  //   <div className="flex items-center gap-4">
+  //     <Icon icon="uil:search" className="text-2xl text-gray-600" />
+  //     <Icon icon="uil:shopping-bag" className="text-2xl text-gray-600" />
+  //     <button className="bg-black text-white px-6 py-2 rounded-lg text-sm font-medium">
+  //       Sign In
+  //     </button>
+  //   </div>
+  // </header>
 
   return (
     <>
@@ -63,19 +92,19 @@ export default function NavbarComponent() {
                 <NavLink
                   to={item.link}
                   className={({ isActive }) =>
-                    `w-full text-sm text-[#1A1A1A] ${
+                    `w-full text-sm text-gray-600 ${
                       isActive
-                        ? 'text-black border-b-3 border-yellow-500'
-                        : 'text-[#1A1A1A]'
+                        ? 'text-black '
+                        : 'text-gray-600 hover:text-black'
                     }`
                   }
                 >
                   {item.title}
-                  {item.title === 'Checkout' && (
+                  {/* {item.title === 'Checkout' && (
                     <span className="bg-yellow-300 rounded-full p-2 py-1 text-xs">
                       {items.length}
                     </span>
-                  )}
+                  )} */}
                 </NavLink>
               </NavbarItem>
             ))}
@@ -83,7 +112,19 @@ export default function NavbarComponent() {
         </NavbarContent>
 
         <NavbarContent justify="end" className="hidden lg:flex">
-          <NavbarItem className=" gap-x-10 hidden lg:flex">
+          <NavbarItem className="gap-4 hidden lg:flex items-center">
+            <Icon icon="uil:search" className="text-2xl text-gray-600" />
+
+            <div className="relative">
+              <Icon
+                icon="uil:shopping-bag"
+                className="text-2xl text-gray-600"
+              />
+              <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
+                {items.length}
+              </span>
+            </div>
+
             <CustomButton
               onClick={() => navigate('/contact')}
               className="bg-yellow-400 text-white"
@@ -138,8 +179,8 @@ const menuItems = [
     link: 'categories',
     title: 'Categories',
   },
-  {
-    link: '/checkout',
-    title: 'Checkout',
-  },
+  // {
+  //   link: '/checkout',
+  //   title: 'Checkout',
+  // },
 ];
