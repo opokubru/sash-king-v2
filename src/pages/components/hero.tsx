@@ -35,7 +35,7 @@ const HeroSection = () => {
 
             <div className="h-[30%] rounded-3xl overflow-hidden bg-secondary-gray p-4">
               <img
-                src="https://placehold.co/400"
+                src="https://source.unsplash.com/9ZyQK6k_tfg"
                 alt="Model in green shirt"
                 className="w-full h-full object-cover"
               />
@@ -45,7 +45,7 @@ const HeroSection = () => {
             {/* second */}
             <div className="rounded-3xl h-full overflow-hidden bg-secondary p-4">
               <img
-                src="https://placehold.co/400"
+                src="https://images.unsplash.com/photo-1525541822802-a8704b21b33e?q=80&w=1587&auto=format&fit=crop"
                 alt="Model in green coat"
                 className="w-full h-full object-cover"
               />
@@ -56,7 +56,7 @@ const HeroSection = () => {
             {/* midle */}
             <div className=" rounded-3xl overflow-hidden  bg-yellow-300 p-4">
               <img
-                src="https://placehold.co/400"
+                src="https://images.unsplash.com/photo-1579503463628-042c15ada6b0?q=80&w=1587&auto=format&fit=crop"
                 alt="Model in yellow hat"
                 className="w-full h-full object-cover"
               />
@@ -71,7 +71,7 @@ const HeroSection = () => {
             {/* 4th */}
             <div className="h-full rounded-3xl overflow-hidden bg-secondary-gray p-4">
               <img
-                src="https://placehold.co/400"
+                src="https://images.unsplash.com/photo-1628189432135-174836f82798?q=80&w=1587&auto=format&fit=crop"
                 alt="Model in white outfit"
                 className="w-full h-full object-cover"
               />
