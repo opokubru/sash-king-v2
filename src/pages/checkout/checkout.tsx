@@ -6,10 +6,17 @@ import { PaystackButton } from 'react-paystack';
 import { useState } from 'react';
 import { variables } from '@/utils/env';
 import toast from 'react-hot-toast';
-import { CartItem, resetCart } from '@/store/features/cart';
+import {
+  CartItem,
+  decreaseQuantity,
+  increaseQuantity,
+  resetCart,
+} from '@/store/features/cart';
 import { useNavigate } from 'react-router-dom';
 import { LogoComponent } from '@/components/logo-componanent';
 import { Button } from '@nextui-org/react';
+import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
+import { Icon } from '@iconify/react/dist/iconify.js';
 
 const publicKey = variables.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -102,20 +109,44 @@ const Checkout = () => {
                 key={item.id}
                 className="flex justify-between items-center border-b pb-2"
               >
-                <div>
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-600">
-                    Qty: {item.quantity} | GHS {item.price.toFixed(2)}
-                  </p>
+                <div className="flex gap-2 items-center">
+                  <img width="8%" src={item.image_url} alt={item.name} />
+                  <div>
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-gray-600">
+                      Qty: {item.quantity} | {getCurrencySymbol('GHS')}{' '}
+                      {parseToMoney(item.price)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-2">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() => dispatch(decreaseQuantity(item.id!))}
+                    >
+                      <Icon icon="charm:minus" />
+                    </Button>
+                    <span className="font-medium">{item.quantity}</span>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      onPress={() => dispatch(increaseQuantity(item.id!))}
+                    >
+                      <Icon icon="stash:plus-solid" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-sm font-bold text-yellow-500">
-                  GHS{' '}
-                  {(
+                <p className="text-sm font-bold text-yellow-500 flex gap-2 whitespace-nowrap">
+                  {getCurrencySymbol('GHS')}{' '}
+                  {parseToMoney(
                     item.quantity *
-                    (item.discount
-                      ? item.price - item.price * (item.discount / 100)
-                      : item.price)
-                  ).toFixed(2)}
+                      (item.discount
+                        ? item.price - item.price * (item.discount / 100)
+                        : item.price),
+                  )}
                 </p>
               </div>
             ))}
@@ -123,7 +154,7 @@ const Checkout = () => {
 
           {/* Total */}
           <div className="mt-6 text-right font-bold text-lg">
-            Total: GHS {totalAmount.toFixed(2)}
+            Total: {getCurrencySymbol('GHS')} {parseToMoney(totalAmount)}
           </div>
 
           {/* User Details Form */}

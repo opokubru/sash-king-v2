@@ -34,6 +34,7 @@ import { Product } from '@/utils/types/product';
 import { variables } from '@/utils/env';
 import toast from 'react-hot-toast';
 import { useCategories } from '@/utils/hooks/categories';
+import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -223,7 +224,9 @@ export default function AdminProducts() {
                   />
                 </TableCell>
                 <TableCell>{p.name}</TableCell>
-                <TableCell>GHS {p.price.toFixed(2)}</TableCell>
+                <TableCell>
+                  {getCurrencySymbol('GHS')} {parseToMoney(p.price)}
+                </TableCell>
                 <TableCell>{p.discount ? `${p.discount}%` : '-'}</TableCell>
                 <TableCell>{p.category || '-'}</TableCell>
                 <TableCell>
@@ -258,7 +261,7 @@ export default function AdminProducts() {
                   />
                   <Input
                     name="price"
-                    label="Price (GHS)"
+                    label={`Price ${getCurrencySymbol('GHS')}`}
                     type="number"
                     value={String(form.price)}
                     onChange={handleChange}

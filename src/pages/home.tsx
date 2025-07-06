@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fetchProducts } from '@/lib/db/products';
 import { Product } from '@/utils/types/product';
 import { ProductCard } from '@/components/ProductCard';
@@ -28,9 +28,15 @@ const Home = () => {
     );
   });
 
+  const collectionsRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <>
-      <HeroSection />
+      <HeroSection
+        onExploreClick={() =>
+          collectionsRef.current?.scrollIntoView({ behavior: 'smooth' })
+        }
+      />
 
       <main className="min-h-screen container  px-6 py-16 text-black">
         <AdGrid />
@@ -65,7 +71,10 @@ const Home = () => {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-6">
+        <div
+          className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-6"
+          ref={collectionsRef}
+        >
           {filtered.length > 0 ? (
             filtered.map((product) => (
               <ProductCard key={product.id} product={product} />

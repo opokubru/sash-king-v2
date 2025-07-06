@@ -38,7 +38,7 @@ module.exports = {
       },
 
       colors: {
-        primary: '#FF3C00', // SNEAKS red-orange
+        primary: '#FF5927', // SNEAKS red-orange
         'primary-dark': '#CC3000', // darker shade for hover states
         'primary-white': '#F5F5F5', // soft white for backgrounds
         'primary-black': '#000000', // true black for text/bg

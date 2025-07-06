@@ -3,6 +3,7 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import globalSlice from './features/global';
 import cartSlice from './features/cart';
+import authSlice from './features/auth';
 
 const persistConfig = {
 	key: 'Sneakz',
@@ -14,6 +15,7 @@ const persistConfig = {
 const combinedReducers = combineReducers({
 	global: globalSlice.reducer,
 	cart: cartSlice.reducer,
+	auth: authSlice.reducer,
 	
 });
 

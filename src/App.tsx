@@ -14,6 +14,7 @@ import About from './pages/info_pages/about';
 import ProductDetail from './pages/product/product[id]';
 import Checkout from './pages/checkout/checkout';
 import AllCategoriesPage from './pages/product/categories';
+import AdminSignInPage from './pages/admin/auth/signin';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route path="" element={<Home />} />
+            <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
             <Route path="checkout" element={<Checkout />} />

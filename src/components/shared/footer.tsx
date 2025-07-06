@@ -115,7 +115,7 @@ const FOOTER_ITEMS = [
     links: [
       {
         title: 'Admin',
-        href: '/admin',
+        href: '/signin',
       },
     ],
   },

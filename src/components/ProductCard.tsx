@@ -6,6 +6,7 @@ import { Image } from '@nextui-org/react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '@/store/features/cart';
+import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 
 interface ProductCardProps {
   product: Product;
@@ -61,10 +62,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           {discount ? (
             <>
               <p className="text-yellow-500 font-bold text-sm">
-                GHS {finalPrice.toFixed(2)}
+                {getCurrencySymbol('GHS')} {parseToMoney(finalPrice)}
               </p>
               <p className="text-gray-400 text-xs line-through">
-                GHS {price.toFixed(2)}
+                {getCurrencySymbol('GHS')} {parseToMoney(price)}
               </p>
               <span className="ml-auto text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
                 -{discount}%
@@ -72,7 +73,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
             </>
           ) : (
             <p className="text-yellow-500 font-bold text-sm">
-              GHS {price.toFixed(2)}
+              {getCurrencySymbol('GHS')} {parseToMoney(price)}
             </p>
           )}
         </div>

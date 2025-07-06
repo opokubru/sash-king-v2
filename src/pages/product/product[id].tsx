@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import RelatedProducts from '../components/related-products';
 import { addToCart } from '@/store/features/cart';
 import { useDispatch } from 'react-redux';
+import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 
 const ProductDetail = () => {
   const { name } = useParams();
@@ -60,7 +61,7 @@ const ProductDetail = () => {
           <h2 className="text-3xl font-bold text-yellow-400">{product.name}</h2>
           <p className="text-lg text-gray-700">{product.description}</p>
           <p className="text-xl font-semibold text-black">
-            GHS {product.price.toFixed(2)}
+            {getCurrencySymbol('GHS')} {parseToMoney(product.price)}
           </p>
           {product?.discount && product?.discount > 0 && (
             <p className="text-sm text-green-600">{product.discount}% off</p>
