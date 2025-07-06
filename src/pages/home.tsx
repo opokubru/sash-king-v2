@@ -6,28 +6,28 @@ import { fetchProducts } from '@/lib/db/products';
 import { Product } from '@/utils/types/product';
 import { ProductCard } from '@/components/ProductCard';
 import AdGrid from './components/add-grid';
-import { useCategories } from '@/utils/hooks/categories';
+// import { useCategories } from '@/utils/hooks/categories';
 import HeroSection from './components/hero';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('');
-  // const [inStockOnly, setInStockOnly] = useState(false);
+  // const [query, setQuery] = useState('');
+  // const [category, setCategory] = useState('');
+  // // const [inStockOnly, setInStockOnly] = useState(false);
 
-  const { categories: CATEGORIES } = useCategories();
+  // const { categories: CATEGORIES } = useCategories();
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(console.error);
   }, []);
 
-  const filtered = products.filter((p) => {
-    return (
-      p.name.toLowerCase().includes(query.toLowerCase()) &&
-      (category ? p.category === category : true)
-      // && (!inStockOnly || p.in_stock)
-    );
-  });
+  // const filtered = products.filter((p) => {
+  //   return (
+  //     p.name.toLowerCase().includes(query.toLowerCase()) &&
+  //     (category ? p.category === category : true)
+  //     // && (!inStockOnly || p.in_stock)
+  //   );
+  // });
 
   const collectionsRef = useRef<HTMLDivElement | null>(null);
 
@@ -76,9 +76,9 @@ const Home = () => {
           className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-6"
           ref={collectionsRef}
         >
-          {filtered.length > 0 ? (
-            filtered.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          {products?.length > 0 ? (
+            products?.map((product) => (
+              <ProductCard key={product?.id} product={product} />
             ))
           ) : (
             <p className="col-span-full text-center text-gray-500">
