@@ -54,8 +54,10 @@ export default function AdminDashboard() {
           <Icon icon="ic:twotone-logout" /> Log out
         </button>
       </p>
-      {isAuthenticated ? (
-        <div>Not authenticated</div>
+      {!isAuthenticated ? (
+        <div className="flex items-center justify-center">
+          Not authenticated
+        </div>
       ) : (
         <>
           <Tabs
