@@ -6,16 +6,14 @@ import { fetchProducts } from '@/lib/db/products';
 import { Product } from '@/utils/types/product';
 import { ProductCard } from '@/components/ProductCard';
 import AdGrid from './components/add-grid';
-// import { useCategories } from '@/utils/hooks/categories';
 import HeroSection from './components/hero';
+// import { useCategories } from '@/utils/hooks/categories';
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
   // const [query, setQuery] = useState('');
   // const [category, setCategory] = useState('');
   // // const [inStockOnly, setInStockOnly] = useState(false);
-
-  // const { categories: CATEGORIES } = useCategories();
 
   useEffect(() => {
     fetchProducts().then(setProducts).catch(console.error);
@@ -39,13 +37,9 @@ const Home = () => {
         }
       />
 
-      <main className="min-h-screen container  px-6 py-16 text-black">
+      <main className="min-h-screen max-w-7xl mx-auto  px-6 py-16 text-black">
         <AdGrid />
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-center justify-center mx-auto place-items-center"></div>
-
-        {/* Product Grid */}
         <div
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
           ref={collectionsRef}

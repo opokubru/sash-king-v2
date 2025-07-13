@@ -29,7 +29,7 @@ const AllCategoriesPage = () => {
 
   return (
     <div className="min-h-screen container px-6 py-10 text-black bg-transparent">
-      <h1 className="text-3xl font-bold text-yellow-500 text-center mb-10">
+      <h1 className="text-3xl font-bold text-primary text-center mb-10">
         Explore by Categories
       </h1>
 
@@ -54,7 +54,7 @@ const AllCategoriesPage = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

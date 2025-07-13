@@ -39,7 +39,7 @@ export const fetchUnder100 = async (): Promise<Product[]> => {
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .lte('price', 250)
+    .lte('price', 200)
     .order('price', { ascending: true })
     .limit(4);
   if (error) throw error;

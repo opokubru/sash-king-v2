@@ -100,7 +100,7 @@ const Checkout = () => {
         </div>
       ) : (
         <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-          <h1 className="text-2xl font-bold mb-6 text-yellow-500">Checkout</h1>
+          <h1 className="text-2xl font-bold mb-6 text-primary">Checkout</h1>
 
           {/* Cart Summary */}
           <div className="space-y-4">
@@ -139,7 +139,7 @@ const Checkout = () => {
                     </Button>
                   </div>
                 </div>
-                <p className="text-sm font-bold text-yellow-500 flex gap-2 whitespace-nowrap">
+                <p className="text-sm font-bold text-primary flex gap-2 whitespace-nowrap">
                   {getCurrencySymbol('GHS')}{' '}
                   {parseToMoney(
                     item.quantity *
@@ -200,7 +200,7 @@ const Checkout = () => {
 
             <PaystackButton
               {...paystackProps}
-              className="w-full bg-yellow-400 py-2 rounded-lg text-black font-semibold hover:opacity-90 transition"
+              className="w-full bg-primary py-2 rounded-lg text-white font-semibold hover:opacity-90 transition"
             />
           </div>
         </div>

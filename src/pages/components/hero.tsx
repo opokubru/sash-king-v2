@@ -3,12 +3,19 @@
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { CustomButton } from '@/components/shared/shared_customs';
+import { Image } from '@nextui-org/react';
+import { useCategories } from '@/utils/hooks/categories';
+import { Link } from 'react-router-dom';
 
 interface HeroSectionProps {
   onExploreClick: () => void;
 }
 
 const HeroSection = ({ onExploreClick }: HeroSectionProps) => {
+  const { categories, loading: loadingCategories } = useCategories();
+
+  const displayedCategories = categories.slice(0, 6);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -117,6 +124,43 @@ const HeroSection = ({ onExploreClick }: HeroSectionProps) => {
               />
             </div>
           </section>
+        </div>
+      </div>
+      <div className="flex items-center gap-10 mt-4 max-w-7xl mx-auto">
+        <div className="mt-10">
+          <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-4">
+            Shop by Category
+            {!loadingCategories && categories.length > 6 && (
+              <div className=" text-center">
+                <Link
+                  to="categories"
+                  className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                >
+                  See All <Icon icon="si:arrow-right-line" />
+                </Link>
+              </div>
+            )}
+          </h2>
+          <div className="grid grid-cols-6 items-center gap-6">
+            {!loadingCategories &&
+              displayedCategories.map((cat) => (
+                <div
+                  key={cat.value}
+                  className="flex flex-col gap-2 items-center w-24"
+                >
+                  <Image
+                    src={cat.image_url}
+                    alt={cat.label}
+                    width={60}
+                    height={60}
+                    className="rounded-full shadow-sm"
+                  />
+                  <h2 className="text-sm font-medium mt-2 text-center text-primary">
+                    {cat.label}
+                  </h2>
+                </div>
+              ))}
+          </div>
         </div>
       </div>
     </motion.section>
