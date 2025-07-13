@@ -44,7 +44,7 @@ const PrivacyPolicy = () => {
           </p>
         </Section>
 
-        <Section icon="mdi:account-key-outline" title="Your Rights">
+        {/* <Section icon="mdi:account-key-outline" title="Your Rights">
           <p>
             You can access, modify, or request deletion of your personal
             information by contacting us at{' '}
@@ -56,7 +56,7 @@ const PrivacyPolicy = () => {
             </a>
             .
           </p>
-        </Section>
+        </Section> */}
 
         <Section icon="mdi:file-document-edit-outline" title="Policy Agreement">
           <p>

@@ -7,14 +7,24 @@ export const fetchAllProducts = async (): Promise<Product[]> => {
   return data as Product[];
 };
 
-export const fetchProducts = async (from = 0, to = 11): Promise<Product[]> => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .range(from, to);
+
+
+export const fetchProducts = async (
+  from = 0,
+  to = 11,
+  category?: string
+): Promise<Product[]> => {
+  let query = supabase.from('products').select('*').range(from, to);
+
+  if (category) {
+    query = query.eq('category', category);
+  }
+
+  const { data, error } = await query;
   if (error) throw error;
   return data as Product[];
 };
+
 
 
 export const fetchProductById = async (id: string): Promise<Product> => {

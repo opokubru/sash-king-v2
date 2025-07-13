@@ -42,9 +42,7 @@ const RelatedProducts = ({
 
   return (
     <section className="mt-20">
-      <h3 className="text-2xl font-bold mb-4 text-yellow-400">
-        Related Products
-      </h3>
+      <h3 className="text-2xl font-bold mb-4 text-primary">Related Products</h3>
 
       <div ref={sliderRef} className="keen-slider">
         {related.map((product) => (

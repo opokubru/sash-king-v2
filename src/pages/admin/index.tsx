@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[rgba(197,195,195,0.165)] text-black px-4 py-10">
       <p className="flex justify-between px-5">
-        <h1 className="text-3xl font-bold text-yellow-500 text-center mb-10">
+        <h1 className="text-3xl font-bold text-primary text-center mb-10">
           Admin Dashboard
         </h1>
         <button

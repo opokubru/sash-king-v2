@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { LogoComponent } from '../logo-componanent';
 import { Icon } from '@iconify/react/dist/iconify.js';
+import { Input } from '@nextui-org/react';
 
 export default function NavbarComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,33 +23,18 @@ export default function NavbarComponent() {
 
   const { items } = useSelector((state: RootState) => state.cart);
 
-  //   <header className="flex justify-between items-center mb-16">
-  //   <div className="text-2xl font-bold">TrendZone</div>
-  //   <nav className="hidden md:flex items-center gap-8">
-  //     <a href="#" className="text-gray-600 hover:text-black">
-  //       Home
-  //     </a>
-  //     <a href="#" className="text-gray-600 hover:text-black">
-  //       New Arrival
-  //     </a>
-  //     <a href="#" className="text-gray-600 hover:text-black">
-  //       Shop
-  //     </a>
-  //     <a href="#" className="text-gray-600 hover:text-black">
-  //       Contact
-  //     </a>
-  //     <a href="#" className="text-gray-600 hover:text-black">
-  //       About Us
-  //     </a>
-  //   </nav>
-  //   <div className="flex items-center gap-4">
-  //     <Icon icon="uil:search" className="text-2xl text-gray-600" />
-  //     <Icon icon="uil:shopping-bag" className="text-2xl text-gray-600" />
-  //     <button className="bg-black text-white px-6 py-2 rounded-lg text-sm font-medium">
-  //       Sign In
-  //     </button>
-  //   </div>
-  // </header>
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      setShowSearch(false);
+      setQuery('');
+      setIsMenuOpen(false); // Close mobile menu if open
+    }
+  };
 
   return (
     <>
@@ -70,11 +56,6 @@ export default function NavbarComponent() {
 
         <NavbarContent className="lg:hidden pr-3" justify="center">
           <NavbarBrand as={Link} to="/" className="flex gap-x-3">
-            {/* <img
-              src="/icons/augwell_logo.png"
-              className="w-[6.3rem]"
-              alt="logo"
-            /> */}
             <LogoComponent />
           </NavbarBrand>
         </NavbarContent>
@@ -100,11 +81,6 @@ export default function NavbarComponent() {
                   }
                 >
                   {item.title}
-                  {/* {item.title === 'Checkout' && (
-                    <span className="bg-yellow-300 rounded-full p-2 py-1 text-xs">
-                      {items.length}
-                    </span>
-                  )} */}
                 </NavLink>
               </NavbarItem>
             ))}
@@ -113,14 +89,53 @@ export default function NavbarComponent() {
 
         <NavbarContent justify="end" className="hidden lg:flex">
           <NavbarItem className="gap-4 hidden lg:flex items-center">
-            <Icon icon="uil:search" className="text-2xl text-gray-600" />
-
+            <p>
+              {!showSearch ? (
+                <Icon
+                  icon="uil:search"
+                  className="text-2xl text-gray-600 cursor-pointer"
+                  onClick={() => setShowSearch(true)}
+                />
+              ) : (
+                <form
+                  onSubmit={handleSearchSubmit}
+                  className="flex items-center gap-2 w-full"
+                >
+                  <Input
+                    autoFocus
+                    radius="lg"
+                    size="sm"
+                    variant="underlined"
+                    placeholder="Search products..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="w-[10rem]"
+                    endContent={
+                      <button type="submit">
+                        <Icon
+                          icon="uil:search"
+                          className="text-xl text-gray-600"
+                        />
+                      </button>
+                    }
+                  />
+                  <Icon
+                    icon="mdi:close"
+                    className="text-lg text-gray-600 cursor-pointer"
+                    onClick={() => {
+                      setShowSearch(false);
+                      setQuery('');
+                    }}
+                  />
+                </form>
+              )}
+            </p>
             <button onClick={() => navigate('/checkout')} className="relative">
               <Icon
                 icon="uil:shopping-bag"
                 className="text-2xl text-gray-600"
               />
-              <span className="absolute -top-2 -right-2 bg-primary text-black text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
+              <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
                 {items.length}
               </span>
             </button>
@@ -132,6 +147,48 @@ export default function NavbarComponent() {
               Contact Us
             </CustomButton>
           </NavbarItem>
+        </NavbarContent>
+
+        <NavbarContent
+          justify="end"
+          className="flex lg:hidden items-center gap-3 px-2"
+        >
+          {!showSearch ? (
+            <Icon
+              icon="uil:search"
+              className="text-2xl text-gray-600 cursor-pointer"
+              onClick={() => setShowSearch(true)}
+            />
+          ) : (
+            <form
+              onSubmit={handleSearchSubmit}
+              className="flex items-center gap-2 w-full"
+            >
+              <Input
+                autoFocus
+                radius="lg"
+                size="sm"
+                variant="underlined"
+                placeholder="Search products..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-[10rem]"
+                endContent={
+                  <button type="submit">
+                    <Icon icon="uil:search" className="text-xl text-gray-600" />
+                  </button>
+                }
+              />
+              <Icon
+                icon="mdi:close"
+                className="text-lg text-gray-600 cursor-pointer"
+                onClick={() => {
+                  setShowSearch(false);
+                  setQuery('');
+                }}
+              />
+            </form>
+          )}
         </NavbarContent>
 
         <NavbarMenu className="bg-white">

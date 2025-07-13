@@ -21,6 +21,7 @@ import {
   useDisclosure,
   Select,
   SelectItem,
+  Switch,
 } from '@nextui-org/react';
 import { Icon } from '@iconify/react';
 import {
@@ -149,7 +150,7 @@ export default function AdminProducts() {
     <div className="min-h-screen  text-black">
       <div className=" mx-auto space-y-10">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-yellow-500">
+          <h2 className="text-3xl font-bold text-primary/80">
             Product Inventory
           </h2>
           <Button
@@ -229,7 +230,7 @@ export default function AdminProducts() {
                 </TableCell>
                 <TableCell>{p.discount ? `${p.discount}%` : '-'}</TableCell>
                 <TableCell>{p.category || '-'}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {p.in_stock ? (
                     <span className="text-green-600 font-semibold">
                       In Stock
@@ -237,6 +238,27 @@ export default function AdminProducts() {
                   ) : (
                     <span className="text-red-500 font-semibold">Out</span>
                   )}
+                </TableCell> */}
+                <TableCell>
+                  <Switch
+                    size="sm"
+                    isSelected={p.in_stock}
+                    onValueChange={async (checked) => {
+                      await updateProduct(p.id as string, {
+                        ...p,
+                        in_stock: checked,
+                      });
+                      const updated = await fetchAllProducts();
+                      setProducts(updated);
+                    }}
+                    color={p.in_stock ? 'success' : 'danger'}
+                    classNames={{
+                      base: 'text-xs font-semibold',
+                      thumb: 'bg-white',
+                    }}
+                  >
+                    {p.in_stock ? 'In Stock' : 'Out of Stock'}
+                  </Switch>
                 </TableCell>
               </TableRow>
             ))}

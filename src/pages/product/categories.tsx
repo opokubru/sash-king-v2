@@ -49,7 +49,7 @@ const AllCategoriesPage = () => {
                 width={50}
                 className="rounded-lg"
               />
-              <h2 className="text-2xl font-semibold text-yellow-600">
+              <h2 className="text-2xl font-semibold text-primary/90">
                 {cat.label}
               </h2>
             </div>

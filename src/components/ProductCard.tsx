@@ -56,7 +56,7 @@ export const ProductCard = ({ product, compact = false }: ProductCardProps) => {
     <div className="relative bg-primary-white rounded-xl shadow-lg border border-primary/30 overflow-hidden">
       {/* Sold Out Badge */}
       {!in_stock && (
-        <div className="absolute top-2 left-2 bg-danger text-white text-[10px] px-2 py-1 rounded z-10 uppercase font-semibold">
+        <div className="z-50 absolute top-2 left-2 bg-danger text-white text-[10px] px-2 py-1 rounded  uppercase font-semibold">
           Out of Stock
         </div>
       )}
@@ -85,10 +85,12 @@ export const ProductCard = ({ product, compact = false }: ProductCardProps) => {
             <span className="text-sm md:text-base font-bold text-primary-black">
               {getCurrencySymbol('GHS')} {parseToMoney(finalPrice)}
             </span>
-            {discount && discount > 0 && (
+            {discount && discount > 0 ? (
               <span className="text-xs md:text-sm text-gray-muted line-through">
                 {getCurrencySymbol('GHS')} {parseToMoney(price)}
               </span>
+            ) : (
+              <p></p>
             )}
           </div>
 

@@ -8,13 +8,13 @@ import { socials } from '@/utils/data/social';
 const features = [
   {
     title: 'Trendy Styles',
-    icon: <Icon icon="mdi:tshirt-crew" className="w-6 h-6 text-yellow-400" />,
+    icon: <Icon icon="mdi:tshirt-crew" className="w-6 h-6 text-primary/90" />,
     desc: 'We curate the latest fashion trends in streetwear and accessories.',
   },
   {
     title: 'Fast Delivery',
     icon: (
-      <Icon icon="mdi:truck-fast-outline" className="w-6 h-6 text-yellow-400" />
+      <Icon icon="mdi:truck-fast-outline" className="w-6 h-6 text-primary/90" />
     ),
     desc: 'Swift nationwide delivery to keep you laced up on time.',
   },
@@ -23,7 +23,7 @@ const features = [
     icon: (
       <Icon
         icon="mdi:star-circle-outline"
-        className="w-6 h-6 text-yellow-400"
+        className="w-6 h-6 text-primary/90"
       />
     ),
     desc: 'Every item is hand-picked for its quality, durability, and vibe.',
@@ -40,9 +40,7 @@ const About = () => {
         transition={{ duration: 0.6 }}
         className="text-center max-w-3xl mx-auto"
       >
-        <h1 className="text-4xl font-bold mb-4 text-yellow-500">
-          About SNEAKZ
-        </h1>
+        <h1 className="text-4xl font-bold mb-4 text-primary">About SNEAKZ</h1>
         <p className="text-lg text-gray-700">
           SNEAKZ is more than just an online store — it’s a culture. We bring
           you a fresh mix of urban fashion, bold accessories, and a community
@@ -74,7 +72,7 @@ const About = () => {
         {features.map((feature, index) => (
           <Card
             key={index}
-            className="bg-white border border-yellow-400 text-black shadow-lg"
+            className="bg-white border border-primary/30 text-black shadow-lg"
           >
             <CardHeader className="flex items-center gap-4">
               <div>{feature.icon}</div>
@@ -94,7 +92,7 @@ const About = () => {
         transition={{ delay: 0.6, duration: 0.6 }}
         className="mt-24 text-center"
       >
-        <h3 className="text-xl font-semibold text-yellow-400">
+        <h3 className="text-xl font-semibold text-primary/90">
           Join the SNEAKZ Movement
         </h3>
         <p className="text-gray-600 mt-2">

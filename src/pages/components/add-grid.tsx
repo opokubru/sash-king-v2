@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import { getCurrencySymbol } from '@/utils/helper';
 
 export function TopDealsCarousel({ topDeals }: { topDeals: Product[] }) {
   const settings = {
@@ -106,7 +107,10 @@ export default function AdGrid() {
       {/* --- Top Selling --- */}
       <div className="bg-white rounded-xl p-4 shadow-sm h-[450px] flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold">Top selling</h3>
+          <h3 className="text-lg font-bold">
+            Top Selling Under{' '}
+            <span className="text-primary">{getCurrencySymbol('GHS')}250</span>
+          </h3>
           <Link
             to="/products/top-ranking"
             className="text-sm text-primary hover:underline"

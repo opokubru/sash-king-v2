@@ -15,6 +15,11 @@ import ProductDetail from './pages/product/product[id]';
 import Checkout from './pages/checkout/checkout';
 import AllCategoriesPage from './pages/product/categories';
 import AdminSignInPage from './pages/admin/auth/signin';
+import SelectedCategoryPage from './pages/product/categories[id]';
+import TopDealsPage from './pages/product/top-deals-page';
+import NewArrivalsPage from './pages/product/new-arrival-page';
+import TopSellingPage from './pages/product/top-selling-page';
+import SearchPage from './pages/product/search-page';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -35,6 +40,12 @@ function App() {
             <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/products/deals" element={<TopDealsPage />} />
+            <Route path="/products/top-ranking" element={<TopSellingPage />} />
+            <Route path="/products/new" element={<NewArrivalsPage />} />
+
+            <Route path="categories/:name" element={<SelectedCategoryPage />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="categories" element={<AllCategoriesPage />} />
 

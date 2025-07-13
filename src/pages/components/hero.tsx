@@ -144,9 +144,10 @@ const HeroSection = ({ onExploreClick }: HeroSectionProps) => {
           <div className="grid grid-cols-6 items-center gap-6">
             {!loadingCategories &&
               displayedCategories.map((cat) => (
-                <div
+                <Link
+                  to={`categories/${cat.label.toLowerCase()}`}
                   key={cat.value}
-                  className="flex flex-col gap-2 items-center w-24"
+                  className="flex flex-col gap-2 items-center w-24 h-24 hover:scale-105 transition-all cursor-pointer"
                 >
                   <Image
                     src={cat.image_url}
@@ -158,7 +159,7 @@ const HeroSection = ({ onExploreClick }: HeroSectionProps) => {
                   <h2 className="text-sm font-medium mt-2 text-center text-primary">
                     {cat.label}
                   </h2>
-                </div>
+                </Link>
               ))}
           </div>
         </div>

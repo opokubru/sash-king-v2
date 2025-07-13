@@ -14,11 +14,11 @@ export const Section = ({
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
-    className="bg-white p-6 rounded-2xl border border-yellow-300 shadow-sm"
+    className="bg-white p-6 rounded-2xl border border-primary/30 shadow-sm"
   >
     <div className="flex items-center gap-3 mb-2">
-      <Icon icon={icon} className="text-yellow-400 w-5 h-5" />
-      <h2 className="text-lg font-semibold text-yellow-500">{title}</h2>
+      <Icon icon={icon} className="text-primary/90 w-5 h-5" />
+      <h2 className="text-lg font-semibold text-primary">{title}</h2>
     </div>
     <div className="text-gray-700 text-sm md:text-base leading-relaxed">
       {children}
