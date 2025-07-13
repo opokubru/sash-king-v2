@@ -1,11 +1,21 @@
 import { Product } from '@/utils/types/product';
 import { supabase } from '../supabaseClient';
 
-export const fetchProducts = async (): Promise<Product[]> => {
+export const fetchAllProducts = async (): Promise<Product[]> => {
   const { data, error } = await supabase.from('products').select('*');
   if (error) throw error;
   return data as Product[];
 };
+
+export const fetchProducts = async (from = 0, to = 11): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .range(from, to);
+  if (error) throw error;
+  return data as Product[];
+};
+
 
 export const fetchProductById = async (id: string): Promise<Product> => {
   const { data, error } = await supabase

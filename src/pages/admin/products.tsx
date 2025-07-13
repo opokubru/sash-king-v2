@@ -26,7 +26,7 @@ import { Icon } from '@iconify/react';
 import {
   addProduct,
   deleteProduct,
-  fetchProducts,
+  fetchAllProducts,
   updateProduct,
 } from '@/lib/db/products';
 import { supabase } from '@/lib/supabaseClient';
@@ -138,11 +138,11 @@ export default function AdminProducts() {
       category: '',
       in_stock: true,
     });
-    fetchProducts().then(setProducts);
+    fetchAllProducts().then(setProducts);
   };
 
   useEffect(() => {
-    fetchProducts().then(setProducts);
+    fetchAllProducts().then(setProducts);
   }, []);
 
   return (
@@ -374,7 +374,7 @@ export default function AdminProducts() {
                     await deleteProduct(productToDelete?.id as string);
                     toast.success('Product deleted!');
                     setProductToDelete(null);
-                    fetchProducts().then(setProducts);
+                    fetchAllProducts().then(setProducts);
                     onDeleteClose();
                   }
                 }}
