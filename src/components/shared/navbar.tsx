@@ -120,14 +120,14 @@ export default function NavbarComponent() {
                 icon="uil:shopping-bag"
                 className="text-2xl text-gray-600"
               />
-              <span className="absolute -top-2 -right-2 bg-yellow-400 text-black text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
+              <span className="absolute -top-2 -right-2 bg-primary text-black text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
                 {items.length}
               </span>
             </button>
 
             <CustomButton
               onClick={() => navigate('/contact')}
-              className="bg-yellow-400 text-white"
+              className="bg-primary text-white"
             >
               Contact Us
             </CustomButton>
@@ -140,9 +140,9 @@ export default function NavbarComponent() {
               <NavLink
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  `w-full text-sm text-[#1A1A1A] hover:border-b-2 border-yellow-400 ${
+                  `w-full text-sm text-[#1A1A1A] hover:border-b-2 border-primary ${
                     isActive
-                      ? 'text-black border-b-3 border-yellow-400'
+                      ? 'text-black border-b-3 border-primary'
                       : 'text-[#1A1A1A]'
                   }`
                 }
@@ -159,7 +159,7 @@ export default function NavbarComponent() {
                 navigate('/contact');
                 setIsMenuOpen(false);
               }}
-              className="bg-yellow-400 text-white"
+              className="bg-primary text-white"
             >
               Contact Us
             </CustomButton>

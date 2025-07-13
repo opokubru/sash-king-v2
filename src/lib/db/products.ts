@@ -34,3 +34,37 @@ export const updateProduct = async (id: string, data: Partial<Product>) => {
   if (error) throw error;
 };
 
+
+export const fetchUnder100 = async (): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .lte('price', 250)
+    .order('price', { ascending: true })
+    .limit(4);
+  if (error) throw error;
+  return data;
+};
+
+
+export const fetchNewArrivals = async (): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(4);
+  if (error) throw error;
+  return data;
+};
+
+export const fetchTopDeals = async (): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .gt('discount', 0)
+    // .order('discount', { ascending: false })
+    .limit(4);
+  if (error) throw error;
+  return data;
+};
+

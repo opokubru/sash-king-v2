@@ -43,37 +43,11 @@ const Home = () => {
         <AdGrid />
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-center justify-center mx-auto place-items-center">
-          {/* <Select
-            label="Category"
-            selectedKeys={[category]}
-            onSelectionChange={(keys) =>
-              setCategory(Array.from(keys)[0] as string)
-            }
-          >
-            <SelectItem key="">All</SelectItem>
-
-            <>
-              {CATEGORIES?.map((cat) => (
-                <SelectItem key={cat?.value} value={cat?.value}>
-                  {cat?.label}
-                </SelectItem>
-              ))}
-            </>
-          </Select> */}
-
-          {/* <Checkbox
-            isSelected={inStockOnly}
-            onValueChange={setInStockOnly}
-            className="mt-6"
-          >
-            In Stock Only
-          </Checkbox> */}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 items-center justify-center mx-auto place-items-center"></div>
 
         {/* Product Grid */}
         <div
-          className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-6"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
           ref={collectionsRef}
         >
           {products?.length > 0 ? (

@@ -38,12 +38,16 @@ module.exports = {
       },
 
       colors: {
-        primary: '#FF5927', // SNEAKS red-orange
-        'primary-dark': '#CC3000', // darker shade for hover states
-        'primary-white': '#F5F5F5', // soft white for backgrounds
-        'primary-black': '#000000', // true black for text/bg
+        primary: '#FF3B1F', // Vibrant red-orange from logo
+        'primary-dark': '#B72400', // Hover/focus variant
+        'primary-white': '#FFFFFF', // Pure white
+        'primary-black': '#000000', // Strong black text/background
+        'accent-yellow': '#FFD966', // Highlights and sales
+        'gray-muted': '#9CA3AF', // Secondary text (gray-400)
+        'bg-muted': '#F7F7F7', // Section or card backgrounds
         'secondary-yellow': '#FFD966', // highlight elements like sales
-        'secondary-gray': '#B0B0B0', // for muted borders or secondary text
+        'secondary-gray': '#B0B0B0',
+        danger: '#FF4D4F', // Error/out-of-stock indicators
         background: 'rgba(197, 195, 195, 0.165)', // subtle bg from your brand
       },
     },
