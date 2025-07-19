@@ -11,6 +11,8 @@ export interface Product {
     discount?: number;
     category?: CategoryType['value']; // restricts to allowed values
     in_stock?: boolean;
-
+    extra_image_urls: string[];
+    sizes: string[];
+    colors: string[];
   }
   

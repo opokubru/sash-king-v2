@@ -36,13 +36,19 @@ import { variables } from '@/utils/env';
 import toast from 'react-hot-toast';
 import { useCategories } from '@/utils/hooks/categories';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
+import { AVAILABLE_COLORS, AVAILABLE_SIZES } from './data/data';
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const { categories: CATEGORIES } = useCategories();
 
   const [form, setForm] = useState<
-    Partial<Omit<Product, 'id' | 'created_at'>> & { image: File | null }
+    Partial<Omit<Product, 'id' | 'created_at'>> & {
+      image: File | null;
+      extra_images: File[];
+      sizes?: string[];
+      colors?: string[];
+    }
   >({
     name: '',
     description: '',
@@ -51,6 +57,9 @@ export default function AdminProducts() {
     discount: 0,
     category: '',
     in_stock: true,
+    extra_images: [],
+    sizes: [],
+    colors: [],
   });
 
   const [uploading, setUploading] = useState(false);
@@ -63,6 +72,7 @@ export default function AdminProducts() {
   } = useDisclosure();
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -101,6 +111,28 @@ export default function AdminProducts() {
     return `${variables.VITE_SUPABASE_URL}/storage/v1/object/public/products/${data?.path}`;
   };
 
+  const uploadMultipleImages = async () => {
+    const urls: string[] = [];
+
+    for (const img of form.extra_images || []) {
+      const fileName = `${Date.now()}_${img.name}`;
+      const { data, error } = await supabase.storage
+        .from('products')
+        .upload(`extras/${fileName}`, img, { upsert: true });
+
+      if (error) {
+        toast.error(`Failed to upload ${img.name}`);
+        continue;
+      }
+
+      urls.push(
+        `${variables.VITE_SUPABASE_URL}/storage/v1/object/public/products/${data.path}`,
+      );
+    }
+
+    return urls;
+  };
+
   const handleSubmit = async () => {
     let image_url = editingProduct?.image_url as string;
 
@@ -110,6 +142,8 @@ export default function AdminProducts() {
       image_url = uploaded;
     }
 
+    const extra_image_urls = await uploadMultipleImages();
+
     const payload: Product = {
       name: form.name!,
       description: form.description!,
@@ -118,6 +152,9 @@ export default function AdminProducts() {
       discount: form.discount || 0,
       category: form.category || '',
       in_stock: form.in_stock !== false,
+      extra_image_urls, // optional
+      sizes: form.sizes || [],
+      colors: form.colors || [],
     };
 
     if (editingProduct) {
@@ -138,6 +175,9 @@ export default function AdminProducts() {
       discount: 0,
       category: '',
       in_stock: true,
+      extra_images: [],
+      colors: [],
+      sizes: [],
     });
     fetchAllProducts().then(setProducts);
   };
@@ -150,7 +190,7 @@ export default function AdminProducts() {
     <div className="min-h-screen  text-black">
       <div className=" mx-auto space-y-10">
         <div className="flex justify-between items-center">
-          <h2 className="text-3xl font-bold text-primary/80">
+          <h2 className="md:text-3xl font-bold text-primary/80">
             Product Inventory
           </h2>
           <Button
@@ -163,110 +203,155 @@ export default function AdminProducts() {
         </div>
 
         {/* Table */}
-        <Table
-          classNames={{
-            base: 'bg-white border border-gray-300 text-black rounded-lg',
-            tr: 'hover:bg-gray-50 transition-colors border-b ',
-          }}
-          isStriped
-          removeWrapper
-          aria-label="Product List"
-        >
-          <TableHeader>
-            <TableColumn>ACTIONS </TableColumn>
-            <TableColumn>IMAGE</TableColumn>
-            <TableColumn>NAME</TableColumn>
-            <TableColumn>PRICE</TableColumn>
-            <TableColumn>DISCOUNT</TableColumn>
-            <TableColumn>CATEGORY</TableColumn>
-            <TableColumn>STOCK</TableColumn>
-          </TableHeader>
-          <TableBody>
-            {products.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="flex gap-2 items-center">
-                  <button
-                    onClick={() => {
-                      setEditingProduct(p);
-                      setForm({
-                        name: p.name,
-                        description: p.description,
-                        price: p.price,
-                        image: null,
-                        image_url: p.image_url,
-                        discount: p.discount,
-                        category: p.category,
-                        in_stock: p.in_stock,
-                      });
-                      onOpen();
-                    }}
-                    className="text-blue-500 p-1 rounded-md ml-1 bg-blue-200"
-                  >
-                    <Icon icon="meteor-icons:pencil" />
-                  </button>
+        <div className="w-full overflow-x-auto bg-white">
+          <Table
+            classNames={{
+              base: 'bg-white border border-r-none border-gray-300 text-black rounded-lg',
+              tr: 'hover:bg-gray-50 transition-colors border-b border-r-none ',
+              table: 'border-r-none',
+              tbody: 'border-r-none',
+            }}
+            isStriped
+            removeWrapper
+            aria-label="Product List"
+          >
+            <TableHeader>
+              <TableColumn>ACTIONS </TableColumn>
+              <TableColumn>STOCK</TableColumn>
+              <TableColumn>IMAGE</TableColumn>
+              <TableColumn>EXTRA IMAGES</TableColumn>
+              <TableColumn>NAME</TableColumn>
+              <TableColumn>PRICE</TableColumn>
+              <TableColumn>DISCOUNT</TableColumn>
+              <TableColumn>CATEGORY</TableColumn>
+              <TableColumn>COLORS</TableColumn>
+              <TableColumn>SIZES</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {products.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="flex gap-2 items-center">
+                    <button
+                      onClick={() => {
+                        setEditingProduct(p);
+                        setForm({
+                          name: p.name,
+                          description: p.description,
+                          price: p.price,
+                          image: null,
+                          image_url: p.image_url,
+                          discount: p.discount,
+                          category: p.category,
+                          in_stock: p.in_stock,
+                          sizes: p.sizes || [],
+                          extra_images: [],
+                          colors: [],
+                        });
+                        onOpen();
+                      }}
+                      className="text-blue-500 p-1 rounded-md ml-1 bg-blue-200"
+                    >
+                      <Icon icon="meteor-icons:pencil" />
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      setProductToDelete(p);
-                      onDeleteOpen();
-                    }}
-                    className="text-red-500 p-1 rounded-md ml-1 bg-red-200"
-                  >
-                    <Icon icon="material-symbols:delete-rounded" />
-                  </button>
-                </TableCell>
+                    <button
+                      onClick={() => {
+                        setProductToDelete(p);
+                        onDeleteOpen();
+                      }}
+                      className="text-red-500 p-1 rounded-md ml-1 bg-red-200"
+                    >
+                      <Icon icon="material-symbols:delete-rounded" />
+                    </button>
+                  </TableCell>
+                  <TableCell>
+                    <Switch
+                      size="sm"
+                      isSelected={p.in_stock}
+                      onValueChange={async (checked) => {
+                        await updateProduct(p.id as string, {
+                          ...p,
+                          in_stock: checked,
+                        });
+                        toast.success('Stock status updated');
+                        const updated = await fetchAllProducts();
+                        setProducts(updated);
+                      }}
+                      color={p.in_stock ? 'success' : 'danger'}
+                      classNames={{
+                        base: 'text-xs font-semibold flex flex-col md:flex-row',
+                        thumb: 'bg-white',
+                      }}
+                    >
+                      <span className="text-xs">
+                        {p.in_stock ? 'In Stock' : 'Out of Stock'}
+                      </span>
+                    </Switch>
+                  </TableCell>
 
-                <TableCell>
-                  <Image
-                    src={p.image_url}
-                    alt={p.name}
-                    width={60}
-                    className="rounded-lg"
-                  />
-                </TableCell>
-                <TableCell>{p.name}</TableCell>
-                <TableCell>
-                  {getCurrencySymbol('GHS')} {parseToMoney(p.price)}
-                </TableCell>
-                <TableCell>{p.discount ? `${p.discount}%` : '-'}</TableCell>
-                <TableCell>{p.category || '-'}</TableCell>
-                {/* <TableCell>
-                  {p.in_stock ? (
-                    <span className="text-green-600 font-semibold">
-                      In Stock
-                    </span>
-                  ) : (
-                    <span className="text-red-500 font-semibold">Out</span>
-                  )}
-                </TableCell> */}
-                <TableCell>
-                  <Switch
-                    size="sm"
-                    isSelected={p.in_stock}
-                    onValueChange={async (checked) => {
-                      await updateProduct(p.id as string, {
-                        ...p,
-                        in_stock: checked,
-                      });
-                      const updated = await fetchAllProducts();
-                      setProducts(updated);
-                    }}
-                    color={p.in_stock ? 'success' : 'danger'}
-                    classNames={{
-                      base: 'text-xs font-semibold',
-                      thumb: 'bg-white',
-                    }}
-                  >
-                    {p.in_stock ? 'In Stock' : 'Out of Stock'}
-                  </Switch>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  <TableCell>
+                    <Image
+                      src={p.image_url}
+                      alt={p.name}
+                      width={60}
+                      className="rounded-lg cursor-pointer"
+                      onClick={() => setPreviewUrl(p.image_url)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 flex-wrap w-[20%] h-[20%]">
+                      {p.extra_image_urls?.map((url, i) => (
+                        <Image
+                          key={i}
+                          src={url}
+                          width={40}
+                          height={40}
+                          onClick={() => setPreviewUrl(url)}
+                          className="rounded border border-gray-300 cursor-pointer"
+                          alt={`extra-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>{p.name}</TableCell>
+                  <TableCell>
+                    {getCurrencySymbol('GHS')} {parseToMoney(p.price)}
+                  </TableCell>
+                  <TableCell>{p.discount ? `${p.discount}%` : '-'}</TableCell>
+                  <TableCell>{p.category || '-'}</TableCell>
+                  <TableCell>
+                    <div className="grid grid-cols-4 gap-4 md:gap-2">
+                      {(p.colors || []).map((color, i) => (
+                        <div
+                          key={i}
+                          className="w-5 h-5 rounded-full border border-gray-300"
+                          style={{ backgroundColor: color.toLowerCase() }}
+                          title={color}
+                        />
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="grid grid-cols-4 gap-4 md:gap-2">
+                      {p.sizes?.join(', ') || '-'}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
         {/* Modal */}
-        <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="xl">
+        <Modal
+          onClose={() => {
+            onClose();
+            setEditingProduct(null);
+          }}
+          isOpen={isOpen}
+          onOpenChange={onOpenChange}
+          size="xl"
+        >
           <ModalContent>
             {(onClose) => (
               <>
@@ -306,47 +391,99 @@ export default function AdminProducts() {
                     }
                   >
                     {CATEGORIES.map((cat) => (
-                      <SelectItem
-                        key={cat.value}
-                        value={cat.value}
-                        // startContent={
-                        //   <Icon
-                        //     icon={cat.icon}
-                        //     className="text-yellow-400 w-5 h-5"
-                        //   />
-                        // }
-                      >
+                      <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
                     ))}
                   </Select>
 
-                  <Input
-                    type="file"
-                    accept=".webp,image/webp"
-                    onChange={handleImageChange}
-                  />
-                  {(form.image || editingProduct?.image_url) && (
-                    <div className="flex items-center gap-4">
-                      <Image
-                        src={
-                          form.image
-                            ? URL.createObjectURL(form.image)
-                            : editingProduct?.image_url
-                        }
-                        width={100}
-                        className="border border-yellow-400 rounded-lg"
-                      />
-                      {form.image && (
-                        <button
-                          className="text-red-500 p-1 rounded-md ml-1 bg-red-200 flex justify-center items-center hover:text-red-700"
-                          onClick={() => setForm({ ...form, image: null })}
-                        >
-                          <Icon icon="material-symbols:delete-rounded" />
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm">Main Image</p>
+                    <Input
+                      type="file"
+                      accept=".webp,image/webp"
+                      onChange={handleImageChange}
+                    />
+                    {(form.image || editingProduct?.image_url) && (
+                      <div className="flex items-center gap-4">
+                        <Image
+                          src={
+                            form.image
+                              ? URL.createObjectURL(form.image)
+                              : editingProduct?.image_url
+                          }
+                          width={100}
+                          className="border border-yellow-400 rounded-lg"
+                        />
+                        {form.image && (
+                          <button
+                            className="text-red-500 p-1 rounded-md ml-1 bg-red-200 flex justify-center items-center hover:text-red-700"
+                            onClick={() => setForm({ ...form, image: null })}
+                          >
+                            <Icon icon="material-symbols:delete-rounded" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm">Extra Images</p>
+                    <Input
+                      type="file"
+                      multiple
+                      accept=".webp,image/webp"
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          extra_images: Array.from(e.target.files || []),
+                        })
+                      }
+                    />
+
+                    {form?.extra_images?.length > 0 && (
+                      <div className="flex gap-2 flex-wrap">
+                        {form.extra_images.map((file, i) => (
+                          <Image
+                            key={i}
+                            src={URL.createObjectURL(file)}
+                            width={80}
+                            className="border border-yellow-400 rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <Select
+                    label="Colors"
+                    selectionMode="multiple"
+                    selectedKeys={new Set(form.colors)}
+                    onSelectionChange={(keys) =>
+                      setForm({ ...form, colors: Array.from(keys) as string[] })
+                    }
+                  >
+                    {AVAILABLE_COLORS.map((color) => (
+                      <SelectItem key={color} value={color}>
+                        {color}
+                      </SelectItem>
+                    ))}
+                  </Select>
+
+                  <Select
+                    label="Sizes"
+                    selectionMode="multiple"
+                    selectedKeys={new Set(form.sizes)}
+                    onSelectionChange={(keys) =>
+                      setForm({ ...form, sizes: Array.from(keys) as string[] })
+                    }
+                  >
+                    {AVAILABLE_SIZES.map((size) => (
+                      <SelectItem key={size} value={size}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </Select>
 
                   <Textarea
                     name="description"
@@ -407,6 +544,19 @@ export default function AdminProducts() {
           </ModalContent>
         </Modal>
       </div>
+
+      {previewUrl && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <img
+            src={previewUrl}
+            alt="Full Preview"
+            className="max-h-[90%] max-w-[90%] rounded-lg"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -62,6 +62,8 @@ const Checkout = () => {
           price: item.price,
           quantity: item.quantity,
           discount: item.discount,
+          size: item.selectedSize,
+          color: item.selectedColor,
         })),
         subject: 'New Product Order',
         dateTime: new Date().toLocaleString('en-US', {
@@ -109,37 +111,56 @@ const Checkout = () => {
                 key={item.id}
                 className="flex justify-between items-center border-b pb-2"
               >
-                <div className="flex gap-2 items-center">
-                  <img width="8%" src={item.image_url} alt={item.name} />
-                  <div>
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-600">
-                      Qty: {item.quantity} | {getCurrencySymbol('GHS')}{' '}
-                      {parseToMoney(item.price)}
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center  ">
+                  <div className="flex items-center gap-2">
+                    <img width="15%" src={item.image_url} alt={item.name} />
+                    <div>
+                      <p className="font-semibold capitalize">{item.name}</p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity} | {getCurrencySymbol('GHS')}{' '}
+                        {parseToMoney(item.price)}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-2">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="flat"
-                      onPress={() => dispatch(decreaseQuantity(item.id!))}
-                    >
-                      <Icon icon="charm:minus" />
-                    </Button>
-                    <span className="font-medium">{item.quantity}</span>
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="flat"
-                      onPress={() => dispatch(increaseQuantity(item.id!))}
-                    >
-                      <Icon icon="stash:plus-solid" />
-                    </Button>
+                  <div className="flex items-center   w-full">
+                    <div className="flex items-center gap-3 mt-2">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onPress={() => dispatch(decreaseQuantity(item.id!))}
+                      >
+                        <Icon icon="charm:minus" />
+                      </Button>
+                      <span className="font-medium">{item.quantity}</span>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="flat"
+                        onPress={() => dispatch(increaseQuantity(item.id!))}
+                      >
+                        <Icon icon="stash:plus-solid" />
+                      </Button>
+                    </div>
+
+                    <div className=" flex items-center gap-4 ml-4">
+                      {item.selectedSize && (
+                        <p className="text-xs text-gray-600">
+                          Size:
+                          <p className="font-medium">{item.selectedSize}</p>
+                        </p>
+                      )}
+                      {item.selectedColor && (
+                        <p className="text-xs text-gray-600">
+                          Color: <p>{item.selectedColor}</p>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <p className="text-sm font-bold text-primary flex gap-2 whitespace-nowrap">
+
+                <div className="text-sm font-bold text-primary flex gap-2 whitespace-nowrap ">
                   {getCurrencySymbol('GHS')}{' '}
                   {parseToMoney(
                     item.quantity *
@@ -147,7 +168,7 @@ const Checkout = () => {
                         ? item.price - item.price * (item.discount / 100)
                         : item.price),
                   )}
-                </p>
+                </div>
               </div>
             ))}
           </div>

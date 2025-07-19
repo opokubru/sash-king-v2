@@ -8,6 +8,9 @@ export interface CartItem {
   image_url: string;
   quantity: number;
   in_stock?: boolean;
+  selectedSize?: string | null;
+selectedColor?: string | null;
+
 }
 
 interface CartState {

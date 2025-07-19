@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RootState } from '@/store/store';
+import toast from 'react-hot-toast';
 
 const ProductDetail = () => {
   const { name } = useParams();
@@ -27,7 +28,21 @@ const ProductDetail = () => {
     state.cart.items.find((item) => item.id === (product?.id as string)),
   );
 
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const isSizeRequired = product?.sizes && product.sizes.length > 0;
+  const isColorRequired = product?.colors && product.colors.length > 0;
+
   const handleAddToCart = () => {
+    if (isSizeRequired && !selectedSize) {
+      toast.error('Please select a size');
+      return;
+    }
+    if (isColorRequired && !selectedColor) {
+      toast.error('Please select a color');
+      return;
+    }
+
     dispatch(
       addToCart({
         id: product?.id as string,
@@ -37,8 +52,12 @@ const ProductDetail = () => {
         image_url: product?.image_url as string,
         quantity: 1,
         in_stock: product?.in_stock,
+        selectedSize,
+        selectedColor,
       }),
     );
+    setSelectedSize(null);
+    setSelectedColor(null);
   };
 
   const handleIncrease = () =>
@@ -76,14 +95,32 @@ const ProductDetail = () => {
     <main className="min-h-screen container px-4 sm:px-6 lg:px-8 py-16 text-black">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         {/* Product Image */}
-        <div className="w-full">
-          <Image
-            src={product.image_url || 'https://placehold.co/500'}
-            alt={product.name}
-            width={500}
-            className="rounded-xl object-cover w-full max-w-md mx-auto"
-          />
-        </div>
+        <section>
+          <div className="w-full">
+            <Image
+              src={product.image_url || 'https://placehold.co/500'}
+              alt={product.name}
+              width={500}
+              className="rounded-xl object-cover w-full  mx-auto"
+            />
+          </div>
+          {product.extra_image_urls?.length > 0 && (
+            <div className="grid grid-cols-5 items-center gap-2 mt-4">
+              {product.extra_image_urls.map((url, i) => (
+                <Image
+                  key={i}
+                  alt={`extra-${i}`}
+                  src={url}
+                  // width={100}
+                  // height={100}
+                  className="rounded-md border cursor-pointer w-[6rem] h-[6rem]"
+                  isZoomed
+                  isBlurred
+                />
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Product Info */}
         <div className="space-y-6">
@@ -126,6 +163,60 @@ const ProductDetail = () => {
                 <span className="text-red-500 font-medium">Out of Stock</span>
               )}
             </p>
+
+            <div>
+              {product?.sizes?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-800">Sizes:</h4>
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {product?.sizes?.map((size, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-3 py-1 text-sm rounded border transition ${
+                          selectedSize === size
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-gray-100 text-black border-gray-300'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div>
+              {product?.colors?.length > 0 && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mt-4">Colors:</h4>
+                  <div className="flex gap-3 mt-2 flex-wrap">
+                    {product?.colors?.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mt-4">
+                          Colors:
+                        </h4>
+                        <div className="flex gap-3 mt-2 flex-wrap">
+                          {product?.colors?.map((color, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setSelectedColor(color)}
+                              className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-125 cursor-pointer ${
+                                selectedColor === color
+                                  ? 'border-primary scale-125'
+                                  : 'border-gray-300'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            ></button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {product?.in_stock && (
@@ -161,7 +252,17 @@ const ProductDetail = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   onClick={handleAddToCart}
-                  className="mt-4 w-[10rem] text-sm font-semibold bg-primary text-white py-3 rounded-lg hover:bg-primary-dark transition"
+                  className={`mt-4 w-[10rem] text-sm font-semibold py-3 rounded-lg transition ${
+                    product.in_stock &&
+                    (!product.sizes?.length || selectedSize) &&
+                    (!product.colors?.length || selectedColor)
+                      ? 'bg-primary text-white hover:bg-primary-dark'
+                      : 'bg-primary bg-opacity-80 text-white cursor-not-allowed'
+                  }`}
+                  // disabled={
+                  //   (isSizeRequired && !selectedSize) ||
+                  //   (isColorRequired && !selectedColor)
+                  // }
                 >
                   Add to Cart
                 </motion.button>

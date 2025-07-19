@@ -189,6 +189,12 @@ export default function NavbarComponent() {
               />
             </form>
           )}
+          <button onClick={() => navigate('/checkout')} className="relative">
+            <Icon icon="uil:shopping-bag" className="text-2xl text-gray-600" />
+            <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
+              {items.length}
+            </span>
+          </button>
         </NavbarContent>
 
         <NavbarMenu className="bg-white">

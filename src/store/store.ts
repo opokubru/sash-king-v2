@@ -8,7 +8,7 @@ import authSlice from './features/auth';
 const persistConfig = {
 	key: 'Sneakz',
 	storage,
-	whitelist: ["global", "cart"],
+	whitelist: ["global", "cart", "auth"],
 	blacklist: [],
 };
 
