@@ -34,11 +34,11 @@ const AllCategoriesPage = () => {
       </h1>
 
       {categories.map((cat) => {
-        const filtered = products.filter(
+        const items_under_cat = products?.filter(
           (product) => product.category === cat.value,
         );
 
-        if (filtered.length === 0) return null;
+        // if (items_under_cat.length === 0) return null;
 
         return (
           <div key={cat.value} className="mb-16">
@@ -55,9 +55,15 @@ const AllCategoriesPage = () => {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {filtered.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {items_under_cat.length > 0 ? (
+                items_under_cat.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))
+              ) : (
+                <p className="text-gray-600">
+                  No available items under category
+                </p>
+              )}
             </div>
           </div>
         );
