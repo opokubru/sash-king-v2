@@ -17,7 +17,7 @@ import { LogoComponent } from '@/components/logo-componanent';
 import { Button } from '@nextui-org/react';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 import { Icon } from '@iconify/react/dist/iconify.js';
-// import { addOrder } from '@/lib/db/orders';
+import { addOrder } from '@/lib/db/orders';
 
 const publicKey = variables.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -79,6 +79,27 @@ const Checkout = () => {
         total: totalAmount,
       };
 
+      const now = new Date().toISOString();
+
+      const order_info = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        tel,
+        location: city,
+        items: items.map((item: CartItem) => ({
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          discount: item.discount,
+          size: item.selectedSize,
+          color: item.selectedColor,
+        })),
+        total: totalAmount,
+        created_at: now,
+        updated_at: now,
+      };
+
       await fetch(variables.VITE_FORMSPREE, {
         method: 'POST',
         headers: {
@@ -87,7 +108,7 @@ const Checkout = () => {
         body: JSON.stringify(userInfo),
       });
 
-      // addOrder(userInfo);
+      await addOrder(order_info);
     },
     onClose: () =>
       toast.error('Payment was not completed.', {
@@ -223,7 +244,8 @@ const Checkout = () => {
             />
             <PaystackButton
               {...paystackProps}
-              className="w-full bg-primary py-2 rounded-lg text-white font-semibold hover:opacity-90 transition"
+              disabled={!email || !firstName || !city || !tel}
+              className="w-full bg-primary py-2 rounded-lg text-white font-semibold hover:opacity-90 transition disabled:bg-opacity-70"
             />
             <p className="text-xs text-gray-500 mt-2 text-center">
               By clicking pay, you agree to our{' '}

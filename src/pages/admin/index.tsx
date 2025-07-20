@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { onLogout } from '@/store/features/auth';
 import { signOut } from '@/lib/db/auth';
 import { CustomButton } from '@/components/shared/shared_customs';
+import AdminOrders from './orders';
 
 export default function AdminDashboard() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -30,6 +31,12 @@ export default function AdminDashboard() {
       label: 'Categories',
       icon: 'material-symbols:category',
       component: <AdminCategories />,
+    },
+    {
+      id: 'orders',
+      label: 'Order Management',
+      icon: 'material-symbols:orders-rounded',
+      component: <AdminOrders />,
     },
     // Add more tabs as needed
   ];

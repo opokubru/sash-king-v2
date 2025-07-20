@@ -20,6 +20,7 @@ import TopDealsPage from './pages/product/top-deals-page';
 import NewArrivalsPage from './pages/product/new-arrival-page';
 import TopSellingPage from './pages/product/top-selling-page';
 import SearchPage from './pages/product/search-page';
+import OrderViewPage from './pages/admin/orders[id]';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
             <Route path="" element={<Home />} />
             <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="admin/orders/:id" element={<OrderViewPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/products/deals" element={<TopDealsPage />} />
