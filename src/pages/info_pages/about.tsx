@@ -32,35 +32,24 @@ const features = [
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-[rgba(197,195,195,0.165)] text-black px-6 py-16">
+    <div className="min-h-screen container  text-black px-6 py-16">
       {/* Hero Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-3xl mx-auto"
-      >
-        <h1 className="text-4xl font-bold mb-4 text-primary">About SNEAKZ</h1>
-        <p className="text-lg text-gray-700">
-          SNEAKZ is more than just an online store — it’s a culture. We bring
-          you a fresh mix of urban fashion, bold accessories, and a community
-          that lives and breathes street style.
-        </p>
-      </motion.div>
+      <h1 className="text-4xl font-bold mb-4 text-primary">About Sneaks</h1>
+      <p className="text-lg text-gray-700">
+        At Sneaks, we live by one mission: to keep you one step ahead. What
+        started as a passion for street style has grown into a movement for the
+        bold and fashion-forward. We curate more than clothes — we deliver
+        confidence, culture, and authenticity.
+      </p>
 
       {/* Mission Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-        className="mt-20 max-w-4xl mx-auto text-center"
-      >
-        <h2 className="text-2xl font-semibold mb-4 text-black">Our Mission</h2>
-        <p className="text-gray-600 text-md">
-          To empower self-expression through authentic streetwear while making
-          quality fashion accessible and exciting for everyone.
-        </p>
-      </motion.div>
+      <p className="text-gray-600 text-md">
+        We’re here to simplify your shopping experience while elevating your
+        style. Our collection is handpicked to reflect the best in streetwear —
+        from premium sneakers and baggy jeans to clean-cut cargos and everyday
+        tees. Each piece is chosen to make sure you stand out, without the
+        stress.
+      </p>
 
       {/* Features Section */}
       <motion.div
@@ -93,11 +82,14 @@ const About = () => {
         className="mt-24 text-center"
       >
         <h3 className="text-xl font-semibold text-primary/90">
-          Join the SNEAKZ Movement
+          Be Part of the Sneaks Story
         </h3>
+
         <p className="text-gray-600 mt-2">
-          Follow us on social, stay updated, and express your style boldly.
+          Follow us on social to stay ahead of the game, discover new drops, and
+          wear your attitude loud.
         </p>
+
         <div className="flex items-center justify-center mx-auto mt-3 gap-x-3">
           {socials.map((item, index) => (
             <a

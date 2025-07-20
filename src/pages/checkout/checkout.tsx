@@ -12,11 +12,12 @@ import {
   increaseQuantity,
   resetCart,
 } from '@/store/features/cart';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LogoComponent } from '@/components/logo-componanent';
 import { Button } from '@nextui-org/react';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 import { Icon } from '@iconify/react/dist/iconify.js';
+// import { addOrder } from '@/lib/db/orders';
 
 const publicKey = variables.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -85,6 +86,8 @@ const Checkout = () => {
         },
         body: JSON.stringify(userInfo),
       });
+
+      // addOrder(userInfo);
     },
     onClose: () =>
       toast.error('Payment was not completed.', {
@@ -218,11 +221,19 @@ const Checkout = () => {
               value={city}
               onChange={(e) => setCity(e.target.value)}
             />
-
             <PaystackButton
               {...paystackProps}
               className="w-full bg-primary py-2 rounded-lg text-white font-semibold hover:opacity-90 transition"
             />
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              By clicking pay, you agree to our{' '}
+              <Link
+                to="/terms-of-service"
+                className="underline text-primary hover:text-primary/80"
+              >
+                Terms of Service
+              </Link>{' '}
+            </p>{' '}
           </div>
         </div>
       )}

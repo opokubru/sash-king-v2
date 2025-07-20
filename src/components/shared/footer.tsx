@@ -96,10 +96,10 @@ const FOOTER_ITEMS = [
         title: 'About Us',
         href: '/about',
       },
-      {
-        title: 'Privacy Policy',
-        href: '/privacy-policy',
-      },
+      // {
+      //   title: 'Privacy Policy',
+      //   href: '/privacy-policy',
+      // },
       {
         title: 'Terms of Service',
         href: '/terms-of-service',

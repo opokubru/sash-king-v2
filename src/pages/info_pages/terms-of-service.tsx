@@ -2,57 +2,58 @@
 
 import PageWrapper from '@/components/shared/page-wrapper';
 import { Section } from '@/components/shared/section';
-import { motion } from 'framer-motion';
 
 const TermsOfService = () => {
   return (
     <PageWrapper title="Terms of Service">
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="text-gray-700"
-      >
-        These Terms of Service govern your use of the SNEAKZ website and
-        services. By accessing or using our site, you agree to comply with and
-        be bound by these terms.
-      </motion.p>
-
       <div className="space-y-8 mt-10">
-        <Section icon="mdi:web" title="Use of Site">
+        <Section title="Products and Pricing">
+          <ul className="list-disc pl-5 text-gray-700 space-y-2">
+            <li>
+              All product descriptions and images are for illustrative purposes
+              only
+            </li>
+            <li>Prices are subject to change without notice</li>
+            <li>We reserve the right to discontinue any product</li>
+          </ul>
+        </Section>
+
+        <Section title="Orders and Payment">
+          <ul className="list-disc pl-5 text-gray-700 space-y-2">
+            <li>Orders are subject to acceptance and availability</li>
+            <li>Payment is required at the time of purchase</li>
+            <li>We accept momo and bank transfers</li>
+          </ul>
+        </Section>
+
+        <Section title="Shipping and Delivery">
+          <ul className="list-disc pl-5 text-gray-700 space-y-2">
+            <li>Delivery timeframes are estimates only</li>
+            <li>
+              Delivery costs are calculated independently for now till prior
+              notice
+            </li>
+          </ul>
+        </Section>
+
+        <Section title="Returns and Refunds">
+          <ul className="list-disc pl-5 text-gray-700 space-y-2">
+            <li>Returns accepted within 2 days of delivery</li>
+            <li>Items must be unworn, unwashed, and with original tags</li>
+          </ul>
+        </Section>
+
+        <Section title="Intellectual Property">
           <p>
-            You must be at least 18 years old or have parental consent to use
-            our site. You agree not to use our site for any unlawful or
-            prohibited activities.
+            All content on our website is our property and protected by
+            copyright laws.
           </p>
         </Section>
 
-        <Section icon="mdi:tag-text-outline" title="Product Information">
+        <Section title="Limitation of Liability">
           <p>
-            We strive to ensure all product details, pricing, and availability
-            are accurate. However, errors may occur and we reserve the right to
-            correct them.
-          </p>
-        </Section>
-
-        <Section icon="mdi:cart-outline" title="Order Processing">
-          <p>
-            We reserve the right to cancel or limit quantities on any order.
-            Orders are subject to product availability and payment confirmation.
-          </p>
-        </Section>
-
-        <Section icon="mdi:alert-circle-outline" title="Liability">
-          <p>
-            SNEAKZ is not liable for any indirect or consequential damages
-            arising from the use of our site or products.
-          </p>
-        </Section>
-
-        <Section icon="mdi:refresh-circle" title="Changes to Terms">
-          <p>
-            We may update these terms at any time. Continued use of the site
-            indicates acceptance of the current terms.
+            We are not liable for any indirect, incidental, or consequential
+            damages.
           </p>
         </Section>
       </div>

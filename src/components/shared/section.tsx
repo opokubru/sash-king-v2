@@ -6,7 +6,7 @@ export const Section = ({
   title,
   children,
 }: {
-  icon: string;
+  icon?: string;
   title: string;
   children: React.ReactNode;
 }) => (
@@ -17,7 +17,7 @@ export const Section = ({
     className="bg-white p-6 rounded-2xl border border-primary/30 shadow-sm"
   >
     <div className="flex items-center gap-3 mb-2">
-      <Icon icon={icon} className="text-primary/90 w-5 h-5" />
+      {icon && <Icon icon={icon} fontSize={30} className="text-primary" />}
       <h2 className="text-lg font-semibold text-primary">{title}</h2>
     </div>
     <div className="text-gray-700 text-sm md:text-base leading-relaxed">
