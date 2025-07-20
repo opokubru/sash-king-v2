@@ -3,7 +3,7 @@ export const LogoComponent = () => {
   return (
     <div className="transition-all">
       {/* <p className="font-bold text-sm uppercase text-yellow-500">Sneakz</p> */}
-      <img className="md:w-[90%] w-[50%]" src={logo} />
+      <img className="md:w-[100%] w-[50%]" src={logo} />
     </div>
   );
 };

@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 // import { CustomButton } from '@/components/shared/shared_customs';
-import { Image } from '@nextui-org/react';
-import { useCategories } from '@/utils/hooks/categories';
+// import { Image } from '@nextui-org/react';
+// import { useCategories } from '@/utils/hooks/categories';
 import { Link } from 'react-router-dom';
 
 // interface HeroSectionProps {
@@ -12,9 +12,9 @@ import { Link } from 'react-router-dom';
 // }
 
 const HeroSection = () => {
-  const { categories, loading: loadingCategories } = useCategories();
+  // const { categories, loading: loadingCategories } = useCategories();
 
-  const displayedCategories = categories.slice(0, 6);
+  // const displayedCategories = categories.slice(0, 6);
 
   return (
     <motion.section
@@ -127,7 +127,7 @@ const HeroSection = () => {
           </section>
         </div>
       </div>
-      <div className=" items-center gap-10 mt-4 max-w-7xl mx-auto ">
+      {/* <div className=" items-center gap-10 mt-4 max-w-7xl mx-auto ">
         <div className="mt-10">
           <h2 className="text-xl font-bold mb-4 text-gray-900 flex items-center gap-4">
             Shop by Category
@@ -164,7 +164,7 @@ const HeroSection = () => {
               ))}
           </div>
         </div>
-      </div>
+      </div> */}
     </motion.section>
   );
 };
