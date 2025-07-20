@@ -67,9 +67,9 @@ const Home = () => {
   return (
     <>
       <HeroSection
-        onExploreClick={() =>
-          collectionsRef.current?.scrollIntoView({ behavior: 'smooth' })
-        }
+      // onExploreClick={() =>
+      //   collectionsRef.current?.scrollIntoView({ behavior: 'smooth' })
+      // }
       />
 
       <main className="min-h-screen max-w-7xl mx-auto px-6 py-16 text-black">

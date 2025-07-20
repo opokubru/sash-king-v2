@@ -7,12 +7,11 @@ import { Image } from '@nextui-org/react';
 import { useCategories } from '@/utils/hooks/categories';
 import { Link } from 'react-router-dom';
 
-interface HeroSectionProps {
-  onExploreClick: () => void;
-}
+// interface HeroSectionProps {
+//   onExploreClick: () => void;
+// }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const HeroSection = ({ onExploreClick }: HeroSectionProps) => {
+const HeroSection = () => {
   const { categories, loading: loadingCategories } = useCategories();
 
   const displayedCategories = categories.slice(0, 6);
