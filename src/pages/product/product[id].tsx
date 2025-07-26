@@ -25,14 +25,22 @@ const ProductDetail = () => {
   const dispatch = useDispatch();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const cartItem = useSelector((state: RootState) =>
-    state.cart.items.find((item) => item.id === (product?.id as string)),
-  );
-
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const isSizeRequired = product?.sizes && product.sizes.length > 0;
   const isColorRequired = product?.colors && product.colors.length > 0;
+
+  // const cartItem = useSelector((state: RootState) =>
+  //   state.cart.items.find((item) => item.id === (product?.id as string)),
+  // );
+  const cartItem = useSelector((state: RootState) =>
+    state.cart.items.find(
+      (item) =>
+        item.id === product?.id &&
+        item.selectedSize === selectedSize &&
+        item.selectedColor === selectedColor,
+    ),
+  );
 
   const handleAddToCart = () => {
     if (isSizeRequired && !selectedSize) {
@@ -57,17 +65,30 @@ const ProductDetail = () => {
         selectedColor,
       }),
     );
+    toast.success('Added to cart');
     setSelectedSize(null);
     setSelectedColor(null);
   };
 
   const handleIncrease = () =>
-    dispatch(increaseQuantity(product?.id as string));
+    dispatch(
+      increaseQuantity({
+        id: product?.id as string,
+        selectedColor: selectedColor,
+        selectedSize: selectedSize,
+      }),
+    );
   const handleDecrease = () => {
     if (cartItem?.quantity === 1) {
       dispatch(removeFromCart(product?.id as string));
     } else {
-      dispatch(decreaseQuantity(product?.id as string));
+      dispatch(
+        decreaseQuantity({
+          id: product?.id as string,
+          selectedColor: selectedColor,
+          selectedSize: selectedSize,
+        }),
+      );
     }
   };
 

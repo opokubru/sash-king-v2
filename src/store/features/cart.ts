@@ -26,29 +26,58 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      const existing = state?.items?.find((item) => item?.id === action?.payload?.id);
+      const existing = state.items.find(
+        (item) =>
+          item.id === action.payload.id &&
+          item.selectedSize === action.payload.selectedSize &&
+          item.selectedColor === action.payload.selectedColor
+      );
+    
       if (existing) {
         existing.quantity += action.payload.quantity;
       } else {
-        state?.items?.push(action.payload);
+        state.items.push(action.payload);
       }
     },
+    
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state?.items?.filter((item) => item?.id !== action.payload);
     },
-    increaseQuantity: (state, action: PayloadAction<string>) => {
-      const item = state.items.find((item) => item.id === action.payload);
+    increaseQuantity: (
+      state,
+      action: PayloadAction<{ id: string; selectedSize?: string | null; selectedColor?: string | null }>
+    ) => {
+      const item = state.items.find(
+        (item) =>
+          item.id === action.payload.id &&
+          item.selectedSize === action.payload.selectedSize &&
+          item.selectedColor === action.payload.selectedColor
+      );
       if (item) {
         item.quantity++;
       }
     },
-    decreaseQuantity: (state, action: PayloadAction<string>) => {
-      const item = state.items.find((item) => item.id === action.payload);
-      // Only decrease if quantity is more than 1
-      if (item && item.quantity > 1) {
-        item.quantity--;
+    
+    decreaseQuantity: (
+      state,
+      action: PayloadAction<{ id: string; selectedSize?: string | null; selectedColor?: string | null }>
+    ) => {
+      const index = state.items.findIndex(
+        (item) =>
+          item.id === action.payload.id &&
+          item.selectedSize === action.payload.selectedSize &&
+          item.selectedColor === action.payload.selectedColor
+      );
+      if (index !== -1) {
+        const item = state.items[index];
+        if (item.quantity > 1) {
+          item.quantity--;
+        } else {
+          state.items.splice(index, 1);
+        }
       }
     },
+    
     resetCart: () => initialState,
   },
 });

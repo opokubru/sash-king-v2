@@ -147,13 +147,21 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center   w-full">
+                  <div className="flex gap-4 items-center  w-full">
                     <div className="flex items-center gap-3 mt-2">
                       <Button
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onPress={() => dispatch(decreaseQuantity(item.id!))}
+                        onPress={() =>
+                          dispatch(
+                            decreaseQuantity({
+                              id: item.id!,
+                              selectedSize: item.selectedSize,
+                              selectedColor: item.selectedColor,
+                            }),
+                          )
+                        }
                       >
                         <Icon icon="charm:minus" />
                       </Button>
@@ -162,7 +170,15 @@ const Checkout = () => {
                         isIconOnly
                         size="sm"
                         variant="flat"
-                        onPress={() => dispatch(increaseQuantity(item.id!))}
+                        onPress={() =>
+                          dispatch(
+                            increaseQuantity({
+                              id: item.id!,
+                              selectedSize: item.selectedSize,
+                              selectedColor: item.selectedColor,
+                            }),
+                          )
+                        }
                       >
                         <Icon icon="stash:plus-solid" />
                       </Button>
@@ -170,14 +186,22 @@ const Checkout = () => {
 
                     <div className=" flex items-center gap-4 ml-4">
                       {item.selectedSize && (
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 flex flex-col gap-1">
                           Size:
-                          <p className="font-medium">{item.selectedSize}</p>
+                          <p className="font-semibold">{item.selectedSize}</p>
                         </p>
                       )}
                       {item.selectedColor && (
-                        <p className="text-xs text-gray-600">
-                          Color: <p>{item.selectedColor}</p>
+                        <p className="text-xs text-gray-600 flex flex-col gap-1">
+                          Color:{' '}
+                          <p>
+                            <button
+                              className={`w-4 h-4 rounded-full border-2 transition-all hover:scale-125 cursor-pointer ${'border-gray-300'}`}
+                              style={{ backgroundColor: item.selectedColor }}
+                              title={item.selectedColor}
+                            ></button>
+                            {/* {item.selectedColor} */}
+                          </p>
                         </p>
                       )}
                     </div>

@@ -26,7 +26,7 @@ const currencySymbols: { [key: string]: string } = {
   
 return Number(value).toLocaleString(undefined, {
 	minimumFractionDigits: 0,
-	maximumFractionDigits: 0,
+	maximumFractionDigits: 2,
 });
   };
 
