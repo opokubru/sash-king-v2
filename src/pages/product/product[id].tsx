@@ -23,6 +23,7 @@ const ProductDetail = () => {
   const { name } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const dispatch = useDispatch();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const cartItem = useSelector((state: RootState) =>
     state.cart.items.find((item) => item.id === (product?.id as string)),
@@ -98,26 +99,33 @@ const ProductDetail = () => {
         <section>
           <div className="w-full">
             <Image
-              src={product.image_url || 'https://placehold.co/500'}
+              src={
+                selectedImage || product.image_url || 'https://placehold.co/500'
+              }
+              // src={product.image_url || 'https://placehold.co/500'}
               alt={product.name}
-              width={500}
-              className="rounded-xl object-cover w-full  mx-auto"
+              // width={500}
+
+              className="rounded-xl object-cover  mx-auto w-[100%] md:w-[50vw] md:h-[50vh]"
             />
           </div>
           {product.extra_image_urls?.length > 0 && (
             <div className="grid grid-cols-5 items-center gap-2 mt-4">
-              {product.extra_image_urls.map((url, i) => (
-                <Image
-                  key={i}
-                  alt={`extra-${i}`}
-                  src={url}
-                  // width={100}
-                  // height={100}
-                  className="rounded-md border cursor-pointer w-[6rem] h-[6rem]"
-                  isZoomed
-                  isBlurred
-                />
-              ))}
+              {[product?.image_url, ...product.extra_image_urls].map(
+                (url, i) => (
+                  <Image
+                    key={i}
+                    alt={`extra-${i}`}
+                    src={url}
+                    // width={100}
+                    // height={100}
+                    className="rounded-md border cursor-pointer w-[6rem] h-[6rem]"
+                    isZoomed
+                    isBlurred
+                    onClick={() => setSelectedImage(url)}
+                  />
+                ),
+              )}
             </div>
           )}
         </section>

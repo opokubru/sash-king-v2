@@ -84,6 +84,7 @@ export default function AdminProducts() {
   };
 
   const handleImageChange = (e: any) => {
+    console.log('files', e.target.files);
     setForm({ ...form, image: e.target.files[0] });
   };
 
@@ -399,11 +400,24 @@ export default function AdminProducts() {
 
                   <div className="flex flex-col gap-1">
                     <p className="text-sm">Main Image</p>
-                    <Input
+                    {/* <Input
+                      key={isOpen ? 'main-image-open' : 'main-image-closed'}
                       type="file"
                       accept=".webp,image/webp"
                       onChange={handleImageChange}
+                    /> */}
+                    <input
+                      key={
+                        isOpen
+                          ? 'main-image-native-open'
+                          : 'main-image-native-closed'
+                      }
+                      type="file"
+                      accept=".webp,image/webp"
+                      onChange={handleImageChange}
+                      className="border rounded p-1 text-sm"
                     />
+
                     {(form.image || editingProduct?.image_url) && (
                       <div className="flex items-center gap-4">
                         <Image
@@ -429,7 +443,8 @@ export default function AdminProducts() {
 
                   <div className="flex flex-col gap-1">
                     <p className="text-sm">Extra Images</p>
-                    <Input
+                    <input
+                      key={isOpen ? 'extra-image-open' : 'extra-image-closed'}
                       type="file"
                       multiple
                       accept=".webp,image/webp"
@@ -511,6 +526,7 @@ export default function AdminProducts() {
           </ModalContent>
         </Modal>
 
+        {/* delete modal */}
         <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
           <ModalContent>
             <ModalHeader className="text-red-500 font-bold">
