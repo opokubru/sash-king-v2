@@ -113,6 +113,8 @@ const ProductDetail = () => {
       ? product.price - (product.price * product.discount) / 100
       : product.price;
 
+  console.log({ finalPrice, price: product.price, discount: product.discount });
+
   return (
     <main className="min-h-screen container px-4 sm:px-6 lg:px-8 py-16 text-black">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
@@ -162,10 +164,12 @@ const ProductDetail = () => {
           <div className="space-y-2">
             <p className="text-2xl font-bold text-black">
               {getCurrencySymbol('GHS')} {parseToMoney(finalPrice)}
-              {product?.discount && (
+              {product?.discount && product?.discount > 0 ? (
                 <span className="text-sm text-danger line-through ml-3 font-normal">
-                  {getCurrencySymbol('GHS')} {parseToMoney(product.price)}
+                  {getCurrencySymbol('GHS')} {parseToMoney(product?.price)}
                 </span>
+              ) : (
+                <span></span>
               )}
             </p>
 

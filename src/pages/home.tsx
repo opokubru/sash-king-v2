@@ -28,7 +28,12 @@ const Home = () => {
       const to = from + BATCH_SIZE - 1;
       const newProducts = await fetchProducts(from, to);
 
-      setProducts((prev) => [...prev, ...newProducts]);
+      setProducts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const filtered = newProducts.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...filtered];
+      });
+
       setPage((prev) => prev + 1);
       if (newProducts.length < BATCH_SIZE) {
         setHasMore(false);

@@ -69,17 +69,30 @@ export const ProductCard = ({ product, compact = false }: ProductCardProps) => {
         selectedColor,
       }),
     );
-    setSelectedSize(null);
-    setSelectedColor(null);
+    // setSelectedSize(null);
+    // setSelectedColor(null);
     onClose(); // close modal if add succeeds
   };
 
-  const handleIncrease = () => dispatch(increaseQuantity(id!));
+  const handleIncrease = () =>
+    dispatch(
+      increaseQuantity({
+        id: id!,
+        selectedSize,
+        selectedColor,
+      }),
+    );
   const handleDecrease = () => {
     if (cartItem?.quantity === 1) {
       dispatch(removeFromCart(id!));
     } else {
-      dispatch(decreaseQuantity(id!));
+      dispatch(
+        decreaseQuantity({
+          id: id!,
+          selectedSize,
+          selectedColor,
+        }),
+      );
     }
   };
 
