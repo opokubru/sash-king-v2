@@ -39,7 +39,7 @@ const HeroSection = () => {
               className="h-64 lg:h-[70%] rounded-3xl overflow-hidden bg-primary p-4 cursor-pointer"
             >
               <img
-                src="/images/jacket.webp"
+                src="/images/jacket.jpeg"
                 alt="Model in orange outfit"
                 className="w-full h-full object-cover rounded-2xl"
               />
@@ -58,11 +58,11 @@ const HeroSection = () => {
 
           <section className="flex flex-col gap-2 lg:pt-10">
             <Link
-              to="/categories/suit"
+              to="/categories/cargo-pants"
               className="rounded-xl h-full overflow-hidden bg-secondary p-2 cursor-pointer"
             >
               <img
-                src="/images/suit.webp"
+                src="/images/cargo_pants.jpeg"
                 alt="Model in green coat"
                 className="w-full h-full object-cover rounded-md"
               />
@@ -92,11 +92,11 @@ const HeroSection = () => {
 
           <section className="flex flex-col gap-2 lg:pt-10">
             <Link
-              to="/categories/two-piece"
+              to="/categories/baggy-jeans"
               className="h-full rounded-xl overflow-hidden bg-secondary-gray p-2 cursor-pointer"
             >
               <img
-                src="/images/casual-two-piece.webp"
+                src="/images/baggy_jeans.jpeg"
                 alt="Model in white outfit"
                 className="w-full h-full object-cover rounded-md"
               />
@@ -109,7 +109,7 @@ const HeroSection = () => {
               className="h-64 lg:h-[70%] rounded-3xl overflow-hidden bg-secondary-yellow p-4 cursor-pointer"
             >
               <img
-                src="/images/joggers.webp"
+                src="/images/joggers.jpeg"
                 alt="Model in orange outfit"
                 className="w-full h-full object-cover rounded-2xl"
               />
