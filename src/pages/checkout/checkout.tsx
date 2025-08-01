@@ -10,6 +10,7 @@ import {
   CartItem,
   decreaseQuantity,
   increaseQuantity,
+  removeFromCart,
   resetCart,
 } from '@/store/features/cart';
 import { Link, useNavigate } from 'react-router-dom';
@@ -137,6 +138,13 @@ const Checkout = () => {
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center  ">
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        dispatch(removeFromCart(item.id as string))
+                      }
+                    >
+                      <Icon icon="mdi:bin-outline" className="text-red-400" />
+                    </button>
                     <img width="15%" src={item.image_url} alt={item.name} />
                     <div>
                       <p className="font-semibold capitalize">{item.name}</p>
@@ -219,6 +227,15 @@ const Checkout = () => {
                 </div>
               </div>
             ))}
+            <p className="flex items-center justify-center">
+              <button
+                onClick={() => dispatch(resetCart())}
+                className="flex items-center gap-2"
+              >
+                Clear Cart{' '}
+                <Icon icon="mdi:bin-outline" className="text-red-400" />
+              </button>
+            </p>
           </div>
 
           {/* Total */}
