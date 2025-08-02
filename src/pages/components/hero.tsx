@@ -108,10 +108,20 @@ const HeroSection = () => {
               to="/categories/baggy-jeans"
               className="h-full rounded-xl overflow-hidden bg-secondary-gray p-2 cursor-pointer"
             >
-              <img
+              {/* <img
                 src="/images/baggy_jeans.jpeg"
                 alt="Model in white outfit"
                 className="w-full h-full object-cover rounded-md"
+              /> */}
+              <HoverSlideshowImage
+                images={[
+                  '/images/baggy_jeans.jpeg',
+                  '/images/heros/baggy2.webp',
+                  '/images/heros/baggy3.webp',
+                  '/images/heros/baggy4.webp',
+                  '/images/heros/baggy5.webp',
+                ]}
+                alt="Baggy Jeans category slideshow"
               />
             </Link>
           </section>
