@@ -7,6 +7,7 @@ import { Product } from '@/utils/types/product';
 import { ProductCard } from '@/components/ProductCard';
 import AdGrid from './components/add-grid';
 import HeroSection from './components/hero';
+import CategorySlide from './components/categories-slide';
 // import { useCategories } from '@/utils/hooks/categories';
 
 const BATCH_SIZE = 12;
@@ -71,6 +72,7 @@ const Home = () => {
 
   return (
     <>
+      <CategorySlide />
       <HeroSection
       // onExploreClick={() =>
       //   collectionsRef.current?.scrollIntoView({ behavior: 'smooth' })

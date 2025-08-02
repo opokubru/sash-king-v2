@@ -6,6 +6,7 @@ import { Icon } from '@iconify/react';
 // import { Image } from '@nextui-org/react';
 // import { useCategories } from '@/utils/hooks/categories';
 import { Link } from 'react-router-dom';
+import HoverSlideshowImage from './hover-slideshow';
 
 // interface HeroSectionProps {
 //   onExploreClick: () => void;
@@ -21,7 +22,7 @@ const HeroSection = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="w-full bg-white py-16 px-4 sm:px-6 lg:px-8"
+      className="w-full bg-white  px-4 sm:px-6 lg:px-8"
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12 md:mb-16">
@@ -48,10 +49,22 @@ const HeroSection = () => {
               to="/categories/tees"
               className="h-48 lg:h-[30%] rounded-3xl overflow-hidden bg-secondary-gray cursor-pointer"
             >
-              <img
+              {/* <img
                 src="/images/tees.webp"
                 alt="Model in green shirt"
                 className="w-full h-full object-cover"
+              /> */}
+              <HoverSlideshowImage
+                images={[
+                  '/images/tees.webp',
+                  '/images/heros/tee1.webp',
+                  '/images/heros/tee2.webp',
+                  '/images/heros/tee3.webp',
+                  '/images/heros/tee4.webp',
+                  '/images/heros/tee5.webp',
+                  '/images/heros/tee6.webp',
+                ]}
+                alt="Tees category slideshow"
               />
             </Link>
           </section>
@@ -108,10 +121,21 @@ const HeroSection = () => {
               to="/categories/joggers"
               className="h-64 lg:h-[70%] rounded-3xl overflow-hidden bg-secondary-yellow p-4 cursor-pointer"
             >
-              <img
+              {/* <img
                 src="/images/joggers.jpeg"
                 alt="Model in orange outfit"
                 className="w-full h-full object-cover rounded-2xl"
+              /> */}
+              <HoverSlideshowImage
+                images={[
+                  '/images/joggers.jpeg',
+                  '/images/heros/joggers1.webp',
+                  '/images/heros/joggers2.webp',
+                  '/images/heros/joggers3.webp',
+                  '/images/heros/joggers4.webp',
+                  '/images/heros/joggers5.webp',
+                ]}
+                alt="Joggers category slideshow"
               />
             </Link>
             <Link

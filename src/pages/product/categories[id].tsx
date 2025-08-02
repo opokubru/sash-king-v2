@@ -60,7 +60,7 @@ const SelectedCategoryPage = () => {
         </div>
       ) : (
         <p className="text-center text-gray-500 mt-10">
-          No products found in this category.
+          No stock currently in this category
         </p>
       )}
     </div>
