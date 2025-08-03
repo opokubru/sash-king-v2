@@ -90,6 +90,7 @@ export default function AdminOrders() {
           <TableColumn>NAME</TableColumn>
           <TableColumn>EMAIL</TableColumn>
           <TableColumn>PHONE</TableColumn>
+          <TableColumn>LOCATION</TableColumn>
           <TableColumn>PRODUCTS</TableColumn>
           <TableColumn>TOTAL</TableColumn>
           <TableColumn>STATUS</TableColumn>
@@ -120,6 +121,7 @@ export default function AdminOrders() {
               </TableCell>
               <TableCell>{order.email}</TableCell>
               <TableCell>{order.tel}</TableCell>
+              <TableCell>{order.location}</TableCell>
               <TableCell>
                 {(order.items || []).map((item, i) => (
                   <div key={i} className="mb-1">

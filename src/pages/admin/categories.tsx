@@ -236,10 +236,21 @@ export default function AdminCategories() {
                     onChange={handleChange}
                     isDisabled
                   />
-                  <Input
+                  {/* <Input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
+                  /> */}
+                  <input
+                    key={
+                      isOpen
+                        ? 'main-image-native-open'
+                        : 'main-image-native-closed'
+                    }
+                    type="file"
+                    accept=".webp,image/webp"
+                    onChange={handleImageChange}
+                    // className="border rounded p-1 text-sm"
                   />
                   {(form.image || editingCategory?.image_url) && (
                     <div className="flex items-center gap-4">
