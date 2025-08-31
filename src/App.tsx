@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+// import { lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Route, Routes } from 'react-router-dom';
 
@@ -21,7 +21,8 @@ import NewArrivalsPage from './pages/product/new-arrival-page';
 import TopSellingPage from './pages/product/top-selling-page';
 import SearchPage from './pages/product/search-page';
 import OrderViewPage from './pages/admin/orders[id]';
-const Home = lazy(() => import('./pages/home'));
+import ComingSoon from './layout/coming-soon';
+// const Home = lazy(() => import('./pages/home'));
 
 function App() {
   const { scrollYProgress } = useScroll();
@@ -37,7 +38,8 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<MainLayout />}>
-            <Route path="" element={<Home />} />
+            <Route path="" element={<ComingSoon />} />
+            {/* <Route path="" element={<Home />} /> */}
             <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="admin/orders/:id" element={<OrderViewPage />} />
