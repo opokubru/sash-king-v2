@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { Card, CardBody } from '@nextui-org/react';
 import Countdown from 'react-countdown';
-// import Waitlist from './waitlist';
+import Waitlist from './waitlist';
 import { LogoComponent } from '@/components/logo-componanent';
 
 // Custom renderer for countdown
@@ -81,7 +81,7 @@ export default function ComingSoon() {
             </motion.p>
 
             {/* Waitlist Component */}
-            {/* <Waitlist /> */}
+            <Waitlist />
           </CardBody>
         </Card>
       </motion.div>
