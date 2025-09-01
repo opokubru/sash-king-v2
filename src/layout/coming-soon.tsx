@@ -49,12 +49,12 @@ export default function ComingSoon() {
           <CardBody className="flex flex-col items-center gap-6">
             {/* Title */}
             <motion.h1
-              className="text-3xl md:text-6xl font-bold text-center text-white"
+              className="text-2xl md:text-6xl font-bold text-center text-white"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              🚀 Our Store Launches September 12
+              🚀 Our Store Launches September 21
             </motion.h1>
 
             {/* Countdown Timer */}
@@ -64,7 +64,7 @@ export default function ComingSoon() {
               transition={{ delay: 0.5, duration: 1 }}
             >
               <Countdown
-                date={new Date('2025-09-12T00:00:00')}
+                date={new Date('2025-09-21T00:00:00')}
                 renderer={renderer}
               />
             </motion.div>
