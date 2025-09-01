@@ -5,4 +5,5 @@ export const variables = {
   VITE_SUPABASE_URL: environment.VITE_SUPABASE_URL,             
   VITE_SUPABASE_ANON_KEY: environment.VITE_SUPABASE_ANON_KEY,   
   VITE_PAYSTACK_PUBLIC_KEY: environment.VITE_PAYSTACK_PUBLIC_KEY,
+  VITE_COMING_SOON: environment.VITE_COMING_SOON,
 };

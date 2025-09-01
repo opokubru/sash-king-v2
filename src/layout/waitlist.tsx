@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Input, Button } from '@nextui-org/react';
 import toast from 'react-hot-toast';
+import { variables } from '@/utils/env';
 
 export default function Waitlist() {
   const [phone, setPhone] = useState('');
@@ -19,15 +20,12 @@ export default function Waitlist() {
     const formData = { phone, email };
 
     try {
-      await fetch(
-        'https://script.google.com/macros/s/AKfycbzmg394VrykHCUwfaxMD_MBSs1sJ9FIvUqrszt8dIBnjXSHXVTGxTeYehWluOlwinWA/exec',
-        {
-          method: 'POST',
-          mode: 'no-cors', // prevents CORS error, but you won’t see response
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        },
-      );
+      await fetch(`${variables.VITE_COMING_SOON}`, {
+        method: 'POST',
+        mode: 'no-cors', // prevents CORS error, but you won’t see response
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
       setPhone('');
       setEmail('');
