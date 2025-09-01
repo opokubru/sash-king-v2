@@ -91,9 +91,10 @@ export default function Waitlist() {
           />
           <Button
             type="submit"
+            disabled={loading || !phone || phone.length < 7} // Disable button when loading
             isLoading={loading} // Show loading state
             radius="full"
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6"
+            className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 disabled:opacity-50"
           >
             Join
           </Button>
