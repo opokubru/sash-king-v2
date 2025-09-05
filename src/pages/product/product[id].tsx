@@ -93,7 +93,7 @@ const ProductDetail = () => {
   };
 
   useEffect(() => {
-    fetchProducts().then((all) => {
+    fetchProducts(0, 100000000).then((all) => {
       const found = all.find((p) => p?.id === name);
       // console.log('Found product:', found);
       setProduct(found || null);
