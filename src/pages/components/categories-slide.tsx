@@ -14,9 +14,7 @@ const CategorySlide = () => {
     <motion.section className="flex overflow-x-scroll gap-2 py-4 bg-white scrollbar-hide items-center md:justify-center ">
       {categories.map((category, index) => (
         <Link
-          to={`categories/${category.label
-            .toLocaleLowerCase()
-            .replace(' ', '-')}`}
+          to={`categories/${category?.slug}`}
           key={index}
           className="px-3 py-1 border whitespace-nowrap border-gray-300 rounded-full text-sm hover:bg-gray-100 transition"
         >

@@ -44,5 +44,6 @@ export const fetchCategoryOptions = async () => {
       label: cat.name,
       value: cat.slug,
       image_url: cat.image_url,
+      slug: cat.slug,
     }));
 };

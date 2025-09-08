@@ -4,4 +4,5 @@ export interface CategoryType {
   value: string;
   icon?: string;
   image_url?: string;
+  slug?: string;
 }
