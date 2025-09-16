@@ -7,24 +7,24 @@ import PageWrapper from '@/components/shared/page-wrapper';
 const contactInfo = [
   {
     label: 'Email',
-    value: 'support@sneakz.com',
+    value: 'info@sneaksofficial.com',
     icon: 'mdi:email-outline',
   },
   {
     label: 'Phone',
-    value: '+233 55 123 4567',
+    value: '+233 55 861 9235',
     icon: 'mdi:phone-outline',
   },
-  {
-    label: 'Location',
-    value: 'Accra, Ghana (Online Only)',
-    icon: 'mdi:map-marker-outline',
-  },
-  {
-    label: 'Working Hours',
-    value: 'Mon - Sat: 9:00am – 6:00pm GMT',
-    icon: 'mdi:clock-outline',
-  },
+  // {
+  //   label: 'Location',
+  //   value: 'Accra, Ghana (Online Only)',
+  //   icon: 'mdi:map-marker-outline',
+  // },
+  // {
+  //   label: 'Working Hours',
+  //   value: 'Mon - Sat: 9:00am – 6:00pm GMT',
+  //   icon: 'mdi:clock-outline',
+  // },
 ];
 
 const Contact = () => {
