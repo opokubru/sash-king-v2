@@ -14,6 +14,7 @@ const contactInfo = [
     label: 'Phone',
     value: '+233 55 861 9235',
     icon: 'mdi:phone-outline',
+    isprimary: true,
   },
   // {
   //   label: 'Location',
@@ -58,6 +59,12 @@ const Contact = () => {
             <div>
               <h3 className="text-md font-semibold text-black">{item.label}</h3>
               <p className="text-gray-700 text-sm">{item.value}</p>
+              {item.isprimary && (
+                <p className="text-xs text-yellow-600 font-medium mt-1">
+                  This is our primary medium to reach us for all customer
+                  support
+                </p>
+              )}
             </div>
           </div>
         ))}
