@@ -23,8 +23,8 @@ export default function NavbarComponent() {
 
   const { items } = useSelector((state: RootState) => state.cart);
 
-  const [showSearch, setShowSearch] = useState(false);
-  const [query, setQuery] = useState('');
+  // const [showSearch, setShowSearch] = useState(false);
+  // const [query, setQuery] = useState('');
 
   // const handleSearchSubmit = (e: React.FormEvent) => {
   //   e.preventDefault();

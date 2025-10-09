@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ProductCard } from '@/components/ProductCard';
+// import { ProductCard } from '@/components/ProductCard';
 import { ThreeDSashes } from '@/lib/3d-sash';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 
