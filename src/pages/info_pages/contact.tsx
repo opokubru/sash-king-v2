@@ -7,12 +7,12 @@ import PageWrapper from '@/components/shared/page-wrapper';
 const contactInfo = [
   {
     label: 'Email',
-    value: 'info@sneaksofficial.com',
+    value: 'info@sashkinggh.com',
     icon: 'mdi:email-outline',
   },
   {
     label: 'Phone',
-    value: '+233 55 861 9235',
+    value: '+233 54 000 0000',
     icon: 'mdi:phone-outline',
     isprimary: true,
   },
@@ -38,8 +38,8 @@ const Contact = () => {
         className="text-center text-gray-700 max-w-2xl mx-auto"
       >
         Got questions, feedback, or just want to say what’s up? We’re always
-        happy to hear from the SNEAKZ fam. Reach out through any of the channels
-        below.
+        happy to hear from the Sash King fam. Reach out through any of the
+        channels below.
       </motion.p>
 
       <motion.div

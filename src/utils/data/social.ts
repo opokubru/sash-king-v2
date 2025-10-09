@@ -1,14 +1,14 @@
 export const socials = [
   {
     icon: 'bi:instagram',
-    href: 'https://instagram.com/sneaksshopworldwide',
+    href: 'https://instagram.com/sashkinggh',
   },
   {
     icon: 'fa-brands:snapchat',
-    href: 'https://snapchat.com/add/mckay_turns',
+    href: 'https://snapchat.com/add/sashkinggh',
   },
   {
     icon: 'bi:whatsapp', // You can use any WhatsApp icon from iconify
-    href: 'https://wa.me/233558619235', // Use international format without "+"
+    href: 'https://wa.me/', // Use international format without "+"
   },
 ];

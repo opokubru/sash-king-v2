@@ -14,9 +14,10 @@ const Footer = () => {
               alt="logo-white"
               className="w-[8.3rem]"
             /> */}
-            <p className="font-bold text-inherit uppercase">Sneakz</p>
+            {/* <LogoComponent /> */}
+            <p className="font-bold text-inherit uppercase">Sash King</p>
           </div>
-          <p className="text-sm">Clothing and Accesories</p>
+          <p className="text-sm">Custom Designed Sashes</p>
           <div className="flex items-center gap-x-3">
             {socials.map((item, index) => (
               <a
@@ -80,7 +81,7 @@ const Footer = () => {
       </div>
       <div className="w-full h-[1px] bg-black/40" />
       <div className="py-3 text-center text-xs">
-        Sneakz © {new Date().getFullYear()}. All Rights Reserved
+        Sash King © {new Date().getFullYear()}. All Rights Reserved
       </div>
     </footer>
   );
@@ -92,10 +93,6 @@ const FOOTER_ITEMS = [
   {
     header: 'Help',
     links: [
-      {
-        title: 'About Us',
-        href: '/about',
-      },
       // {
       //   title: 'Privacy Policy',
       //   href: '/privacy-policy',
@@ -114,30 +111,9 @@ const FOOTER_ITEMS = [
     header: 'Link',
     links: [
       {
-        title: 'Admin',
-        href: '/signin',
+        title: 'About Us',
+        href: '/about',
       },
     ],
   },
-  // {
-  //   header: "Proxy",
-  //   links: [
-  //     {
-  //       title: "About",
-  //       href: "",
-  //     },
-  //     {
-  //       title: "Shop",
-  //       href: "",
-  //     },
-  //     {
-  //       title: "Product",
-  //       href: "",
-  //     },
-  //     {
-  //       title: "Track Order",
-  //       href: "",
-  //     },
-  //   ],
-  // },
 ];

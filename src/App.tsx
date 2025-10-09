@@ -1,9 +1,8 @@
-import { lazy, useState } from 'react';
+import { lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Route, Routes } from 'react-router-dom';
 
 import ScrollToTop from './components/shared/scroll_to_top';
-import CountdownOverlay from './components/shared/countdown-overlay';
 import { motion, useScroll } from 'framer-motion';
 import MainLayout from './layout/main_layout';
 import NotFound from './components/shared/not_found';
@@ -22,22 +21,24 @@ import NewArrivalsPage from './pages/product/new-arrival-page';
 import TopSellingPage from './pages/product/top-selling-page';
 import SearchPage from './pages/product/search-page';
 import OrderViewPage from './pages/admin/orders[id]';
+import { TemplatedSashesPage } from './pages/view-all/templated-sashes';
+import { ThreeDSashesPage } from './pages/view-all/3d-sashes';
 // import ComingSoon from './layout/coming-soon';
 const Home = lazy(() => import('./pages/home'));
 
 function App() {
   const { scrollYProgress } = useScroll();
-  const [showCountdown, setShowCountdown] = useState(true);
+  // const [showCountdown, setShowCountdown] = useState(true);
 
-  const handleCountdownComplete = () => {
-    setShowCountdown(false);
-  };
+  // const handleCountdownComplete = () => {
+  //   setShowCountdown(false);
+  // };
 
   return (
     <main className="bg-white h-full w-full text-base font-roboto">
-      {showCountdown && (
+      {/* {showCountdown && (
         <CountdownOverlay onComplete={handleCountdownComplete} />
-      )}
+      )} */}
 
       <div>
         <motion.div
@@ -50,7 +51,7 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             {/* <Route path="" element={<ComingSoon />} /> */}
             <Route path="" element={<Home />} />
-            <Route path="signin" element={<AdminSignInPage />} />
+            {/* <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="admin/orders/:id" element={<OrderViewPage />} />
             <Route path="product/:name" element={<ProductDetail />} />
@@ -61,7 +62,11 @@ function App() {
 
             <Route path="categories/:name" element={<SelectedCategoryPage />} />
             <Route path="checkout" element={<Checkout />} />
-            <Route path="categories" element={<AllCategoriesPage />} />
+            <Route path="categories" element={<AllCategoriesPage />} /> */}
+
+            {/* View All Pages */}
+            <Route path="templated-sash" element={<TemplatedSashesPage />} />
+            <Route path="design-your-own" element={<ThreeDSashesPage />} />
 
             {/* info pages  */}
             <Route path="about" element={<About />} />

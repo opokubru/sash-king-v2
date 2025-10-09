@@ -6,7 +6,7 @@ import cartSlice from './features/cart';
 import authSlice from './features/auth';
 
 const persistConfig = {
-	key: 'Sneakz',
+	key: 'Sash King',
 	storage,
 	whitelist: ["global", "cart", "auth"],
 	blacklist: [],

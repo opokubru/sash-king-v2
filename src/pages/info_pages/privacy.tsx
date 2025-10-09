@@ -13,9 +13,9 @@ const PrivacyPolicy = () => {
         transition={{ duration: 0.3 }}
         className="text-gray-700"
       >
-        At SNEAKZ, we respect your privacy and are committed to protecting your
-        personal data. This Privacy Policy explains how we collect, use, and
-        share your information.
+        At Sash King, we respect your privacy and are committed to protecting
+        your personal data. This Privacy Policy explains how we collect, use,
+        and share your information.
       </motion.p>
 
       <div className="space-y-8 mt-10">
@@ -49,10 +49,10 @@ const PrivacyPolicy = () => {
             You can access, modify, or request deletion of your personal
             information by contacting us at{' '}
             <a
-              href="mailto:privacy@sneakz.com"
+              href="mailto:privacy@Sash King.com"
               className="text-blue-600 underline"
             >
-              privacy@sneakz.com
+              privacy@Sash King.com
             </a>
             .
           </p>

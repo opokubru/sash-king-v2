@@ -38,7 +38,7 @@ module.exports = {
       },
 
       colors: {
-        primary: '#FF3B1F', // Vibrant red-orange from logo
+        primary: '#CE9819', // Vibrant red-orange from logo
         'primary-dark': '#B72400', // Hover/focus variant
         'primary-white': '#FFFFFF', // Pure white
         'primary-black': '#000000', // Strong black text/background

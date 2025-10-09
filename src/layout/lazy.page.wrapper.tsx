@@ -16,7 +16,7 @@ const LazyPageWrapper = ({ component }: ILazyPageWrapper) => {
               alt="logo"
               className="w-[8rem] h-auto rounded-md"
             />
-            {/* <p className="text-sm">Sneakz</p> */}
+            {/* <p className="text-sm">Sash King</p> */}
             <Spinner size="sm" color="current" />
           </div>
         </div>

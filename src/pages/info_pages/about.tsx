@@ -7,26 +7,26 @@ import { socials } from '@/utils/data/social';
 
 const features = [
   {
-    title: 'Trendy Styles',
+    title: 'Authentic Kente',
     icon: <Icon icon="mdi:tshirt-crew" className="w-6 h-6 text-primary/90" />,
-    desc: 'We curate the latest fashion trends in streetwear and accessories.',
+    desc: 'Handwoven authentic Kente sashes crafted with traditional Ghanaian artistry.',
   },
   {
-    title: 'Fast Delivery',
+    title: 'Custom Design',
     icon: (
-      <Icon icon="mdi:truck-fast-outline" className="w-6 h-6 text-primary/90" />
+      <Icon icon="mdi:palette-outline" className="w-6 h-6 text-primary/90" />
     ),
-    desc: 'Swift nationwide delivery to keep you laced up on time.',
+    desc: 'Design your own unique sash or choose from our elegant templates.',
   },
   {
-    title: 'Top Quality',
+    title: 'Premium Quality',
     icon: (
       <Icon
         icon="mdi:star-circle-outline"
         className="w-6 h-6 text-primary/90"
       />
     ),
-    desc: 'Every item is hand-picked for its quality, durability, and vibe.',
+    desc: 'Every sash is crafted with attention to detail and cultural significance.',
   },
 ];
 
@@ -34,21 +34,20 @@ const About = () => {
   return (
     <div className="min-h-screen container  text-black px-6 py-16">
       {/* Hero Section */}
-      <h1 className="text-4xl font-bold mb-4 text-primary">About Sneaks</h1>
+      <h1 className="text-4xl font-bold mb-4 text-primary">About Sash King</h1>
       <p className="text-lg text-gray-700">
-        At Sneaks, we live by one mission: to keep you one step ahead. What
-        started as a passion for street style has grown into a movement for the
-        bold and fashion-forward. We curate more than clothes — we deliver
-        confidence, culture, and authenticity.
+        At Sash King, we craft authentic Kente sashes for every occasion. Choose
+        from our elegant templates or design your own from scratch – unique,
+        stylish, and made just for you.
       </p>
 
       {/* Mission Section */}
       <p className="text-gray-600 text-md">
-        We’re here to simplify your shopping experience while elevating your
-        style. Our collection is handpicked to reflect the best in streetwear —
-        from premium sneakers and baggy jeans to clean-cut cargos and everyday
-        tees. Each piece is chosen to make sure you stand out, without the
-        stress.
+        We celebrate the rich heritage of Kente cloth while bringing it into
+        modern celebrations. Whether it's graduation, cultural events, or
+        special occasions, our handwoven sashes carry the stories and traditions
+        of Ghana. Each piece is carefully crafted to honor both the past and
+        your personal journey.
       </p>
 
       {/* Features Section */}
@@ -82,12 +81,13 @@ const About = () => {
         className="mt-24 text-center"
       >
         <h3 className="text-xl font-semibold text-primary/90">
-          Be Part of the Sneaks Story
+          Be Part of the Sash King Story
         </h3>
 
         <p className="text-gray-600 mt-2">
-          Follow us on social to stay ahead of the game, discover new drops, and
-          wear your attitude loud.
+          Follow us on social to discover new Kente designs, learn about our
+          cultural heritage, and celebrate your special moments with authentic
+          style.
         </p>
 
         <div className="flex items-center justify-center mx-auto mt-3 gap-x-3">

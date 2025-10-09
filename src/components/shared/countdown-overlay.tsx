@@ -60,7 +60,7 @@ const CountdownOverlay = ({ onComplete }: CountdownOverlayProps) => {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
                   >
-                    🚀 Welcome to Sneakz
+                    🚀 Welcome to Sash King
                   </motion.h1>
 
                   {/* Subtitle */}
@@ -70,7 +70,7 @@ const CountdownOverlay = ({ onComplete }: CountdownOverlayProps) => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8, duration: 1 }}
                   >
-                    Sneakz official launches in...
+                    Sash King official launches in...
                   </motion.p>
 
                   {/* Countdown Timer */}
@@ -151,7 +151,7 @@ const CountdownOverlay = ({ onComplete }: CountdownOverlayProps) => {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.2, duration: 0.6 }}
                     >
-                      🚀 Sneakz Official is Live! 🚀
+                      🚀 Sash King Official is Live! 🚀
                     </motion.h1>
 
                     {/* <motion.div

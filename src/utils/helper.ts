@@ -16,7 +16,7 @@ const currencySymbols: { [key: string]: string } = {
 	// Add more currencies as needed
   };
   
-  export function getCurrencySymbol(currencyCode: string): string | undefined {
+  export function getCurrencySymbol(currencyCode: string): string {
 	return currencySymbols[currencyCode.toUpperCase()];
   }
 

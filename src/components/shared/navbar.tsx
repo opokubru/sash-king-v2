@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
 import { LogoComponent } from '../logo-componanent';
 import { Icon } from '@iconify/react/dist/iconify.js';
-import { Input } from '@nextui-org/react';
+// import { Input } from '@nextui-org/react';
 
 export default function NavbarComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,15 +26,15 @@ export default function NavbarComponent() {
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState('');
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      navigate(`/search?q=${encodeURIComponent(query)}`);
-      setShowSearch(false);
-      setQuery('');
-      setIsMenuOpen(false); // Close mobile menu if open
-    }
-  };
+  // const handleSearchSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (query.trim()) {
+  //     navigate(`/search?q=${encodeURIComponent(query)}`);
+  //     setShowSearch(false);
+  //     setQuery('');
+  //     setIsMenuOpen(false); // Close mobile menu if open
+  //   }
+  // };
 
   return (
     <>
@@ -43,7 +43,7 @@ export default function NavbarComponent() {
         onMenuOpenChange={setIsMenuOpen}
         isBordered
         {...{
-          ariaLabel: 'Sneakz Navbar',
+          ariaLabel: 'Sash King Navbar',
         }}
         maxWidth="2xl"
         className="bg-white w-full"
@@ -89,7 +89,7 @@ export default function NavbarComponent() {
 
         <NavbarContent justify="end" className="hidden lg:flex">
           <NavbarItem className="gap-4 hidden lg:flex items-center">
-            <p>
+            {/* <p>
               {!showSearch ? (
                 <Icon
                   icon="uil:search"
@@ -129,7 +129,7 @@ export default function NavbarComponent() {
                   />
                 </form>
               )}
-            </p>
+            </p> */}
             <button onClick={() => navigate('/checkout')} className="relative">
               <Icon
                 icon="uil:shopping-bag"
@@ -153,7 +153,7 @@ export default function NavbarComponent() {
           justify="end"
           className="flex lg:hidden items-center gap-3 px-2"
         >
-          {!showSearch ? (
+          {/* {!showSearch ? (
             <Icon
               icon="uil:search"
               className="text-2xl text-gray-600 cursor-pointer"
@@ -188,7 +188,7 @@ export default function NavbarComponent() {
                 }}
               />
             </form>
-          )}
+          )} */}
           <button onClick={() => navigate('/checkout')} className="relative">
             <Icon icon="uil:shopping-bag" className="text-2xl text-gray-600" />
             <span className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm">
@@ -238,10 +238,10 @@ const menuItems = [
     link: '/about',
     title: 'About Us',
   },
-  {
-    link: 'categories',
-    title: 'Categories',
-  },
+  // {
+  //   link: 'categories',
+  //   title: 'Categories',
+  // },
   // {
   //   link: '/checkout',
   //   title: 'Checkout',

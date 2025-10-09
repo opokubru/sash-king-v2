@@ -38,7 +38,7 @@ const Support = () => {
 
     const data_to_send = {
       ...data,
-      subject: 'Support needed - Sneakz',
+      subject: 'Support needed - Sash King',
     };
 
     try {
