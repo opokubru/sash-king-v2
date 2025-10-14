@@ -21,9 +21,9 @@ export const ThreeDSashesPage = () => {
               Design Your Sash in 3D!
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Discover our innovative 3D sash designs with advanced
-              customization options. Each design offers unique positioning and
-              styling capabilities for logos and text.
+              Step into the future of sash design! Our cutting-edge 3D platform
+              gives you complete creative control. Position logos, customize
+              text, and see your vision come to life in real-time.
             </p>
           </motion.div>
         </div>
@@ -76,28 +76,28 @@ export const ThreeDSashesPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose 3D Sashes?
+              Why 3D Design Changes Everything
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: 'Advanced Positioning',
+                title: 'Pixel-Perfect Precision',
                 description:
-                  'Precise control over logo and text placement with multiple positioning options',
+                  'Place every element exactly where you want it. Our advanced positioning system gives you complete creative freedom.',
                 icon: '🎯',
               },
               {
-                title: 'Customizable Design',
+                title: 'Infinite Possibilities',
                 description:
-                  'Multiple design nodes and yard options for complete personalization',
+                  "Mix, match, and customize to your heart's content. With unlimited design options, your creativity is the only limit.",
                 icon: '🎨',
               },
               {
-                title: 'Professional Quality',
+                title: 'Craftsmanship Excellence',
                 description:
-                  'High-quality materials and craftsmanship for lasting durability',
+                  'Every sash is handcrafted with premium materials and meticulous attention to detail. Quality you can feel.',
                 icon: '⭐',
               },
             ].map((feature, index) => (

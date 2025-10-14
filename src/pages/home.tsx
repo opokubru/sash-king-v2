@@ -93,35 +93,35 @@ const Home = () => {
   const heroSlides = [
     {
       id: 1,
-      image: 'https://placehold.co/1200x600',
-      title: 'Authentic',
-      subtitle: 'Handwoven in Ghana',
-      description: 'Kente Stoles',
-      tagline: 'Fine Craftsmanship',
+      image: '/images/carousel/IMG_2039.JPG',
+      title: 'Wear Your Story',
+      subtitle: 'Every Thread Tells a Tale',
+      description: 'Authentic Kente Sashes',
+      tagline: 'Crafted with Pride, Worn with Purpose',
     },
     {
       id: 2,
-      image: 'https://placehold.co/1200x600',
-      title: 'Graduation',
-      subtitle: 'Your Journey Deserves Recognition',
-      description: 'Premium Stoles',
-      tagline: 'Celebrate Your Achievement',
+      image: '/images/carousel/IMG_2047.JPG',
+      title: 'Graduate Like Royalty',
+      subtitle: 'Your Crown Awaits',
+      description: 'Premium Graduation Sashes',
+      tagline: 'Because You Earned This Moment',
     },
     {
       id: 3,
-      image: 'https://placehold.co/1200x600',
-      title: 'Greek',
-      subtitle: 'Brotherhood & Sisterhood',
-      description: 'Organization Stoles',
-      tagline: 'Represent Your Letters',
+      image: '/images/carousel/IMG_2054.JPG',
+      title: 'Brotherhood & Sisterhood',
+      subtitle: 'Wear Your Letters with Pride',
+      description: 'Faculty & College Sashes',
+      tagline: 'Unity in Every Stitch',
     },
     {
       id: 4,
-      image: 'https://placehold.co/1200x600',
-      title: 'Custom',
-      subtitle: 'Made-to-Order Excellence',
-      description: 'Personalized Stoles',
-      tagline: 'Your Vision, Our Craft',
+      image: '/images/carousel/IMG_2073.JPG',
+      title: 'Create Your Legacy',
+      subtitle: 'From Vision to Reality',
+      description: 'Custom Made Sashes',
+      tagline: 'Your Imagination, Our Mastery',
     },
   ];
 
@@ -246,11 +246,11 @@ const Home = () => {
         <Slider {...heroSettings} className="hero-carousel">
           {heroSlides.map((slide) => (
             <div key={slide.id} className="relative">
-              <div className="relative h-[600px] md:h-[700px]">
+              <div className="relative h-[400px] md:h-[800px] flex items-center justify-center">
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover "
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-40"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -260,13 +260,13 @@ const Home = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8 }}
                     >
-                      <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4">
+                      <h1 className="text-xxl md:text-6xl lg:text-7xl font-bold mb-4">
                         {slide.title}
                       </h1>
                       <p className="text-xl md:text-2xl mb-2 opacity-90">
                         {slide.subtitle}
                       </p>
-                      <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4">
+                      <h2 className="text-3xl md:text-6xl lg:text-7xl font-bold mb-4">
                         {slide.description}
                       </h2>
                       <p className="text-lg md:text-xl mb-8 opacity-90">
@@ -277,27 +277,11 @@ const Home = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.2 }}
-                      className="mb-8"
-                    >
-                      <div className="inline-flex items-center bg-white bg-opacity-20 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
-                        <span className="text-sm font-medium text-white mr-2">
-                          03. Business Office in
-                        </span>
-                        <span className="text-sm font-bold text-white">
-                          New York, USA
-                        </span>
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.4 }}
                     >
                       <Link
-                        to="/categories"
-                        className="inline-block bg-white text-black px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
+                        to="/templated-sash"
+                        className="inline-block bg-white text-black px-4 py-2 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
                       >
                         Shop Now
                       </Link>
@@ -311,7 +295,7 @@ const Home = () => {
       </section>
 
       {/* Graduation Message Section */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -348,10 +332,10 @@ const Home = () => {
             </div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Products Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -359,16 +343,18 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4 capitalize">
-              Make it your own
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Make It Uniquely Yours
             </h2>
-            <p className="text-lg text-gray-600">Edit our Elegant Templates</p>
+            <p className="text-lg text-gray-600">
+              Transform Our Elegant Templates Into Your Personal Masterpiece
+            </p>
           </motion.div>
 
           <div className="relative">
             <Slider {...productsSettings} className="products-carousel">
               {TemplatedSash.slice(0, 6).map((product, index) => (
-                <div key={product.id} className="px-2">
+                <div key={product.id} className="px-2 ">
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -380,20 +366,20 @@ const Home = () => {
               ))}
             </Slider>
           </div>
-
-          <div className="text-center mt-12">
-            <Link
-              to="/templated-sash"
-              className="inline-block bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-            >
-              View All
-            </Link>
-          </div>
         </div>
       </section>
 
+      <div className="text-center mt-5 md:mt-10">
+        <Link
+          to="/templated-sash"
+          className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+        >
+          View All
+        </Link>
+      </div>
+
       {/* ThreeDSashes Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -401,11 +387,12 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Design Your Own Sash From Scratch
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Design Your Dream Sash
             </h2>
             <p className="text-lg text-gray-600">
-              We set a base for you to build on, so you can get creative easily
+              Start from scratch and create something truly extraordinary. Our
+              3D design tools make it easy to bring your vision to life.
             </p>
           </motion.div>
 
@@ -427,10 +414,10 @@ const Home = () => {
                       />
                     </div>
                     <div className="mt-3">
-                      <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+                      <h3 className="text-base md:text-lg font-medium text-gray-900 mb-1 line-clamp-2">
                         {stole.name}
                       </h3>
-                      <p className="text-sm font-semibold text-gray-900 mb-3">
+                      <p className="text-base md:text-lg font-semibold text-gray-900 mb-3">
                         {getCurrencySymbol('GHS') + parseToMoney(stole.price)}
                       </p>
                       <button className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors">
@@ -442,17 +429,17 @@ const Home = () => {
               ))}
             </Slider>
           </div>
-
-          <div className="text-center mt-12">
-            <Link
-              to="/design-your-own"
-              className="inline-block bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-            >
-              View All
-            </Link>
-          </div>
         </div>
       </section>
+
+      <div className="text-center mt-5 md:mt-10">
+        <Link
+          to="/design-your-own"
+          className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+        >
+          View All
+        </Link>
+      </div>
 
       {/* Shop with Friends Section */}
       <section className="py-20 bg-white">
@@ -463,29 +450,29 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              CELEBRATE WITH US!
+            <h2 className="text-3xl font-bold text-gray-900 mb-0 md:mb-2">
+              Your Journey, Your Way
             </h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: 'Celebrate Your Day',
+                title: 'Celebrate Your Victory',
                 description:
-                  'Document the end of this journey with those you walked it with',
-                icon: '🎉',
+                  'Mark this milestone with something as unique as your journey. Create memories that last forever.',
+                icon: '🏆',
               },
               {
-                title: 'Save Money',
-                description: 'Enjoy incredible quantity discounts ',
-                icon: '💰',
-              },
-
-              {
-                title: "You've earned it",
+                title: 'Express Your Identity',
                 description:
-                  "Because you literally are your ancestors' wildest dreams",
+                  'Wear your story, your culture, your achievements. Every sash tells your personal tale.',
+                icon: '🎨',
+              },
+              {
+                title: 'Quality That Speaks',
+                description:
+                  'Handcrafted with love, precision, and the finest materials. Because you deserve nothing less than excellence.',
                 icon: '✨',
               },
             ].map((benefit, index) => (

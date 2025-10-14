@@ -17,22 +17,22 @@ export const TemplatedSashesPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              All Templated Sashes
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Your Perfect Sash Awaits!
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore our complete collection of authentic Kente sashes. Each
-              template is carefully crafted with traditional Ghanaian artistry
-              and can be customized to your preferences.
+            <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+              Discover our stunning collection of authentic Kente sashes. Each
+              template is a masterpiece of traditional Ghanaian artistry,
+              waiting to be transformed into your personal statement piece.
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* Products Grid */}
-      <section className="py-20">
+      <section className="py-2 md:py-10">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {TemplatedSash.map((sash, index) => (
               <motion.div
                 key={sash.id}
@@ -40,7 +40,7 @@ export const TemplatedSashesPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <ProductCard product={sash} />
+                <ProductCard height="h-[200px] md:h-[300px]" product={sash} />
               </motion.div>
             ))}
           </div>
@@ -56,12 +56,12 @@ export const TemplatedSashesPage = () => {
             transition={{ duration: 0.8 }}
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Need Something Custom?
+              Want Something Truly Unique?
             </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Don't see exactly what you're looking for? We can create a
-              completely custom sash tailored to your specific needs and
-              preferences.
+            <p className="text-sm md:text-base text-gray-600 mb-8">
+              Ready to create something that's 100% you? Our custom design
+              studio lets you bring your wildest sash dreams to life. From
+              concept to creation, we'll make it happen.
             </p>
             <button
               onClick={() => navigate('/design-your-own')}

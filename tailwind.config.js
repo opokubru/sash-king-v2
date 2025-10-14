@@ -30,7 +30,7 @@ module.exports = {
         'auto-fill-150': 'repeat(auto-fill, minmax(150px, 1fr))',
       },
       fontFamily: {
-        roboto: 'Roboto',
+        roboto: 'Sans Serif',
       },
       fontSize: {
         base: '16px',
