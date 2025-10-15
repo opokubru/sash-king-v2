@@ -6,15 +6,12 @@ import { state } from '@/lib/store';
 // import { Link } from "react-router-dom";
 import { InputText } from 'primereact/inputtext';
 
-import { Carousel } from 'primereact/carousel';
 import Confirmation from './Confirmation';
 import html2canvas from 'html2canvas';
 
 import { Dialog } from 'primereact/dialog';
 // import './styles.css';
 import { useParams } from 'react-router';
-
-import { useSelector } from 'react-redux';
 
 //arrays
 import {
@@ -27,7 +24,7 @@ import {
 import { Toast } from 'primereact/toast';
 import HtmlComponent from '@/components/HtmlComponent';
 
-import { getCurrencySymbol, isMobile } from '@/utils/helper';
+import { getCurrencySymbol } from '@/utils/helper';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { readFileAsDataURL, uploadToStorage } from '@/utils/helper';
 import HtmlImageComponent from '@/components/HtmlImageComponent';
@@ -40,22 +37,6 @@ const ConfiguratorUnisexSpecial = () => {
   const selectedClothing = TemplatedSash.find((item) => item.name === id);
 
   const displayImage = selectedClothing?.model_image;
-
-  // Early return if no product found
-  if (!selectedClothing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Product Not Found
-          </h1>
-          <p className="text-gray-600">
-            The requested sash template could not be found.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const [selectedSize, setSelectedSize] = useState(1);
   const [selectedPrintOn, setSelectedPrintOn] = useState(null);
@@ -94,9 +75,9 @@ const ConfiguratorUnisexSpecial = () => {
       noSpinFor.includes(selectedClothing?.name) ||
       selectedClothing?.name === 'Earring'
     ) {
-      return ((partPrices + selectedClothing?.price) * currencyFactor).toFixed(
-        2,
-      );
+      return (
+        (partPrices + selectedClothing?.price || 0) * currencyFactor
+      ).toFixed(2);
     } else {
       return ((partPrices + selectedClothing?.price) * currencyFactor).toFixed(
         2,
@@ -108,6 +89,22 @@ const ConfiguratorUnisexSpecial = () => {
     selectedClothing?.name,
     selectedClothing?.price,
   ]);
+
+  // Early return if no product found
+  if (!selectedClothing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Product Not Found
+          </h1>
+          <p className="text-gray-600">
+            The requested sash template could not be found.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // useEffect(() => {
   //   const currentSize = selectedClothing?.sizeOptions.find(
