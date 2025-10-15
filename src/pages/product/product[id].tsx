@@ -72,16 +72,16 @@ const ConfiguratorUnisexSpecial = () => {
 
   const total = useMemo(() => {
     if (
-      noSpinFor.includes(selectedClothing?.name) ||
+      noSpinFor.includes(selectedClothing?.name as string) ||
       selectedClothing?.name === 'Earring'
     ) {
       return (
         (partPrices + selectedClothing?.price || 0) * currencyFactor
       ).toFixed(2);
     } else {
-      return ((partPrices + selectedClothing?.price) * currencyFactor).toFixed(
-        2,
-      );
+      return (
+        (partPrices + selectedClothing?.price || 0) * currencyFactor
+      ).toFixed(2);
     }
   }, [
     currencyFactor,
