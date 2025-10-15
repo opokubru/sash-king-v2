@@ -23,6 +23,7 @@ import About from './pages/info_pages/about';
 // import OrderViewPage from './pages/admin/orders[id]';
 import { TemplatedSashesPage } from './pages/view-all/templated-sashes';
 import { ThreeDSashesPage } from './pages/view-all/3d-sashes';
+import ConfiguratorUnisexSpecial from './pages/product/product[id]';
 // import ComingSoon from './layout/coming-soon';
 const Home = lazy(() => import('./pages/home'));
 
@@ -67,6 +68,7 @@ function App() {
             {/* View All Pages */}
             <Route path="templated-sash" element={<TemplatedSashesPage />} />
             <Route path="design-your-own" element={<ThreeDSashesPage />} />
+            <Route path="product/:id" element={<ConfiguratorUnisexSpecial />} />
 
             {/* info pages  */}
             <Route path="about" element={<About />} />

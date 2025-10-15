@@ -1,325 +1,727 @@
-// // app/product/[id]/page.tsx or pages/product/[id].tsx
-// 'use client';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Image } from '@react-three/drei';
+import { state } from '@/lib/store';
 
-// import { useEffect, useState } from 'react';
-// import { Product } from '@/utils/types/product';
-// import { fetchProducts } from '@/lib/db/products';
-// import { Image, Spinner } from '@nextui-org/react';
-// import { useParams } from 'react-router-dom';
-// import RelatedProducts from '../components/related-products';
-// import {
-//   addToCart,
-//   decreaseQuantity,
-//   increaseQuantity,
-//   removeFromCart,
-// } from '@/store/features/cart';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
-// import { AnimatePresence, motion } from 'framer-motion';
-// import { RootState } from '@/store/store';
-// import toast from 'react-hot-toast';
+// import { Link } from "react-router-dom";
+import { InputText } from 'primereact/inputtext';
 
-// const ProductDetail = () => {
-//   const { name } = useParams();
-//   const [product, setProduct] = useState<Product | null>(null);
-//   const dispatch = useDispatch();
-//   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+import { Carousel } from 'primereact/carousel';
+import Confirmation from './Confirmation';
+import html2canvas from 'html2canvas';
 
-//   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-//   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-//   const isSizeRequired = product?.sizes && product.sizes.length > 0;
-//   const isColorRequired = product?.colors && product.colors.length > 0;
+import { Dialog } from 'primereact/dialog';
+// import './styles.css';
+import { useParams } from 'react-router';
 
-//   // const cartItem = useSelector((state: RootState) =>
-//   //   state.cart.items.find((item) => item.id === (product?.id as string)),
-//   // );
-//   const cartItem = useSelector((state: RootState) =>
-//     state.cart.items.find(
-//       (item) =>
-//         item.id === product?.id &&
-//         item.selectedSize === selectedSize &&
-//         item.selectedColor === selectedColor,
-//     ),
-//   );
+import { useSelector } from 'react-redux';
 
-//   const handleAddToCart = () => {
-//     if (isSizeRequired && !selectedSize) {
-//       toast.error('Please select a size');
-//       return;
-//     }
-//     if (isColorRequired && !selectedColor) {
-//       toast.error('Please select a color');
-//       return;
-//     }
+//arrays
+import {
+  colorOptions,
+  noSpinFor,
+  notAll,
+  onlySashes,
+} from '@/lib/neededArrays';
 
-//     dispatch(
-//       addToCart({
-//         id: product?.id as string,
-//         name: product?.name as string,
-//         price: product?.price as number,
-//         discount: product?.discount,
-//         image_url: product?.image_url as string,
-//         quantity: 1,
-//         in_stock: product?.in_stock,
-//         selectedSize,
-//         selectedColor,
-//       }),
-//     );
-//     toast.success('Added to cart');
-//     setSelectedSize(null);
-//     setSelectedColor(null);
-//   };
+import { Toast } from 'primereact/toast';
+import HtmlComponent from '@/components/HtmlComponent';
 
-//   const handleIncrease = () =>
-//     dispatch(
-//       increaseQuantity({
-//         id: product?.id as string,
-//         selectedColor: selectedColor,
-//         selectedSize: selectedSize,
-//       }),
-//     );
-//   const handleDecrease = () => {
-//     if (cartItem?.quantity === 1) {
-//       dispatch(removeFromCart(product?.id as string));
-//     } else {
-//       dispatch(
-//         decreaseQuantity({
-//           id: product?.id as string,
-//           selectedColor: selectedColor,
-//           selectedSize: selectedSize,
-//         }),
-//       );
-//     }
-//   };
+import { getCurrencySymbol, isMobile } from '@/utils/helper';
+import { OverlayPanel } from 'primereact/overlaypanel';
+import { readFileAsDataURL, uploadToStorage } from '@/utils/helper';
+import HtmlImageComponent from '@/components/HtmlImageComponent';
+import { TemplatedSash } from '@/lib/templated-sash';
+import TakeTour from '@/components/TakeTour';
+import ImageUpload from '@/components/ImageUpload';
 
-//   useEffect(() => {
-//     fetchProducts(0, 100000000).then((all) => {
-//       const found = all.find((p) => p?.id === name);
-//       // console.log('Found product:', found);
-//       setProduct(found || null);
-//     });
-//   }, [name]);
+const ConfiguratorUnisexSpecial = () => {
+  const { id } = useParams();
+  const selectedClothing = TemplatedSash.find((item) => item.name === id);
 
-//   if (!product) {
-//     return (
-//       <div className="min-h-screen flex justify-center items-center">
-//         <Spinner size="sm" color="success" />
-//       </div>
-//     );
-//   }
+  const displayImage = selectedClothing?.model_image;
 
-//   const finalPrice =
-//     product?.discount && product?.discount > 0
-//       ? product.price - (product.price * product.discount) / 100
-//       : product.price;
+  // Early return if no product found
+  if (!selectedClothing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Product Not Found
+          </h1>
+          <p className="text-gray-600">
+            The requested sash template could not be found.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-//   console.log({ finalPrice, price: product.price, discount: product.discount });
+  const [selectedSize, setSelectedSize] = useState(1);
+  const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
-//   return (
-//     <main className="min-h-screen container px-4 sm:px-6 lg:px-8 py-16 text-black">
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-//         {/* Product Image */}
-//         <section>
-//           <div className="w-full">
-//             <Image
-//               src={
-//                 selectedImage || product.image_url || 'https://placehold.co/500'
-//               }
-//               // src={product.image_url || 'https://placehold.co/500'}
-//               alt={product.name}
-//               // width={500}
+  const [selectedPart, setSelectedPart] = useState(
+    notAll.includes(selectedClothing?.name) ? 0 : null,
+  );
 
-//               className="rounded-xl object-cover  mx-auto w-[100%] md:w-[50vw] md:h-[50vh]"
-//             />
-//           </div>
-//           {/* {product.extra_image_urls?.length > 0 && (
-//             <div className="grid grid-cols-5 items-center gap-2 mt-4">
-//               {[product?.image_url, ...product.extra_image_urls].map(
-//                 (url, i) => (
-//                   <Image
-//                     key={i}
-//                     alt={`extra-${i}`}
-//                     src={url}
-//                     // width={100}
-//                     // height={100}
-//                     className="rounded-md border cursor-pointer w-[6rem] h-[6rem]"
-//                     isZoomed
-//                     isBlurred
-//                     onClick={() => setSelectedImage(url)}
-//                   />
-//                 ),
-//               )}
-//             </div>
-//           )} */}
-//         </section>
+  const [isRotating, setIsRotating] = useState(true);
 
-//         {/* Product Info */}
-//         <div className="space-y-6">
-//           <div className="flex flex-col gap-2">
-//             <h1 className="text-4xl capitalize font-extrabold text-primary">
-//               {product.name}
-//             </h1>
-//           </div>
+  const canvasRef = useRef(null);
+  // toast
+  const toastRef = useRef(null);
+  const currencySymbol = getCurrencySymbol('GHS');
+  const currencyFactor = 1;
 
-//           <div className="space-y-2">
-//             <p className="text-2xl font-bold text-black">
-//               {getCurrencySymbol('GHS')} {parseToMoney(finalPrice)}
-//               {product?.discount && product?.discount > 0 ? (
-//                 <span className="text-sm text-danger line-through ml-3 font-normal">
-//                   {getCurrencySymbol('GHS')} {parseToMoney(product?.price)}
-//                 </span>
-//               ) : (
-//                 <span></span>
-//               )}
-//             </p>
+  const [partPrices, setPartPrices] = useState(0);
 
-//             {product?.discount && product?.discount > 0 ? (
-//               <span className="inline-block bg-danger text-white text-xs px-3 py-1 rounded-full">
-//                 {product.discount}% OFF
-//               </span>
-//             ) : (
-//               <p></p>
-//             )}
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
-//             <p>
-//               <span className="font-semibold text-gray-800 capitalize">
-//                 Category:
-//               </span>{' '}
-//               <span className="capitalize">{product.category}</span>
-//             </p>
+  //total price
+  // useEffect(() => {
+  //   setPartPrices(selectedClothing?.sizeOptions[1]?.colorPriceValue || 0);
+  // }, []);
 
-//             <p>
-//               <span className="font-semibold text-gray-800">Availability:</span>{' '}
-//               {product.in_stock ? (
-//                 <span className="text-green-600 font-medium">In Stock</span>
-//               ) : (
-//                 <span className="text-red-500 font-medium">Out of Stock</span>
-//               )}
-//             </p>
+  //total price
+  // const bikiniTotal = (
+  //   (partPrices + selectedClothing?.price) *
+  //   currencyFactor
+  // ).toFixed();
 
-//             <div>
-//               {product?.sizes?.length > 0 && (
-//                 <div>
-//                   <h4 className="font-semibold text-gray-800">Sizes:</h4>
-//                   <div className="flex gap-2 mt-1 flex-wrap">
-//                     {product?.sizes?.map((size, i) => (
-//                       <button
-//                         key={i}
-//                         onClick={() => setSelectedSize(size)}
-//                         className={`px-3 py-1 text-sm rounded border transition ${
-//                           selectedSize === size
-//                             ? 'bg-primary text-white border-primary'
-//                             : 'bg-gray-100 text-black border-gray-300'
-//                         }`}
-//                       >
-//                         {size}
-//                       </button>
-//                     ))}
-//                   </div>
-//                 </div>
-//               )}
-//             </div>
-//             <div>
-//               {/* {product?.colors?.length > 0 && (
-//                 <div>
-//                   <h4 className="font-semibold text-gray-800 mt-4">Colors:</h4>
-//                   <div className="flex gap-3 mt-2 flex-wrap">
-//                     {product?.colors?.length > 0 && (
-//                       <div>
-//                         <h4 className="font-semibold text-gray-800 mt-4">
-//                           Colors:
-//                         </h4>
-//                         <div className="flex gap-3 mt-2 flex-wrap">
-//                           {product?.colors?.map((color, i) => (
-//                             <button
-//                               key={i}
-//                               onClick={() => setSelectedColor(color)}
-//                               className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-125 cursor-pointer ${
-//                                 selectedColor === color
-//                                   ? 'border-primary scale-125'
-//                                   : 'border-gray-300'
-//                               }`}
-//                               style={{ backgroundColor: color }}
-//                               title={color}
-//                             ></button>
-//                           ))}
-//                         </div>
-//                       </div>
-//                     )}
-//                   </div>
-//                 </div>
-//               )} */}
-//             </div>
-//           </div>
+  const total = useMemo(() => {
+    if (
+      noSpinFor.includes(selectedClothing?.name) ||
+      selectedClothing?.name === 'Earring'
+    ) {
+      return ((partPrices + selectedClothing?.price) * currencyFactor).toFixed(
+        2,
+      );
+    } else {
+      return ((partPrices + selectedClothing?.price) * currencyFactor).toFixed(
+        2,
+      );
+    }
+  }, [
+    currencyFactor,
+    partPrices,
+    selectedClothing?.name,
+    selectedClothing?.price,
+  ]);
 
-//           {product?.in_stock && (
-//             <AnimatePresence mode="wait">
-//               {cartItem ? (
-//                 <motion.div
-//                   key="qty"
-//                   initial={{ opacity: 0, y: 8 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   exit={{ opacity: 0, y: 8 }}
-//                   className="mt-4 flex items-center justify-between bg-background p-2 rounded-md w-[10rem]"
-//                 >
-//                   <button
-//                     onClick={handleDecrease}
-//                     className="md:w-8 md:h-8 w-6 h-6 flex items-center justify-center text-lg font-bold text-primary border border-primary rounded hover:bg-primary hover:text-white transition"
-//                   >
-//                     –
-//                   </button>
-//                   <span className="text-xs md:text-sm font-medium text-primary-black">
-//                     {cartItem.quantity}
-//                   </span>
-//                   <button
-//                     onClick={handleIncrease}
-//                     className="md:w-8 md:h-8 w-6 h-6 flex items-center justify-center text-lg font-bold text-primary border border-primary rounded hover:bg-primary hover:text-white transition"
-//                   >
-//                     +
-//                   </button>
-//                 </motion.div>
-//               ) : (
-//                 <motion.button
-//                   key="add"
-//                   initial={{ opacity: 0, y: 8 }}
-//                   animate={{ opacity: 1, y: 0 }}
-//                   exit={{ opacity: 0, y: 8 }}
-//                   onClick={handleAddToCart}
-//                   className={`mt-4 w-[10rem] text-sm font-semibold py-3 rounded-lg transition ${
-//                     product.in_stock &&
-//                     (!product.sizes?.length || selectedSize) &&
-//                     (!product.colors?.length || selectedColor)
-//                       ? 'bg-primary text-white hover:bg-primary-dark'
-//                       : 'bg-primary bg-opacity-80 text-white cursor-not-allowed'
-//                   }`}
-//                   // disabled={
-//                   //   (isSizeRequired && !selectedSize) ||
-//                   //   (isColorRequired && !selectedColor)
-//                   // }
-//                 >
-//                   Add to Cart
-//                 </motion.button>
-//               )}
-//             </AnimatePresence>
-//           )}
-//         </div>
-//         {product?.description && (
-//           <div>
-//             <h3 className="text-primary font-medium">Description</h3>
-//             <p className="text-gray-700 text-lg">{product.description}</p>
-//           </div>
-//         )}
-//       </div>
+  // useEffect(() => {
+  //   const currentSize = selectedClothing?.sizeOptions.find(
+  //     (size) => size.value === selectedSize,
+  //   );
 
-//       {/* Related Products */}
-//       <div className="mt-20">
-//         <RelatedProducts
-//           currentProductId={product?.id as string}
-//           category={product?.category as string}
-//         />
-//       </div>
-//     </main>
-//   );
-// };
+  //   return setPartPrices(currentSize.colorPriceValue || 0);
+  // }, [selectedClothing?.sizeOptions, selectedSize]);
 
-// export default ProductDetail;
+  const [showGlow, setShowGlow] = useState(false);
+
+  // Declare state for entered text and generated texture
+  const [enteredTextLeft, setEnteredTextLeft] = useState('');
+  const [enteredTextRight, setEnteredTextRight] = useState('');
+  const [textLeftOrientation, setTextLeftOrientation] = useState('horizontal');
+  const [textRightOrientation, setTextRightOrientation] =
+    useState('horizontal');
+
+  // const [textPosition] = useState([-0.65, -0.15, 0.05]); // Initialize text position
+  const [textColor, setTextColor] = useState(
+    selectedClothing?.textColor || 'white',
+  );
+  const [fontFamily, setFontFamily] = useState('Arial');
+
+  const fonts = [
+    'Arial',
+    'Verdana',
+    'Courier New',
+    'Roboto',
+    'Comic Sans MS',
+    'Book Antiqua',
+  ];
+  const [currentFontIndex, setCurrentFontIndex] = useState(0);
+
+  const textEditRef = useRef(null);
+
+  // Image imprint
+  const [uploadedImageLeft, setUploadedImageLeft] = useState(null);
+  const [uploadedImageRight, setUploadedImageRight] = useState(null);
+
+  const [firebaseImageLeft, setFirebaseImageLeft] = useState(null);
+  const [firebaseImageRight, setFirebaseImageRight] = useState(null);
+
+  const imageLeftRef = useRef();
+  const imageRightRef = useRef();
+
+  const handleImageUploadLeft = async (file) => {
+    setUploadedImageLeft(URL.createObjectURL(file));
+    toastRef.current.show({
+      severity: 'success',
+      summary: 'Please Note',
+      detail:
+        'Focus would be on the pattern in your image, hence background may be removed where applicable',
+    });
+
+    try {
+      const dataURL = await readFileAsDataURL(file);
+      const downloadURL = await uploadToStorage(dataURL, 'sash');
+      setFirebaseImageLeft(downloadURL);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+    }
+  };
+
+  const handleImageUploadRight = async (file) => {
+    setUploadedImageRight(URL.createObjectURL(file));
+
+    toastRef.current.show({
+      severity: 'success',
+      summary: 'Please Note',
+      detail:
+        'Focus would be on the pattern in your image, hence background may be removed where applicable',
+    });
+
+    try {
+      const dataURL = await readFileAsDataURL(file);
+      const downloadURL = await uploadToStorage(dataURL, 'sash');
+      setFirebaseImageRight(downloadURL);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+    }
+  };
+
+  const ImprintTextPosition = useMemo(() => {
+    return {
+      left: {
+        text: enteredTextLeft,
+        top: selectedClothing?.positioningLeft?.text.top,
+        left: selectedClothing?.positioningLeft?.text.left,
+        height: selectedClothing?.positioningLeft?.text.height,
+        width: selectedClothing?.positioningLeft?.text.width,
+        lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningLeft?.image.top,
+          left: selectedClothing?.positioningLeft?.image.left,
+          height: selectedClothing?.positioningLeft?.image.height,
+          width: selectedClothing?.positioningLeft?.image.width,
+        },
+      },
+      right: {
+        text: enteredTextRight,
+        top: selectedClothing?.positioningRight?.text.top,
+        left: selectedClothing?.positioningRight?.text.left,
+        height: selectedClothing?.positioningRight?.text.height,
+        width: selectedClothing?.positioningRight?.text.width,
+        lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningRight?.image.top,
+          left: selectedClothing?.positioningRight?.image.left,
+          height: selectedClothing?.positioningRight?.image.height,
+          width: selectedClothing?.positioningRight?.image.width,
+        },
+      },
+    };
+  }, [selectedClothing?.name]);
+
+  const [fontSizeLeft, setFontSizeLeft] = useState(
+    ImprintTextPosition?.left?.size || 18,
+  );
+  const [fontSizeRight, setFontSizeRight] = useState(
+    ImprintTextPosition?.right?.size || 18,
+  );
+
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
+
+  useEffect(() => {
+    const loadingTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(loadingTimeout);
+  }, []);
+
+  const handleLeftTextOrientation = () => {
+    if (textLeftOrientation === 'horizontal') {
+      setTextLeftOrientation('vertical');
+    }
+
+    if (textLeftOrientation === 'vertical') {
+      setTextLeftOrientation('horizontal');
+    }
+  };
+
+  const handleRightTextOrientation = () => {
+    if (textRightOrientation === 'horizontal') {
+      setTextRightOrientation('vertical');
+    }
+
+    if (textRightOrientation === 'vertical') {
+      setTextRightOrientation('horizontal');
+    }
+  };
+
+  const handleChangeFont = () => {
+    let newIndex = currentFontIndex + 1;
+
+    // Loop back to the start or end of the array if needed
+    if (newIndex < 0) {
+      newIndex = fonts.length - 1;
+    } else if (newIndex >= fonts.length) {
+      newIndex = 0;
+    }
+    setCurrentFontIndex(newIndex);
+    setFontFamily(fonts[newIndex]);
+  };
+
+  const increaseFontSizeLeft = () => {
+    setFontSizeLeft((prevSize) => prevSize + 1);
+  };
+
+  const decreaseFontSizeLeft = () => {
+    setFontSizeLeft((prevSize) => prevSize - 1);
+  };
+
+  const increaseFontSizeRight = () => {
+    setFontSizeRight((prevSize) => prevSize + 1);
+  };
+
+  const decreaseFontSizeRight = () => {
+    setFontSizeRight((prevSize) => prevSize - 1);
+  };
+
+  // Create an array to store selected parts with their color and texture information
+  const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
+    name: nodeName.name,
+    color: state.color[index] || null,
+    texture: state.texture[index] || null,
+  }));
+
+  // Confrimation or not
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [stateImage, setStateImage] = useState('');
+
+  const captureCanvasAsImage = async () => {
+    setIsRotating(false);
+
+    setTimeout(async () => {
+      const canvas = canvasRef.current;
+      const canvasImage = await html2canvas(canvas);
+      const dataUrl = canvasImage.toDataURL();
+      setStateImage(dataUrl);
+      setShowConfirmation(true);
+      setIsRotating(true);
+    }, 100);
+  };
+
+  // Create a state object to store the form field values
+
+  // Handle changes in the size form fields
+
+  // description dialogs
+  const [selectedTexture, setSelectedTexture] = useState({});
+
+  // parse part title
+  const parseTitle = (title) => {
+    const split = title?.split('_');
+    return split?.join(' ');
+  };
+
+  // Welcome
+  const [showTourPopup, setShowTourPopup] = useState(true);
+  const [showTour, setShowTour] = useState(false);
+
+  const handleTourStart = () => {
+    setShowTour(true);
+    setShowTourPopup(false);
+  };
+
+  const handleTourLater = () => {
+    setShowTourPopup(false);
+  };
+
+  const handleTourClose = () => {
+    setShowTour(false);
+    localStorage.setItem('tourCompleted', 'true'); // Save tour completion status
+  };
+
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('tourCompleted');
+    if (tourCompleted === 'true') {
+      setShowTourPopup(false); // If tour completed, don't show it
+    } else {
+      setShowTourPopup(false); // Show the tour for new users
+    }
+  }, []);
+
+  const handleRetakeTour = () => {
+    setShowTour(true);
+  };
+
+  // customer height
+  const [gender, setGender] = useState('');
+  const [beadType, setBeadType] = useState('Glass');
+
+  const handleAllPartsClick = () => {
+    setSelectedPart('all');
+  };
+
+  const handleSelectPart = (index) => {
+    if (selectedPart === index) {
+      setShowGlow(false);
+      setSelectedPart(null);
+      return;
+    }
+    setSelectedPart(index);
+    setShowGlow(true);
+  };
+
+  const demoType = useMemo(() => {
+    if (selectedClothing?.name === 'Earring') {
+      return 'earring';
+    }
+
+    if (selectedClothing?.name === 'Bikini') {
+      return 'bikini';
+    }
+
+    if (selectedClothing?.name === 'Beads Bracelet') {
+      return 'bangle';
+    }
+
+    if (onlySashes.includes(selectedClothing?.name)) {
+      return 'sash';
+    }
+  }, [selectedClothing?.name]);
+
+  return (
+    <>
+      {/* <Nav /> */}
+      <Toast ref={toastRef} />
+      <>
+        {showTourPopup && (
+          <Dialog
+            // header="Welcome to the 3D Customization!"
+            visible={showTourPopup}
+            className="col-12 col-sm-6"
+            onHide={handleTourLater}
+            dismissableMask={true}
+          >
+            <div className="tour-popup">
+              <h2>Welcome to the 3D customization!</h2>
+              <p>Would you like to take a quick tour?</p>
+              <button className="btn btn-success m-3" onClick={handleTourStart}>
+                Take Tour
+              </button>
+              <button
+                className="btn btn-secondary m-3"
+                onClick={handleTourLater}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </Dialog>
+        )}
+
+        {showTour && (
+          <TakeTour
+            isOpen={showTour}
+            onClose={handleTourClose}
+            type={demoType}
+          />
+        )}
+      </>
+
+      {showConfirmation ? (
+        <Confirmation
+          currencySymbol={currencySymbol}
+          total={
+            selectedClothing?.name === 'Bikini'
+              ? bikiniTotal
+              : selectedClothing?.name === 'Bikini'
+              ? bikiniTotal
+              : total
+          }
+          readyBy={selectedClothing?.readyIn}
+          weight={selectedClothing?.weight}
+          name={selectedClothing?.name}
+          selectedParts={
+            notAll.includes(selectedClothing?.name) ? null : selectedParts
+          }
+          selectedPrintOn={{
+            isColor: state.texture[selectedPart] === null,
+            item: selectedPrintOn,
+          }}
+          uploadedImageLeft={firebaseImageLeft}
+          uploadedImageRight={firebaseImageRight}
+          textLeft={enteredTextLeft}
+          textRight={enteredTextRight}
+          setShowConfirmation={setShowConfirmation}
+          selectedSize={
+            selectedClothing?.sizeOptions.find(
+              (option) => option.value === selectedSize,
+            )?.label
+          }
+          modelImage={stateImage}
+          customSizeValues={{}}
+          // height={height}
+          gender={gender}
+          beadType={beadType}
+        />
+      ) : (
+        <>
+          <div className="main-space pb-10">
+            <h3 className="text-center text-sm lg:text-2xl mt-3 mb-2 capitalize font-normal text-gray-600 pt-3">
+              Customizing {selectedClothing?.name}
+            </h3>
+            <div className=" justify-content-center hidden">
+              <button
+                className="cursor-pointer bg-[#3C9FEF] py-2 px-4 text-white rounded-md"
+                // style={{ float: "right" }}
+                onClick={handleRetakeTour}
+              >
+                Take Tour
+              </button>
+            </div>
+            <div className=" flex flex-col container my-3 ">
+              <div className="right-panel h-[30rem] lg:h-[80vh]">
+                <Canvas
+                  camera={{ position: [0, 0, selectedClothing?.myZoom] }}
+                  ref={canvasRef}
+                  gl={{ preserveDrawingBuffer: true }}
+                  className="main-canvas h-full resize-right-panel"
+                >
+                  {displayImage && (
+                    <Image
+                      scale={selectedClothing?.scale || 1}
+                      url={displayImage}
+                    />
+                  )}
+                  {isLoading === false && (
+                    <>
+                      <HtmlComponent
+                        textLeft={enteredTextLeft}
+                        textRight={enteredTextRight}
+                        textColor={textColor}
+                        textSizeleft={fontSizeLeft}
+                        textSizeRight={fontSizeRight}
+                        fontFamily={fontFamily}
+                        textLeftOrientation={textLeftOrientation}
+                        textRightOrientation={textRightOrientation}
+                        ImprintTextPosition={ImprintTextPosition}
+                        hideRightText={
+                          selectedClothing?.name === 'Beads Bracelet'
+                        }
+                      />
+                      <HtmlImageComponent
+                        ImprintTextPosition={ImprintTextPosition}
+                        imageLeft={uploadedImageLeft}
+                        imageRight={uploadedImageRight}
+                        hideLogo={selectedClothing?.name === 'Beads Bracelet'}
+                        hideRightText={
+                          selectedClothing?.name === 'Beads Bracelet'
+                        }
+                        textColor={textColor}
+                      />
+                    </>
+                  )}
+                </Canvas>
+              </div>
+
+              <div className="px-4 pt-4 w-full bg-gray-50 rounded-lg">
+                {/* test text inprinting */}
+                <h5 className="text-lg font-semibold text-gray-900 mb-4">
+                  Imprint text on model
+                </h5>
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <InputText
+                      type="text"
+                      className="flex-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={
+                        selectedClothing?.name === 'Beads Bracelet'
+                          ? 'Text Here'
+                          : 'imprint on left side...'
+                      }
+                      value={enteredTextLeft}
+                      onChange={(e) => setEnteredTextLeft(e.target.value)}
+                    />
+                    {selectedClothing?.name === noSpinFor[0] ? null : (
+                      <InputText
+                        type="text"
+                        placeholder="imprint on right side..."
+                        className="flex-1 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={enteredTextRight}
+                        onChange={(e) => setEnteredTextRight(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div
+                    className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+                    onClick={(e) => textEditRef.current.toggle(e)}
+                  >
+                    <span>Edit Text</span>
+                    <i className="pi pi-chevron-right text-sm"></i>
+                  </div>
+                  <OverlayPanel
+                    showCloseIcon
+                    ref={textEditRef}
+                    className="w-80 p-4 bg-white border border-gray-200 rounded-lg shadow-lg"
+                  >
+                    <div className="space-y-4">
+                      <div>
+                        <h6 className="text-sm font-semibold text-gray-900 mb-2">
+                          Color
+                        </h6>
+                        {selectedClothing?.name === 'Beads Bracelet' ? (
+                          <span className="text-gray-500">N/A</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {colorOptions
+                              .slice(0, 6)
+                              .map((colorOption, index) => (
+                                <button
+                                  key={index}
+                                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                                    textColor === colorOption.label
+                                      ? 'border-gray-800 scale-110'
+                                      : 'border-gray-300 hover:border-gray-500'
+                                  }`}
+                                  onClick={() =>
+                                    setTextColor(colorOption.label)
+                                  }
+                                  style={{
+                                    backgroundColor: colorOption.color,
+                                  }}
+                                  title={colorOption.label}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <h6 className="text-sm font-semibold text-gray-900 mb-2">
+                          Style
+                        </h6>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-gray-700">
+                            {fontFamily}
+                          </span>
+                          <button
+                            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            onClick={handleChangeFont}
+                          >
+                            <i className="pi pi-sync text-sm"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h6 className="text-sm font-semibold text-gray-900 mb-2">
+                          Size{' '}
+                          {selectedClothing?.name === 'Beads Bracelet'
+                            ? null
+                            : '(Left)'}
+                        </h6>
+                        <div className="flex items-center justify-center gap-3">
+                          <button
+                            className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                            onClick={decreaseFontSizeLeft}
+                          >
+                            -
+                          </button>
+                          <span className="text-sm font-medium text-gray-900 min-w-[2rem] text-center">
+                            {fontSizeLeft}
+                          </span>
+                          <button
+                            className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                            onClick={increaseFontSizeLeft}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {selectedClothing?.name === 'Beads Bracelet' ? null : (
+                        <div>
+                          <h6 className="text-sm font-semibold text-gray-900 mb-2">
+                            Size (Right)
+                          </h6>
+                          <div className="flex items-center justify-center gap-3">
+                            <button
+                              className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                              onClick={decreaseFontSizeRight}
+                            >
+                              -
+                            </button>
+                            <span className="text-sm font-medium text-gray-900 min-w-[2rem] text-center">
+                              {fontSizeRight}
+                            </span>
+                            <button
+                              className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
+                              onClick={increaseFontSizeRight}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </OverlayPanel>
+                  {selectedClothing?.name === noSpinFor[0] ? null : (
+                    <div className="mt-6">
+                      <h5 className="text-lg font-semibold text-gray-900 mb-3">
+                        Imprint images or Logos
+                      </h5>
+                      <div className="space-y-3">
+                        <ImageUpload
+                          labelLeft={'Upload for left'}
+                          labelRight={'Upload for right'}
+                          hideRightButton={
+                            selectedClothing?.name ===
+                            'One-Sided Logo, Two-Sided Text Sash'
+                          }
+                          onImageUploadLeft={handleImageUploadLeft}
+                          onImageUploadRight={handleImageUploadRight}
+                          toastRef={toastRef}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="price w-100 d-flex bg-dark text-white justify-content-between lg:mt-5">
+            <span className="m-3 expect-to-be-ready">
+              Estimated time to make this order:{' '}
+              <span className="customize-focus">
+                {selectedClothing?.readyIn} days{' '}
+              </span>
+            </span>
+
+            <p className="price-text m-3">
+              <span className="expect-to-be-ready">Price:</span>{' '}
+              <span className="customize-focus">
+                {currencySymbol}
+                {selectedClothing?.name === 'Bikini' ? bikiniTotal : total}
+              </span>
+            </p>
+
+            <p className="complete m-2">
+              <button
+                className="btn btn-success text-white"
+                onClick={captureCanvasAsImage}
+              >
+                Complete
+              </button>
+            </p>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+export default ConfiguratorUnisexSpecial;

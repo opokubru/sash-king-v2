@@ -33,7 +33,7 @@ export const ProductCard = ({
       )} */}
 
       {/* Product Image */}
-      <Link to={`/product/${id}`} className="block">
+      <Link to={`/product/${name}`} className="block">
         <div className={`relative ${height} group`}>
           <img
             src={image || 'https://placehold.co/400'}
