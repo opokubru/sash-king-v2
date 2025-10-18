@@ -1,6 +1,46 @@
 import { Html } from '@react-three/drei';
 import { separateWordsWithLineBreak } from '@/utils/helper';
 
+interface HtmlComponentProps {
+  textLeft: string;
+  textRight: string;
+  textColor: string;
+  textSizeleft: number;
+  textSizeRight: number;
+  fontFamily: string;
+  textLeftOrientation: string;
+  textRightOrientation: string;
+  ImprintTextPosition: {
+    left: {
+      top: string;
+      left: string;
+      width: number;
+      height: number;
+      lineHeight: number;
+      image: {
+        top: string;
+        left: string;
+        width: number;
+        height: number;
+      };
+    };
+    right: {
+      top: string;
+      left: string;
+      width: number;
+      height: number;
+      lineHeight: number;
+      image: {
+        top: string;
+        left: string;
+        width: number;
+        height: number;
+      };
+    };
+  };
+  hideRightText: boolean;
+}
+
 const HtmlComponent = ({
   textLeft,
   textRight,
@@ -12,7 +52,7 @@ const HtmlComponent = ({
   textRightOrientation,
   ImprintTextPosition,
   hideRightText,
-}) => {
+}: HtmlComponentProps) => {
   return (
     <Html style={{ zIndex: 1 }}>
       <div
@@ -69,7 +109,7 @@ const HtmlComponent = ({
             }`,
             opacity: textRight !== '' ? 1 : 0.3,
             zIndex: 0.8,
-            lineHeight: ImprintTextPosition.right?.lineHeight,
+            // lineHeight: ImprintTextPosition.right?.lineHeight,
           }}
           dangerouslySetInnerHTML={{
             __html: separateWordsWithLineBreak(

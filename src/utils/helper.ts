@@ -34,7 +34,7 @@ return Number(value).toLocaleString(undefined, {
   export const isMobile = window.innerWidth <= 767;
 
 
-  export const readFileAsDataURL = (file) => {
+  export const readFileAsDataURL = (file: File): Promise<string> => {
 	return new Promise((resolve, reject) => {
 	  const reader = new FileReader();
   
@@ -50,7 +50,7 @@ return Number(value).toLocaleString(undefined, {
 	});
   };
   
-  export const uploadToStorage = async (dataURL, bucket) => {
+  export const uploadToStorage = async (dataURL: string, bucket: string): Promise<string> => {
 	try {
 	  const storageRef = ref(storage, `${bucket}/${Date.now()}.png`);
   
@@ -68,7 +68,7 @@ return Number(value).toLocaleString(undefined, {
   };
 
 
-  export const separateWordsWithLineBreak = (text) => {
+  export const separateWordsWithLineBreak = (text: string): string => {
 	// Split the text into an array of words
 	const wordsArray = text?.split(' ');
 	// Insert <br> after each word and join them back into a string

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Image } from '@react-three/drei';
@@ -41,8 +42,8 @@ const ConfiguratorUnisexSpecial = () => {
   const [selectedSize, setSelectedSize] = useState(1);
   const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
-  const [selectedPart, setSelectedPart] = useState(
-    notAll.includes(selectedClothing?.name) ? 0 : null,
+  const [selectedPart, setSelectedPart] = useState<number | null>(
+    notAll.includes(selectedClothing?.name as string) ? 0 : null,
   );
 
   const [isRotating, setIsRotating] = useState(true);
@@ -76,11 +77,13 @@ const ConfiguratorUnisexSpecial = () => {
       selectedClothing?.name === 'Earring'
     ) {
       return (
-        (partPrices + selectedClothing?.price || 0) * currencyFactor
+        (partPrices + (selectedClothing?.price || 0)) *
+        currencyFactor
       ).toFixed(2);
     } else {
       return (
-        (partPrices + selectedClothing?.price || 0) * currencyFactor
+        (partPrices + (selectedClothing?.price || 0)) *
+        currencyFactor
       ).toFixed(2);
     }
   }, [
@@ -89,32 +92,6 @@ const ConfiguratorUnisexSpecial = () => {
     selectedClothing?.name,
     selectedClothing?.price,
   ]);
-
-  // Early return if no product found
-  if (!selectedClothing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Product Not Found
-          </h1>
-          <p className="text-gray-600">
-            The requested sash template could not be found.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // useEffect(() => {
-  //   const currentSize = selectedClothing?.sizeOptions.find(
-  //     (size) => size.value === selectedSize,
-  //   );
-
-  //   return setPartPrices(currentSize.colorPriceValue || 0);
-  // }, [selectedClothing?.sizeOptions, selectedSize]);
-
-  const [showGlow, setShowGlow] = useState(false);
 
   // Declare state for entered text and generated texture
   const [enteredTextLeft, setEnteredTextLeft] = useState('');
@@ -142,18 +119,42 @@ const ConfiguratorUnisexSpecial = () => {
   const textEditRef = useRef(null);
 
   // Image imprint
-  const [uploadedImageLeft, setUploadedImageLeft] = useState(null);
-  const [uploadedImageRight, setUploadedImageRight] = useState(null);
+  const [uploadedImageLeft, setUploadedImageLeft] = useState<string | null>(
+    null,
+  );
+  const [uploadedImageRight, setUploadedImageRight] = useState<string | null>(
+    null,
+  );
 
-  const [firebaseImageLeft, setFirebaseImageLeft] = useState(null);
-  const [firebaseImageRight, setFirebaseImageRight] = useState(null);
+  const [firebaseImageLeft, setFirebaseImageLeft] = useState<string | null>(
+    null,
+  );
+  const [firebaseImageRight, setFirebaseImageRight] = useState<string | null>(
+    null,
+  );
 
-  const imageLeftRef = useRef();
-  const imageRightRef = useRef();
+  // const imageLeftRef = useRef();
+  // const imageRightRef = useRef();
 
-  const handleImageUploadLeft = async (file) => {
+  // Early return if no product found
+  // if (!selectedClothing) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <h1 className="text-2xl font-bold text-gray-900 mb-4">
+  //           Product Not Found
+  //         </h1>
+  //         <p className="text-gray-600">
+  //           The requested sash template could not be found.
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
+  const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
-    toastRef.current.show({
+    toastRef.current?.show({
       severity: 'success',
       summary: 'Please Note',
       detail:
@@ -169,10 +170,10 @@ const ConfiguratorUnisexSpecial = () => {
     }
   };
 
-  const handleImageUploadRight = async (file) => {
+  const handleImageUploadRight = async (file: File) => {
     setUploadedImageRight(URL.createObjectURL(file));
 
-    toastRef.current.show({
+    toastRef.current?.show({
       severity: 'success',
       summary: 'Please Note',
       detail:
@@ -203,6 +204,7 @@ const ConfiguratorUnisexSpecial = () => {
           height: selectedClothing?.positioningLeft?.image.height,
           width: selectedClothing?.positioningLeft?.image.width,
         },
+        size: selectedClothing?.positioningLeft?.text,
       },
       right: {
         text: enteredTextRight,
@@ -217,6 +219,7 @@ const ConfiguratorUnisexSpecial = () => {
           height: selectedClothing?.positioningRight?.image.height,
           width: selectedClothing?.positioningRight?.image.width,
         },
+        size: selectedClothing?.positioningRight?.text,
       },
     };
   }, [selectedClothing?.name]);
@@ -238,25 +241,25 @@ const ConfiguratorUnisexSpecial = () => {
     return () => clearTimeout(loadingTimeout);
   }, []);
 
-  const handleLeftTextOrientation = () => {
-    if (textLeftOrientation === 'horizontal') {
-      setTextLeftOrientation('vertical');
-    }
+  // const handleLeftTextOrientation = () => {
+  //   if (textLeftOrientation === 'horizontal') {
+  //     setTextLeftOrientation('vertical');
+  //   }
 
-    if (textLeftOrientation === 'vertical') {
-      setTextLeftOrientation('horizontal');
-    }
-  };
+  //   if (textLeftOrientation === 'vertical') {
+  //     setTextLeftOrientation('horizontal');
+  //   }
+  // };
 
-  const handleRightTextOrientation = () => {
-    if (textRightOrientation === 'horizontal') {
-      setTextRightOrientation('vertical');
-    }
+  // const handleRightTextOrientation = () => {
+  //   if (textRightOrientation === 'horizontal') {
+  //     setTextRightOrientation('vertical');
+  //   }
 
-    if (textRightOrientation === 'vertical') {
-      setTextRightOrientation('horizontal');
-    }
-  };
+  //   if (textRightOrientation === 'vertical') {
+  //     setTextRightOrientation('horizontal');
+  //   }
+  // };
 
   const handleChangeFont = () => {
     let newIndex = currentFontIndex + 1;
@@ -272,19 +275,19 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   const increaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize) => prevSize + 1);
+    setFontSizeLeft((prevSize: any) => prevSize + 1);
   };
 
   const decreaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize) => prevSize - 1);
+    setFontSizeLeft((prevSize: any) => prevSize - 1);
   };
 
   const increaseFontSizeRight = () => {
-    setFontSizeRight((prevSize) => prevSize + 1);
+    setFontSizeRight((prevSize: any) => prevSize + 1);
   };
 
   const decreaseFontSizeRight = () => {
-    setFontSizeRight((prevSize) => prevSize - 1);
+    setFontSizeRight((prevSize: any) => prevSize - 1);
   };
 
   // Create an array to store selected parts with their color and texture information
@@ -316,13 +319,9 @@ const ConfiguratorUnisexSpecial = () => {
   // Handle changes in the size form fields
 
   // description dialogs
-  const [selectedTexture, setSelectedTexture] = useState({});
+  // const [selectedTexture, setSelectedTexture] = useState({});
 
   // parse part title
-  const parseTitle = (title) => {
-    const split = title?.split('_');
-    return split?.join(' ');
-  };
 
   // Welcome
   const [showTourPopup, setShowTourPopup] = useState(true);
@@ -356,22 +355,22 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   // customer height
-  const [gender, setGender] = useState('');
-  const [beadType, setBeadType] = useState('Glass');
+  // const [gender, setGender] = useState('');
+  // const [beadType, setBeadType] = useState('Glass');
 
-  const handleAllPartsClick = () => {
-    setSelectedPart('all');
-  };
+  // const handleAllPartsClick = () => {
+  //   setSelectedPart(0); // Use 0 instead of 'all'
+  // };
 
-  const handleSelectPart = (index) => {
-    if (selectedPart === index) {
-      setShowGlow(false);
-      setSelectedPart(null);
-      return;
-    }
-    setSelectedPart(index);
-    setShowGlow(true);
-  };
+  // const handleSelectPart = (index: number) => {
+  //   if (selectedPart === index) {
+  //     setShowGlow(false);
+  //     setSelectedPart(null);
+  //     return;
+  //   }
+  //   setSelectedPart(index);
+  //   setShowGlow(true);
+  // };
 
   const demoType = useMemo(() => {
     if (selectedClothing?.name === 'Earring') {
@@ -386,7 +385,7 @@ const ConfiguratorUnisexSpecial = () => {
       return 'bangle';
     }
 
-    if (onlySashes.includes(selectedClothing?.name)) {
+    if (onlySashes.includes(selectedClothing?.name as string)) {
       return 'sash';
     }
   }, [selectedClothing?.name]);
@@ -432,13 +431,7 @@ const ConfiguratorUnisexSpecial = () => {
       {showConfirmation ? (
         <Confirmation
           currencySymbol={currencySymbol}
-          total={
-            selectedClothing?.name === 'Bikini'
-              ? bikiniTotal
-              : selectedClothing?.name === 'Bikini'
-              ? bikiniTotal
-              : total
-          }
+          total={total}
           readyBy={selectedClothing?.readyIn}
           weight={selectedClothing?.weight}
           name={selectedClothing?.name}
@@ -446,7 +439,10 @@ const ConfiguratorUnisexSpecial = () => {
             notAll.includes(selectedClothing?.name) ? null : selectedParts
           }
           selectedPrintOn={{
-            isColor: state.texture[selectedPart] === null,
+            isColor:
+              selectedPart !== null
+                ? state.texture[selectedPart] === null
+                : true,
             item: selectedPrintOn,
           }}
           uploadedImageLeft={firebaseImageLeft}
@@ -455,7 +451,7 @@ const ConfiguratorUnisexSpecial = () => {
           textRight={enteredTextRight}
           setShowConfirmation={setShowConfirmation}
           selectedSize={
-            selectedClothing?.sizeOptions.find(
+            selectedClothing?.sizeOptions?.find(
               (option) => option.value === selectedSize,
             )?.label
           }
@@ -483,7 +479,7 @@ const ConfiguratorUnisexSpecial = () => {
             <div className=" flex flex-col container my-3 ">
               <div className="right-panel h-[30rem] lg:h-[80vh]">
                 <Canvas
-                  camera={{ position: [0, 0, selectedClothing?.myZoom] }}
+                  camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
                   ref={canvasRef}
                   gl={{ preserveDrawingBuffer: true }}
                   className="main-canvas h-full resize-right-panel"
@@ -500,12 +496,12 @@ const ConfiguratorUnisexSpecial = () => {
                         textLeft={enteredTextLeft}
                         textRight={enteredTextRight}
                         textColor={textColor}
-                        textSizeleft={fontSizeLeft}
-                        textSizeRight={fontSizeRight}
+                        textSizeleft={fontSizeLeft as number}
+                        textSizeRight={fontSizeRight as number}
                         fontFamily={fontFamily}
                         textLeftOrientation={textLeftOrientation}
                         textRightOrientation={textRightOrientation}
-                        ImprintTextPosition={ImprintTextPosition}
+                        ImprintTextPosition={ImprintTextPosition as any}
                         hideRightText={
                           selectedClothing?.name === 'Beads Bracelet'
                         }
@@ -555,7 +551,7 @@ const ConfiguratorUnisexSpecial = () => {
                   </div>
                   <div
                     className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
-                    onClick={(e) => textEditRef.current.toggle(e)}
+                    onClick={(e) => textEditRef.current?.toggle(e)}
                   >
                     <span>Edit Text</span>
                     <i className="pi pi-chevron-right text-sm"></i>
@@ -629,7 +625,7 @@ const ConfiguratorUnisexSpecial = () => {
                             -
                           </button>
                           <span className="text-sm font-medium text-gray-900 min-w-[2rem] text-center">
-                            {fontSizeLeft}
+                            {fontSizeLeft as number}
                           </span>
                           <button
                             className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
@@ -653,7 +649,7 @@ const ConfiguratorUnisexSpecial = () => {
                               -
                             </button>
                             <span className="text-sm font-medium text-gray-900 min-w-[2rem] text-center">
-                              {fontSizeRight}
+                              {fontSizeRight as number}
                             </span>
                             <button
                               className="w-8 h-8 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
@@ -702,7 +698,7 @@ const ConfiguratorUnisexSpecial = () => {
               <span className="expect-to-be-ready">Price:</span>{' '}
               <span className="customize-focus">
                 {currencySymbol}
-                {selectedClothing?.name === 'Bikini' ? bikiniTotal : total}
+                {total}
               </span>
             </p>
 
