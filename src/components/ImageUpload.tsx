@@ -1,15 +1,26 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 
 const ImageUpload = ({
   labelLeft,
   labelRight,
   onImageUploadLeft,
   onImageUploadRight,
-  toastRef,
+  // toastRef,
   hideRightButton,
+}: {
+  labelLeft: string;
+  labelRight: string;
+  onImageUploadLeft: (file: File) => void;
+  onImageUploadRight: (file: File) => void;
+  toastRef: any;
+  hideRightButton: boolean;
 }) => {
-  const handleImageChange = (e, onImageUpload) => {
-    const file = e.target.files[0];
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onImageUpload: (file: File) => void,
+  ) => {
+    const file = e.target.files?.[0] || null;
 
     // Check if file type is PNG
     // if (!file.type.includes("png")) {
@@ -38,20 +49,25 @@ const ImageUpload = ({
     // };
 
     // Pass the uploaded file to the parent component without dimension check
-    onImageUpload(file);
+    if (file) {
+      onImageUpload(file);
+    }
   };
 
-  const handleImageLeftChange = (e) => {
+  const handleImageLeftChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleImageChange(e, onImageUploadLeft);
   };
 
-  const handleImageRightChange = (e) => {
+  const handleImageRightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleImageChange(e, onImageUploadRight);
   };
 
   return (
     <div className="flex justify-center items-center gap-4  w-full">
-      <label className="cursor-pointer bg-[#3C9FEF] py-2 px-4 text-white rounded-md" htmlFor="upload-logo-left">
+      <label
+        className="cursor-pointer bg-[#3C9FEF] py-2 px-4 text-white rounded-md"
+        htmlFor="upload-logo-left"
+      >
         {labelLeft}
       </label>
       <input
@@ -62,7 +78,10 @@ const ImageUpload = ({
       />
       {!hideRightButton && (
         <>
-          <label className="cursor-pointer bg-[#3C9FEF] py-2 px-4 text-white rounded-md"  htmlFor="upload-logo-right">
+          <label
+            className="cursor-pointer bg-[#3C9FEF] py-2 px-4 text-white rounded-md"
+            htmlFor="upload-logo-right"
+          >
             {labelRight}
           </label>
           <input

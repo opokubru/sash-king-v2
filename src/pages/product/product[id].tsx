@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Image } from '@react-three/drei';
-import { state } from '@/lib/store';
+// import { state } from '@/lib/store';
 
 // import { Link } from "react-router-dom";
 import { InputText } from 'primereact/inputtext';
@@ -15,19 +15,14 @@ import { Dialog } from 'primereact/dialog';
 import { useParams } from 'react-router';
 
 //arrays
-import {
-  colorOptions,
-  noSpinFor,
-  notAll,
-  onlySashes,
-} from '@/lib/neededArrays';
+import { colorOptions, noSpinFor, onlySashes } from '@/lib/neededArrays';
 
 import { Toast } from 'primereact/toast';
 import HtmlComponent from '@/components/HtmlComponent';
 
 import { getCurrencySymbol } from '@/utils/helper';
 import { OverlayPanel } from 'primereact/overlaypanel';
-import { readFileAsDataURL, uploadToStorage } from '@/utils/helper';
+// import { readFileAsDataURL, uploadToStorage } from '@/utils/helper';
 import HtmlImageComponent from '@/components/HtmlImageComponent';
 import { TemplatedSash } from '@/lib/templated-sash';
 import TakeTour from '@/components/TakeTour';
@@ -39,14 +34,14 @@ const ConfiguratorUnisexSpecial = () => {
 
   const displayImage = selectedClothing?.model_image;
 
-  const [selectedSize, setSelectedSize] = useState(1);
-  const [selectedPrintOn, setSelectedPrintOn] = useState(null);
+  // const [selectedSize, setSelectedSize] = useState(1);
+  // const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
-  const [selectedPart, setSelectedPart] = useState<number | null>(
-    notAll.includes(selectedClothing?.name as string) ? 0 : null,
-  );
+  // const [selectedPart, setSelectedPart] = useState<number | null>(
+  //   notAll.includes(selectedClothing?.name as string) ? 0 : null,
+  // );
 
-  const [isRotating, setIsRotating] = useState(true);
+  // const [isRotating, setIsRotating] = useState(true);
 
   const canvasRef = useRef(null);
   // toast
@@ -54,7 +49,7 @@ const ConfiguratorUnisexSpecial = () => {
   const currencySymbol = getCurrencySymbol('GHS');
   const currencyFactor = 1;
 
-  const [partPrices, setPartPrices] = useState(0);
+  // const [partPrices, setPartPrices] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -76,19 +71,13 @@ const ConfiguratorUnisexSpecial = () => {
       noSpinFor.includes(selectedClothing?.name as string) ||
       selectedClothing?.name === 'Earring'
     ) {
-      return (
-        (partPrices + (selectedClothing?.price || 0)) *
-        currencyFactor
-      ).toFixed(2);
+      return ((selectedClothing?.price || 0) * currencyFactor).toFixed(2);
     } else {
-      return (
-        (partPrices + (selectedClothing?.price || 0)) *
-        currencyFactor
-      ).toFixed(2);
+      return ((selectedClothing?.price || 0) * currencyFactor).toFixed(2);
     }
   }, [
     currencyFactor,
-    partPrices,
+    // partPrices,
     selectedClothing?.name,
     selectedClothing?.price,
   ]);
@@ -96,9 +85,9 @@ const ConfiguratorUnisexSpecial = () => {
   // Declare state for entered text and generated texture
   const [enteredTextLeft, setEnteredTextLeft] = useState('');
   const [enteredTextRight, setEnteredTextRight] = useState('');
-  const [textLeftOrientation, setTextLeftOrientation] = useState('horizontal');
-  const [textRightOrientation, setTextRightOrientation] =
-    useState('horizontal');
+  // const [textLeftOrientation, setTextLeftOrientation] = useState('horizontal');
+  // const [textRightOrientation, setTextRightOrientation] =
+  //   useState('horizontal');
 
   // const [textPosition] = useState([-0.65, -0.15, 0.05]); // Initialize text position
   const [textColor, setTextColor] = useState(
@@ -126,12 +115,12 @@ const ConfiguratorUnisexSpecial = () => {
     null,
   );
 
-  const [firebaseImageLeft, setFirebaseImageLeft] = useState<string | null>(
-    null,
-  );
-  const [firebaseImageRight, setFirebaseImageRight] = useState<string | null>(
-    null,
-  );
+  // const [firebaseImageLeft, setFirebaseImageLeft] = useState<string | null>(
+  //   null,
+  // );
+  // const [firebaseImageRight, setFirebaseImageRight] = useState<string | null>(
+  //   null,
+  // );
 
   // const imageLeftRef = useRef();
   // const imageRightRef = useRef();
@@ -154,39 +143,39 @@ const ConfiguratorUnisexSpecial = () => {
 
   const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
-    toastRef.current?.show({
+    (toastRef.current as any)?.show({
       severity: 'success',
       summary: 'Please Note',
       detail:
         'Focus would be on the pattern in your image, hence background may be removed where applicable',
     });
 
-    try {
-      const dataURL = await readFileAsDataURL(file);
-      const downloadURL = await uploadToStorage(dataURL, 'sash');
-      setFirebaseImageLeft(downloadURL);
-    } catch (error) {
-      console.error('Image upload failed:', error);
-    }
+    // try {
+    //   const dataURL = await readFileAsDataURL(file);
+    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+    //   setFirebaseImageLeft(downloadURL);
+    // } catch (error) {
+    //   console.error('Image upload failed:', error);
+    // }
   };
 
   const handleImageUploadRight = async (file: File) => {
     setUploadedImageRight(URL.createObjectURL(file));
 
-    toastRef.current?.show({
+    (toastRef.current as any)?.show({
       severity: 'success',
       summary: 'Please Note',
       detail:
         'Focus would be on the pattern in your image, hence background may be removed where applicable',
     });
 
-    try {
-      const dataURL = await readFileAsDataURL(file);
-      const downloadURL = await uploadToStorage(dataURL, 'sash');
-      setFirebaseImageRight(downloadURL);
-    } catch (error) {
-      console.error('Image upload failed:', error);
-    }
+    // try {
+    //   const dataURL = await readFileAsDataURL(file);
+    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+    //   setFirebaseImageRight(downloadURL);
+    // } catch (error) {
+    //   console.error('Image upload failed:', error);
+    // }
   };
 
   const ImprintTextPosition = useMemo(() => {
@@ -291,26 +280,26 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   // Create an array to store selected parts with their color and texture information
-  const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
-    name: nodeName.name,
-    color: state.color[index] || null,
-    texture: state.texture[index] || null,
-  }));
+  // const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
+  //   name: nodeName.name,
+  //   color: state.color[index] || null,
+  //   texture: state.texture[index] || null,
+  // }));
 
   // Confrimation or not
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [stateImage, setStateImage] = useState('');
 
   const captureCanvasAsImage = async () => {
-    setIsRotating(false);
+    // setIsRotating(false);
 
     setTimeout(async () => {
       const canvas = canvasRef.current;
-      const canvasImage = await html2canvas(canvas);
+      const canvasImage = await html2canvas(canvas as any);
       const dataUrl = canvasImage.toDataURL();
       setStateImage(dataUrl);
       setShowConfirmation(true);
-      setIsRotating(true);
+      // setIsRotating(true);
     }, 100);
   };
 
@@ -431,35 +420,38 @@ const ConfiguratorUnisexSpecial = () => {
       {showConfirmation ? (
         <Confirmation
           currencySymbol={currencySymbol}
-          total={total}
-          readyBy={selectedClothing?.readyIn}
-          weight={selectedClothing?.weight}
-          name={selectedClothing?.name}
-          selectedParts={
-            notAll.includes(selectedClothing?.name) ? null : selectedParts
-          }
-          selectedPrintOn={{
-            isColor:
-              selectedPart !== null
-                ? state.texture[selectedPart] === null
-                : true,
-            item: selectedPrintOn,
-          }}
-          uploadedImageLeft={firebaseImageLeft}
-          uploadedImageRight={firebaseImageRight}
-          textLeft={enteredTextLeft}
-          textRight={enteredTextRight}
+          total={Number(total)}
+          readyBy={selectedClothing?.readyIn || 0}
+          // weight={selectedClothing?.weight}
+          name={selectedClothing?.name || ''}
+          // selectedParts={
+          //   notAll.includes(selectedClothing?.name as string)
+          //     ? []
+          //     : selectedParts || []
+          // }
+          // selectedPrintOn={{
+          //   isColor:
+          //     selectedPart !== null
+          //       ? state.texture[selectedPart] === null
+          //       : true,
+          //   item: selectedPrintOn || '',
+          // }}
+          // uploadedImageLeft={firebaseImageLeft}
+          // uploadedImageRight={firebaseImageRight}
+          textLeft={enteredTextLeft || ''}
+          textRight={enteredTextRight || ''}
           setShowConfirmation={setShowConfirmation}
-          selectedSize={
-            selectedClothing?.sizeOptions?.find(
-              (option) => option.value === selectedSize,
-            )?.label
-          }
+          // selectedSize={
+          //   selectedClothing?.sizeOptions?.find(
+          //     (option) => option.value === selectedSize,
+          //   )?.label || ''
+          // }
           modelImage={stateImage}
           customSizeValues={{}}
+
           // height={height}
-          gender={gender}
-          beadType={beadType}
+          // gender={gender}
+          // beadType={beadType}
         />
       ) : (
         <>
@@ -499,8 +491,9 @@ const ConfiguratorUnisexSpecial = () => {
                         textSizeleft={fontSizeLeft as number}
                         textSizeRight={fontSizeRight as number}
                         fontFamily={fontFamily}
-                        textLeftOrientation={textLeftOrientation}
-                        textRightOrientation={textRightOrientation}
+                        // textLeftOrientation={textLeftOrientation}
+                        // textRightOrientation={textRightOrientation}
+
                         ImprintTextPosition={ImprintTextPosition as any}
                         hideRightText={
                           selectedClothing?.name === 'Beads Bracelet'
@@ -508,8 +501,8 @@ const ConfiguratorUnisexSpecial = () => {
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition}
-                        imageLeft={uploadedImageLeft}
-                        imageRight={uploadedImageRight}
+                        imageLeft={uploadedImageLeft || ''}
+                        imageRight={uploadedImageRight || ''}
                         hideLogo={selectedClothing?.name === 'Beads Bracelet'}
                         hideRightText={
                           selectedClothing?.name === 'Beads Bracelet'
@@ -551,7 +544,7 @@ const ConfiguratorUnisexSpecial = () => {
                   </div>
                   <div
                     className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
-                    onClick={(e) => textEditRef.current?.toggle(e)}
+                    onClick={(e) => (textEditRef.current as any)?.toggle(e)}
                   >
                     <span>Edit Text</span>
                     <i className="pi pi-chevron-right text-sm"></i>

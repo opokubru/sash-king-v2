@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
 import { separateWordsWithLineBreak } from '@/utils/helper';
 import { useEffect, useState } from 'react';
 
 const HtmlLogoComponent = ({
-  ImprintTextPosition,
-  hideRightText,
+  // ImprintTextPosition,
+  // hideRightText,
   imageLeft,
   turn_to_back,
   imageRight,
@@ -12,6 +13,16 @@ const HtmlLogoComponent = ({
   height,
   translateY,
   translateX,
+}: {
+  ImprintTextPosition: any;
+  hideRightText: boolean;
+  imageLeft: string;
+  turn_to_back: boolean;
+  imageRight: string;
+  width: number;
+  height: number;
+  translateY: number;
+  translateX: number;
 }) => {
   useEffect(() => {
     setStableImageLeft('');
@@ -34,7 +45,7 @@ const HtmlLogoComponent = ({
     }
   }, [imageLeft, imageRight]);
 
-  const [stableImageLeft, setStableImageLeft] = useState(null);
+  const [stableImageLeft, setStableImageLeft] = useState('');
 
   return (
     <Html style={{ zIndex: 1 }}>

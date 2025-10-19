@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
 import { separateWordsWithLineBreak } from '@/utils/helper';
 
@@ -8,6 +9,13 @@ const HtmlImageComponent = ({
   imageRight,
   hideLogo = false,
   textColor,
+}: {
+  ImprintTextPosition: any;
+  hideRightText: boolean;
+  imageLeft: string | null;
+  imageRight: string;
+  hideLogo: boolean;
+  textColor: string;
 }) => {
   const isMobile = window.innerWidth < 768;
 

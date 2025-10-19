@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dialog } from 'primereact/dialog';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { IconError } from './Icons';
 
 const maleVid = 'https://www.youtube.com/embed/I8vAfmGWaP8?si=0udacOCSjGZ7pIN9';

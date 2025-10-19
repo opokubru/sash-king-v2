@@ -8,8 +8,8 @@ interface HtmlComponentProps {
   textSizeleft: number;
   textSizeRight: number;
   fontFamily: string;
-  textLeftOrientation: string;
-  textRightOrientation: string;
+  // textLeftOrientation: string;
+  // textRightOrientation: string;
   ImprintTextPosition: {
     left: {
       top: string;
@@ -48,8 +48,8 @@ const HtmlComponent = ({
   textSizeleft,
   textSizeRight,
   fontFamily,
-  textLeftOrientation,
-  textRightOrientation,
+  // textLeftOrientation,
+  // textRightOrientation,
   ImprintTextPosition,
   hideRightText,
 }: HtmlComponentProps) => {
@@ -69,9 +69,9 @@ const HtmlComponent = ({
           textTransform: 'uppercase',
           lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}  `,
           fontFamily: fontFamily,
-          writingMode: `${
-            textLeftOrientation === 'vertical' ? 'vertical-rl' : 'horizontal-tb'
-          }`,
+          // writingMode: `${
+          //   textLeftOrientation === 'vertical' ? 'vertical-rl' : 'horizontal-tb'
+          // }`,
           opacity: textLeft !== '' ? 1 : 0.3,
         }}
         dangerouslySetInnerHTML={{
@@ -102,11 +102,11 @@ const HtmlComponent = ({
             overflow: 'hidden', // Ensure text doesn't overflow its container
             textTransform: 'uppercase',
             fontFamily: fontFamily,
-            writingMode: `${
-              textRightOrientation === 'vertical'
-                ? 'vertical-rl'
-                : 'horizontal-tb'
-            }`,
+            // writingMode: `${
+            //   textRightOrientation === 'vertical'
+            //     ? 'vertical-rl'
+            //     : 'horizontal-tb'
+            // }`,
             opacity: textRight !== '' ? 1 : 0.3,
             zIndex: 0.8,
             // lineHeight: ImprintTextPosition.right?.lineHeight,

@@ -34,38 +34,38 @@ return Number(value).toLocaleString(undefined, {
   export const isMobile = window.innerWidth <= 767;
 
 
-  export const readFileAsDataURL = (file: File): Promise<string> => {
-	return new Promise((resolve, reject) => {
-	  const reader = new FileReader();
+//   export const readFileAsDataURL = (file: File): Promise<string> => {
+// 	return new Promise((resolve, reject) => {
+// 	  const reader = new FileReader();
   
-	  reader.onloadend = () => {
-		resolve(reader.result);
-	  };
+// 	  reader.onloadend = () => {
+// 		resolve(reader.result);
+// 	  };
   
-	  reader.onerror = () => {
-		reject(reader.error);
-	  };
+// 	  reader.onerror = () => {
+// 		reject(reader.error);
+// 	  };
   
-	  reader.readAsDataURL(file);
-	});
-  };
+// 	  reader.readAsDataURL(file);
+// 	});
+//   };
   
-  export const uploadToStorage = async (dataURL: string, bucket: string): Promise<string> => {
-	try {
-	  const storageRef = ref(storage, `${bucket}/${Date.now()}.png`);
+//   export const uploadToStorage = async (dataURL: string, bucket: string): Promise<string> => {
+// 	try {
+// 	  const storageRef = ref(storage, `${bucket}/${Date.now()}.png`);
   
-	  await uploadString(storageRef, dataURL, 'data_url');
+// 	  await uploadString(storageRef, dataURL, 'data_url');
   
-	  // Get the download URL of the uploaded image
-	  const downloadURL = await getDownloadURL(storageRef);
+// 	  // Get the download URL of the uploaded image
+// 	  const downloadURL = await getDownloadURL(storageRef);
   
-	  // Return the download URL
-	  return downloadURL;
-	} catch (error) {
-	  console.error('Upload failed:', error);
-	  throw error; // Re-throw the error to handle it where uploadToStorage is called.
-	}
-  };
+// 	  // Return the download URL
+// 	  return downloadURL;
+// 	} catch (error) {
+// 	  console.error('Upload failed:', error);
+// 	  throw error; // Re-throw the error to handle it where uploadToStorage is called.
+// 	}
+//   };
 
 
   export const separateWordsWithLineBreak = (text: string): string => {

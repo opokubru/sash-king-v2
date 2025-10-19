@@ -1,12 +1,12 @@
-import React, { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
-import "./styles.css";
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
+import './styles.css';
 
-import { ProgressSpinner } from "primereact/progressspinner";
+import { ProgressSpinner } from 'primereact/progressspinner';
 
 const LoadingAnimation = () => {
-  const meshRef = useRef();
+  const meshRef = useRef<THREE.Mesh>(null);
 
   // Rotate the mesh on each frame to create a spinning effect
   useFrame(() => {
