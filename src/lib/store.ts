@@ -6,12 +6,12 @@ export const state = proxy({
   texture: [], // Array to store textures for each part
 });
 
-export const setPartColor = (partIndex, color) => {
-  state.color[partIndex] = color;
-  state.texture[partIndex] = null;
-};
+// export const setPartColor = (partIndex, color) => {
+//   state.color[partIndex] = color;
+//   state.texture[partIndex] = null;
+// };
 
-export const setPartTexture = (partIndex: any, texture: any) => {
-  state.texture[partIndex] = texture;
-  state.color[partIndex] = "#ffffff";
-};
+// export const setPartTexture = (partIndex: any, texture: any) => {
+//   state.texture[partIndex] = texture;
+//   state.color[partIndex] = "#ffffff";
+// };

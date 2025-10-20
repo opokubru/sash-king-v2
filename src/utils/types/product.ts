@@ -8,7 +8,7 @@ export interface Product {
     description: string;
     price: number;
     image: string;
-    model_image: string;
+    model_image?: string;
     image_url?: string; // Keep for backward compatibility
     created_at?: string;
     discount?: number;

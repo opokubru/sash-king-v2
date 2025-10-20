@@ -63,7 +63,7 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 0.8,
 
     },
     // {

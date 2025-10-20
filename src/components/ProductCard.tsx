@@ -13,7 +13,7 @@ export const ProductCard = ({
   product,
   height = 'h-[400px] md:h-[500px]',
 }: ProductCardProps) => {
-  const { id, name, price, discount, image } = product;
+  const { name, price, discount, image } = product;
   const finalPrice = discount ? price - price * (discount / 100) : price;
 
   return (

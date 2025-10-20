@@ -1,5 +1,49 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
 import { separateWordsWithLineBreak } from '@/utils/helper';
+import { useState, useRef, useEffect } from 'react';
+
+interface HtmlComponentProps {
+  textLeft: string;
+  textRight: string;
+  textColor: string;
+  textSizeleft: number;
+  textSizeRight: number;
+  fontFamily: string;
+  // textLeftOrientation: string;
+  // textRightOrientation: string;
+  ImprintTextPosition: {
+    left: {
+      top: string;
+      left: string;
+      width: number;
+      height: number;
+      lineHeight: number;
+      image: {
+        top: string;
+        left: string;
+        width: number;
+        height: number;
+      };
+    };
+    right: {
+      top: string;
+      left: string;
+      width: number;
+      height: number;
+      lineHeight: number;
+      image: {
+        top: string;
+        left: string;
+        width: number;
+        height: number;
+      };
+    };
+  };
+  hideRightText: boolean;
+  onTextLeftChange?: (text: string) => void;
+  onTextRightChange?: (text: string) => void;
+}
 
 const HtmlComponent = ({
   textLeft,
@@ -8,15 +52,87 @@ const HtmlComponent = ({
   textSizeleft,
   textSizeRight,
   fontFamily,
-  textLeftOrientation,
-  textRightOrientation,
+  // textLeftOrientation,
+  // textRightOrientation,
   ImprintTextPosition,
   hideRightText,
-}) => {
+  onTextLeftChange,
+  onTextRightChange,
+}: HtmlComponentProps) => {
+  const [editingLeft, setEditingLeft] = useState(false);
+  const [editingRight, setEditingRight] = useState(false);
+  const [tempTextLeft, setTempTextLeft] = useState(textLeft);
+  const [tempTextRight, setTempTextRight] = useState(textRight);
+  const leftInputRef = useRef<HTMLInputElement>(null);
+  const rightInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setTempTextLeft(textLeft);
+  }, [textLeft]);
+
+  useEffect(() => {
+    setTempTextRight(textRight);
+  }, [textRight]);
+
+  useEffect(() => {
+    if (editingLeft && leftInputRef.current) {
+      leftInputRef.current.focus();
+      leftInputRef.current.select();
+    }
+  }, [editingLeft]);
+
+  useEffect(() => {
+    if (editingRight && rightInputRef.current) {
+      rightInputRef.current.focus();
+      rightInputRef.current.select();
+    }
+  }, [editingRight]);
+
+  const handleLeftTextClick = () => {
+    setEditingLeft(true);
+  };
+
+  const handleRightTextClick = () => {
+    setEditingRight(true);
+  };
+
+  const handleLeftTextBlur = () => {
+    setEditingLeft(false);
+    if (onTextLeftChange) {
+      onTextLeftChange(tempTextLeft);
+    }
+  };
+
+  const handleRightTextBlur = () => {
+    setEditingRight(false);
+    if (onTextRightChange) {
+      onTextRightChange(tempTextRight);
+    }
+  };
+
+  const handleLeftTextKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleLeftTextBlur();
+    } else if (e.key === 'Escape') {
+      setTempTextLeft(textLeft);
+      setEditingLeft(false);
+    }
+  };
+
+  const handleRightTextKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRightTextBlur();
+    } else if (e.key === 'Escape') {
+      setTempTextRight(textRight);
+      setEditingRight(false);
+    }
+  };
+
   return (
     <Html style={{ zIndex: 1 }}>
+      {/* Left Text */}
       <div
-        className="overlay"
+        className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
         style={{
           position: 'absolute',
           transform: `translate(${ImprintTextPosition?.left?.left}, ${ImprintTextPosition.left?.top})`,
@@ -24,30 +140,57 @@ const HtmlComponent = ({
           fontSize: textSizeleft,
           width: ImprintTextPosition?.left?.width,
           height: ImprintTextPosition?.left?.height,
-          wordWrap: 'break-word', // Enable word wrapping for long words
-          overflow: 'hidden', // Ensure text doesn't overflow its container
+          wordWrap: 'break-word',
+          overflow: 'hidden',
           textTransform: 'uppercase',
-          lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}  `,
+          lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
           fontFamily: fontFamily,
-          writingMode: `${
-            textLeftOrientation === 'vertical' ? 'vertical-rl' : 'horizontal-tb'
-          }`,
           opacity: textLeft !== '' ? 1 : 0.3,
+          borderRadius: '4px',
+          padding: '2px',
         }}
-        dangerouslySetInnerHTML={{
-          __html: hideRightText
-            ? textLeft !== ''
-              ? textLeft
-              : 'TEXT HERE'
-            : separateWordsWithLineBreak(
-                textLeft !== '' ? textLeft : 'TEXT HERE',
-              ),
-        }}
-      />
+        onClick={handleLeftTextClick}
+      >
+        {editingLeft ? (
+          <input
+            ref={leftInputRef}
+            type="text"
+            value={tempTextLeft}
+            onChange={(e) => setTempTextLeft(e.target.value)}
+            onBlur={handleLeftTextBlur}
+            onKeyDown={handleLeftTextKeyDown}
+            style={{
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: '2px solid #3B82F6',
+              borderRadius: '4px',
+              padding: '4px',
+              fontSize: textSizeleft,
+              fontFamily: fontFamily,
+              textTransform: 'uppercase',
+              width: '100%',
+              height: '100%',
+              color: '#000',
+            }}
+          />
+        ) : (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: hideRightText
+                ? textLeft !== ''
+                  ? textLeft
+                  : 'TEXT HERE'
+                : separateWordsWithLineBreak(
+                    textLeft !== '' ? textLeft : 'TEXT HERE',
+                  ),
+            }}
+          />
+        )}
+      </div>
 
+      {/* Right Text */}
       {!hideRightText && (
         <div
-          className="overlay"
+          className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
             position: 'absolute',
             transform: `translate(${ImprintTextPosition.right.left}, ${ImprintTextPosition.right?.top})`,
@@ -55,28 +198,49 @@ const HtmlComponent = ({
             fontSize: textSizeRight,
             width: ImprintTextPosition?.right.width,
             height: ImprintTextPosition?.right.height,
-            lineHeight: `${
-              ImprintTextPosition?.right?.lineHeight || '2.8rem'
-            }  `,
-            wordWrap: 'break-word', // Enable word wrapping for long words
-            overflow: 'hidden', // Ensure text doesn't overflow its container
+            lineHeight: `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+            wordWrap: 'break-word',
+            overflow: 'hidden',
             textTransform: 'uppercase',
             fontFamily: fontFamily,
-            writingMode: `${
-              textRightOrientation === 'vertical'
-                ? 'vertical-rl'
-                : 'horizontal-tb'
-            }`,
             opacity: textRight !== '' ? 1 : 0.3,
             zIndex: 0.8,
-            lineHeight: ImprintTextPosition.right?.lineHeight,
+            borderRadius: '4px',
+            padding: '2px',
           }}
-          dangerouslySetInnerHTML={{
-            __html: separateWordsWithLineBreak(
-              textRight !== '' ? textRight : 'TEXT HERE',
-            ),
-          }}
-        />
+          onClick={handleRightTextClick}
+        >
+          {editingRight ? (
+            <input
+              ref={rightInputRef}
+              type="text"
+              value={tempTextRight}
+              onChange={(e) => setTempTextRight(e.target.value)}
+              onBlur={handleRightTextBlur}
+              onKeyDown={handleRightTextKeyDown}
+              style={{
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: '2px solid #3B82F6',
+                borderRadius: '4px',
+                padding: '4px',
+                fontSize: textSizeRight,
+                fontFamily: fontFamily,
+                textTransform: 'uppercase',
+                width: '100%',
+                height: '100%',
+                color: '#000',
+              }}
+            />
+          ) : (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: separateWordsWithLineBreak(
+                  textRight !== '' ? textRight : 'TEXT HERE',
+                ),
+              }}
+            />
+          )}
+        </div>
       )}
     </Html>
   );
