@@ -78,7 +78,7 @@ const HtmlImageComponent = ({
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            opacity: imageLeft !== null ? 1 : 0.3,
+            // opacity: imageLeft !== null ? 1 : 0.3,
             color: textColor,
             borderRadius: '4px',
             border: imageLeft ? '2px solid transparent' : '2px dashed #ccc',
@@ -89,7 +89,7 @@ const HtmlImageComponent = ({
         >
           {!imageLeft && (
             <div
-              className="flex items-center justify-center h-full text-gray-500 text-xs"
+              className="flex items-center justify-center h-full text-white text-xs"
               style={{
                 fontSize: '0.3rem',
                 lineHeight: '0.5rem',
@@ -97,7 +97,7 @@ const HtmlImageComponent = ({
             >
               <div className="text-center">
                 <div className="mb-1">📷</div>
-                <div>CLICK TO</div>
+                <div>TAP TO</div>
                 <div>UPLOAD</div>
               </div>
             </div>
@@ -137,7 +137,7 @@ const HtmlImageComponent = ({
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            opacity: imageRight !== null ? 1 : 0.3,
+            // opacity: imageRight !== null ? 1 : 0.3,
             color: textColor,
             borderRadius: '4px',
             border: imageRight ? '2px solid transparent' : '2px dashed #ccc',
@@ -148,7 +148,7 @@ const HtmlImageComponent = ({
         >
           {!imageRight && (
             <div
-              className="flex items-center justify-center h-full text-gray-500 text-xs"
+              className="flex items-center justify-center h-full text-white text-xs"
               style={{
                 fontSize: '0.3rem',
                 lineHeight: '0.5rem',
@@ -156,7 +156,7 @@ const HtmlImageComponent = ({
             >
               <div className="text-center">
                 <div className="mb-1">📷</div>
-                <div>CLICK TO</div>
+                <div>TAP TO</div>
                 <div>UPLOAD</div>
               </div>
             </div>

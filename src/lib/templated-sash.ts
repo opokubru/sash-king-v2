@@ -50,7 +50,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 2, large: 3, extraLarge: 4, extraExtraLarge: 4 },
-      myZoom: 0.6,
+      myZoom: 1.2,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -63,7 +63,8 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 0.8,
+      scale: 1.4,
+      aspect: 0.7,
 
     },
 
@@ -106,7 +107,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 2, large: 3, extraLarge: 4, extraExtraLarge: 4 },
-      myZoom: 1.1,
+      myZoom: 1,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -120,6 +121,7 @@ export const TemplatedSash: Product[] = [
       colors: [],
       in_stock: true,
       scale: 1.2,
+      aspect: 0.65,
 
     },
   
@@ -165,7 +167,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 0.7,
+      myZoom: 0.9,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -178,7 +180,8 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1,
+      aspect: 0.7,
 
     },
   
@@ -278,7 +281,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 0.7,
+      myZoom: 0.9,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -291,64 +294,11 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1,
+      aspect: 0.7,
 
     },
-    // {
-    //   id: generateUUID(),
-    //   name: 'Sash Eight',
-    //   title: 'Sash Eight',
-    //   description: '',
-    //   image: '/images/templates/8.jpg',
-    //   // model: sash8_actual,
-    //   // confirm_image: sash8_actual,
-    //   positioningLeft: {
-    //     text: {
-    //       top: '-2rem',
-    //       left: '-5rem',
-    //       height: '9rem',
-    //       width: '3.5rem',
-    //       lineHeight: '2.4rem',
-    //     },
-    //     image: {
-    //       top: '-9rem',
-    //       left: '-4.5rem',
-    //       height: '2.5rem',
-    //       width: '2.5rem',
-    //     },
-    //   },
-    //   positioningRight: {
-    //     text: {
-    //       top: '-2.6rem',
-    //       left: '-0.6rem',
-    //       height: '9rem',
-    //       width: '3.5rem',
-    //       lineHeight: '2.4rem',
-    //     },
-    //     image: {
-    //       top: '-9.3rem',
-    //       left: '0.4rem',
-    //       height: '2.5rem',
-    //       width: '2.5rem',
-    //     },
-    //   },
-    //   otherYards: { small: 2, large: 3, extraLarge: 4, extraExtraLarge: 4 },
-    //   myZoom: 0.65,
-    //   price: 110,
-    //   readyIn: 7,
-    //   // sizeGuide: sash_guide,
-    //   sizeOptions: [
-    //     { label: 'S', value: 0.5 },
-    //     { label: 'M', value: 1 },
-    //     { label: 'L', value: 2 },
-    //   ],
-    //   extra_image_urls: [],
-    //   sizes: [],
-    //   colors: [],
-    //   in_stock: true,
-    //   scale: 1.2,
-
-    // },
+   
     {
       id: generateUUID(),
       name: 'Sash Nine',
@@ -389,7 +339,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 0.65,
+      myZoom: 0.8,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -402,7 +352,8 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1,
+      aspect: 0.7,
 
     },
    
@@ -501,7 +452,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 0.7,
+      myZoom: 0.9,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -514,7 +465,8 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1,
+      aspect: 0.7,
 
     },
     // {
@@ -610,7 +562,7 @@ export const TemplatedSash: Product[] = [
         },
       },
       otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 0.75,
+      myZoom: 1.1,
       price: 110,
       readyIn: 7,
       // sizeGuide: sash_guide,
@@ -623,7 +575,8 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1.1,
+      aspect: 0.7,
 
     },
     // {

@@ -74,5 +74,6 @@ export interface Product {
     weight?: number;
     isAccessory?: boolean;
     scale?: number;
+    aspect?: number;
   }
   

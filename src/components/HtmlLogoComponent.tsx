@@ -90,7 +90,7 @@ const HtmlLogoComponent = ({
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          opacity: stableImageLeft !== null ? 1 : 0.3,
+          // opacity: stableImageLeft !== null ? 1 : 0.3,
           borderRadius: '4px',
           border: stableImageLeft ? '2px solid transparent' : '2px dashed #ccc',
           padding: '2px',

@@ -97,7 +97,7 @@ const ConfiguratorUnisexSpecial = () => {
 
   // const [textPosition] = useState([-0.65, -0.15, 0.05]); // Initialize text position
   const [textColor, setTextColor] = useState(
-    selectedClothing?.textColor || 'white',
+    selectedClothing?.textColor || 'gold',
   );
   const [fontFamily, setFontFamily] = useState('Arial');
 
@@ -810,8 +810,8 @@ const ConfiguratorUnisexSpecial = () => {
             className="flex items-center gap-2"
             title="Show editing tips"
           >
-            <i className="pi pi-question-circle text-sm"></i>
-            <span className="font-medium">Help</span>
+            <i className="pi pi-question-circle text-sm text-primary"></i>
+            <span className="font-bold text-primary">Help</span>
           </button>
         </div>
 
@@ -844,11 +844,19 @@ const ConfiguratorUnisexSpecial = () => {
                 }}
                 ref={canvasRef}
                 gl={{ preserveDrawingBuffer: true }}
-                className="h-full"
+                className="h-full w-full"
               >
                 {displayImage && (
                   <Image
-                    scale={selectedClothing?.scale || 1}
+                    scale={
+                      selectedClothing?.aspect
+                        ? [
+                            selectedClothing?.scale || 1,
+                            (selectedClothing?.scale || 1) /
+                              selectedClothing.aspect,
+                          ]
+                        : selectedClothing?.scale || 1
+                    }
                     url={displayImage}
                   />
                 )}
