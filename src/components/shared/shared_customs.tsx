@@ -5,19 +5,51 @@ interface ICustomButton extends ButtonProps {
   className?: string;
   selector?: string;
   to?: string;
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'tertiary'
+    | 'ghost'
+    | 'link'
+    | 'faded'
+    | 'flat'
+    | 'shadow'
+    | 'outline'
+    | 'dashed'
+    | 'none';
 }
 export const CustomButton = ({
   children,
   className,
-}: //   ...rest
-ICustomButton) => {
+  onPress,
+  onPressStart,
+  onPressEnd,
+  isDisabled,
+  isLoading,
+  variant,
+}: ICustomButton) => {
+  const buttonClass = cn(
+    'bg-[#F9FFF6] rounded-lg capitalize text-[#316449]',
+    className,
+    variant === 'primary' && 'bg-primary text-white',
+    variant === 'secondary' && 'border border-primary text-primary',
+    variant === 'tertiary' && 'bg-tertiary text-white',
+    variant === 'ghost' && 'bg-transparent text-primary',
+    variant === 'link' && 'text-primary underline',
+    variant === 'faded' && 'bg-faded text-primary',
+    variant === 'flat' && 'bg-flat text-primary',
+  );
   return (
     <Button
       className={cn(
-        'bg-[#F9FFF6] rounded-full capitalize text-[#316449]',
+        `bg-[#F9FFF6] rounded-lg capitalize text-[#316449] ${buttonClass}`,
         className,
       )}
-      //   {...rest}
+      onPress={onPress}
+      onPressStart={onPressStart}
+      onPressEnd={onPressEnd}
+      isDisabled={isDisabled}
+      isLoading={isLoading}
     >
       {children}
     </Button>

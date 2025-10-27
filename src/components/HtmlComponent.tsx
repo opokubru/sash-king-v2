@@ -43,6 +43,9 @@ interface HtmlComponentProps {
   hideRightText: boolean;
   onTextLeftChange?: (text: string) => void;
   onTextRightChange?: (text: string) => void;
+  onTextLeftClick?: () => void;
+  onTextRightClick?: () => void;
+  selectedText?: 'left' | 'right' | null;
 }
 
 const HtmlComponent = ({
@@ -58,6 +61,9 @@ const HtmlComponent = ({
   hideRightText,
   onTextLeftChange,
   onTextRightChange,
+  onTextLeftClick,
+  onTextRightClick,
+  selectedText,
 }: HtmlComponentProps) => {
   const [editingLeft, setEditingLeft] = useState(false);
   const [editingRight, setEditingRight] = useState(false);
@@ -89,11 +95,21 @@ const HtmlComponent = ({
   }, [editingRight]);
 
   const handleLeftTextClick = () => {
+    // Keep inline editing behavior
     setEditingLeft(true);
+    // Also trigger bottom sheet if handler provided
+    if (onTextLeftClick) {
+      onTextLeftClick();
+    }
   };
 
   const handleRightTextClick = () => {
+    // Keep inline editing behavior
     setEditingRight(true);
+    // Also trigger bottom sheet if handler provided
+    if (onTextRightClick) {
+      onTextRightClick();
+    }
   };
 
   const handleLeftTextBlur = () => {
@@ -145,9 +161,14 @@ const HtmlComponent = ({
           textTransform: 'uppercase',
           lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
           fontFamily: fontFamily,
-          opacity: textLeft !== '' ? 1 : 0.3,
+          // opacity: textLeft !== '' ? 1 : 0.3,
           borderRadius: '4px',
           padding: '2px',
+          border: selectedText === 'left' ? '2px dashed #3B82F6' : 'none',
+          boxShadow:
+            selectedText === 'left'
+              ? '0 0 10px rgba(59, 130, 246, 0.3)'
+              : 'none',
         }}
         onClick={handleLeftTextClick}
       >
@@ -155,12 +176,12 @@ const HtmlComponent = ({
           <input
             ref={leftInputRef}
             type="text"
-            value={tempTextLeft}
+            value={separateWordsWithLineBreak(tempTextLeft)}
             onChange={(e) => setTempTextLeft(e.target.value)}
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
-              background: 'rgba(255, 255, 255, 0.9)',
+              background: 'transparent',
               border: '2px solid #3B82F6',
               borderRadius: '4px',
               padding: '4px',
@@ -169,7 +190,7 @@ const HtmlComponent = ({
               textTransform: 'uppercase',
               width: '100%',
               height: '100%',
-              color: '#000',
+              color: '#fff',
             }}
           />
         ) : (
@@ -203,10 +224,15 @@ const HtmlComponent = ({
             overflow: 'hidden',
             textTransform: 'uppercase',
             fontFamily: fontFamily,
-            opacity: textRight !== '' ? 1 : 0.3,
+            // opacity: textRight !== '' ? 1 : 0.3,
             zIndex: 0.8,
             borderRadius: '4px',
             padding: '2px',
+            border: selectedText === 'right' ? '2px dashed #3B82F6' : 'none',
+            boxShadow:
+              selectedText === 'right'
+                ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                : 'none',
           }}
           onClick={handleRightTextClick}
         >

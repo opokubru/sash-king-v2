@@ -26,6 +26,7 @@ export interface Product {
         height: string;
         width: string;
         lineHeight: string;
+        size?: number;
       };
       image: {
         top: string;
@@ -41,6 +42,7 @@ export interface Product {
         height: string;
         width: string;
         lineHeight: string;
+        size?: number;
       };
       image: {
         top: string;
@@ -72,5 +74,6 @@ export interface Product {
     weight?: number;
     isAccessory?: boolean;
     scale?: number;
+    aspect?: number;
   }
   
