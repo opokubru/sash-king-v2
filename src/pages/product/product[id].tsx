@@ -297,6 +297,25 @@ const ConfiguratorUnisexSpecial = () => {
 
   // Confrimation or not
 
+  // Helper function to convert blob URL to data URL
+  const blobToDataURL = (blobUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!blobUrl.startsWith('blob:')) {
+        resolve(blobUrl);
+        return;
+      }
+      fetch(blobUrl)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+        .catch(reject);
+    });
+  };
+
   const captureCanvasAsImage = async () => {
     console.log('captureCanvasAsImage started');
 
@@ -320,6 +339,28 @@ const ConfiguratorUnisexSpecial = () => {
       console.log('Image captured successfully');
       const dataUrl = canvasImage.toDataURL();
 
+      // Convert blob URLs to data URLs for uploaded images
+      let uploadedImageLeftDataUrl = '';
+      let uploadedImageRightDataUrl = '';
+
+      if (uploadedImageLeft) {
+        try {
+          uploadedImageLeftDataUrl = await blobToDataURL(uploadedImageLeft);
+          console.log('Converted left image blob to data URL');
+        } catch (error) {
+          console.error('Failed to convert left image:', error);
+        }
+      }
+
+      if (uploadedImageRight) {
+        try {
+          uploadedImageRightDataUrl = await blobToDataURL(uploadedImageRight);
+          console.log('Converted right image blob to data URL');
+        } catch (error) {
+          console.error('Failed to convert right image:', error);
+        }
+      }
+
       // Store the order data in sessionStorage
       const orderData = {
         currencySymbol,
@@ -330,8 +371,8 @@ const ConfiguratorUnisexSpecial = () => {
         textRight: enteredTextRight || '',
         modelImage: dataUrl,
         customSizeValues: {},
-        uploadedImageLeft: uploadedImageLeft || '',
-        uploadedImageRight: uploadedImageRight || '',
+        uploadedImageLeft: uploadedImageLeftDataUrl,
+        uploadedImageRight: uploadedImageRightDataUrl,
         fontSizeLeft,
         fontSizeRight,
         fontFamily,

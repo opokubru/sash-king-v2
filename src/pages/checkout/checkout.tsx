@@ -14,11 +14,10 @@ import {
   resetCart,
 } from '@/store/features/cart';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogoComponent } from '@/components/logo-componanent';
 import { Button } from '@nextui-org/react';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 import { Icon } from '@iconify/react/dist/iconify.js';
-import { addOrder } from '@/lib/db/orders';
+import { addOrder, uploadOrderImage } from '@/lib/db/orders';
 
 const publicKey = variables.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -47,79 +46,123 @@ const Checkout = () => {
     publicKey,
     text: 'Pay Now',
     onSuccess: async () => {
-      dispatch(resetCart());
+      try {
+        dispatch(resetCart());
 
-      toast.success('Payment successful! Your order is placed.', {
-        duration: 6000,
-      });
+        toast.success('Payment successful! Your order is placed.', {
+          duration: 6000,
+        });
 
-      const userInfo = {
-        firstName,
-        lastName,
-        email,
-        tel,
-        location: city,
-        items: items.map((item: CartItem) => ({
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          discount: item.discount,
-          size: item.selectedSize,
-          color: item.selectedColor,
-          // Custom design fields
-          isCustom: item.isCustom,
-          customTextLeft: item.customTextLeft,
-          customTextRight: item.customTextRight,
-          customImage: item.customImage,
-        })),
-        subject: 'New Product Order',
-        dateTime: new Date().toLocaleString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-          hour12: true,
-        }),
-        total: totalAmount,
-      };
+        // Upload custom images and get URLs
+        const orderItemsWithUrls = await Promise.all(
+          items.map(async (item: CartItem) => {
+            let finalImageUrl = item.image_url;
+            let uploadedImageLeftUrl = item.uploadedImageLeft || '';
+            let uploadedImageRightUrl = item.uploadedImageRight || '';
 
-      const now = new Date().toISOString();
+            // Upload images for all items
+            // Upload the full captured canvas image if it exists
+            if (item.customImage) {
+              const fileName = `order-${Date.now()}-${item.id}.png`;
+              try {
+                finalImageUrl = await uploadOrderImage(
+                  item.customImage,
+                  fileName,
+                );
+                console.log('✓ Uploaded custom canvas image:', finalImageUrl);
+              } catch (error) {
+                console.error('Failed to upload custom image:', error);
+              }
+            }
 
-      const order_info = {
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        tel,
-        location: city,
-        items: items.map((item: CartItem) => ({
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          discount: item.discount,
-          size: item.selectedSize,
-          color: item.selectedColor,
-          // Custom design fields
-          isCustom: item.isCustom,
-          customTextLeft: item.customTextLeft,
-          customTextRight: item.customTextRight,
-          customImage: item.customImage,
-        })),
-        total: totalAmount,
-        created_at: now,
-        updated_at: now,
-      };
+            // Upload left image if it exists
+            if (item.uploadedImageLeft) {
+              const leftFileName = `order-left-${Date.now()}-${item.id}.png`;
+              try {
+                uploadedImageLeftUrl = await uploadOrderImage(
+                  item.uploadedImageLeft,
+                  leftFileName,
+                );
+                console.log('✓ Uploaded left image:', uploadedImageLeftUrl);
+              } catch (error) {
+                console.error('Failed to upload left image:', error);
+              }
+            }
 
-      await fetch(variables.VITE_FORMSPREE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userInfo),
-      });
+            // Upload right image if it exists
+            if (item.uploadedImageRight) {
+              const rightFileName = `order-right-${Date.now()}-${item.id}.png`;
+              try {
+                uploadedImageRightUrl = await uploadOrderImage(
+                  item.uploadedImageRight,
+                  rightFileName,
+                );
+                console.log('✓ Uploaded right image:', uploadedImageRightUrl);
+              } catch (error) {
+                console.error('Failed to upload right image:', error);
+              }
+            }
 
-      await addOrder(order_info);
+            return {
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              discount: item.discount,
+              size: item.selectedSize,
+              color: item.selectedColor,
+              image: finalImageUrl,
+              // Custom design fields
+              isCustom: item.isCustom,
+              customTextLeft: item.customTextLeft,
+              customTextRight: item.customTextRight,
+              customImage: finalImageUrl, // The full captured canvas
+              uploadedImageLeft: uploadedImageLeftUrl,
+              uploadedImageRight: uploadedImageRightUrl,
+            };
+          }),
+        );
+
+        const userInfo = {
+          firstName,
+          lastName,
+          email,
+          tel,
+          location: city,
+          items: orderItemsWithUrls,
+          subject: 'New Product Order',
+          dateTime: new Date().toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true,
+          }),
+          total: totalAmount,
+        };
+
+        // Send to FormSpree with image URLs
+        await fetch(variables.VITE_FORMSPREE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userInfo),
+        });
+
+        // Save to Supabase
+        const orderData = {
+          customer: `${firstName} ${lastName}`,
+          order: orderItemsWithUrls,
+          total_amount: totalAmount,
+        };
+
+        await addOrder(orderData);
+      } catch (error) {
+        console.error('Error processing order:', error);
+        toast.error('Order saved but there was an error. Contact support.');
+      }
     },
     onClose: () =>
       toast.error('Payment was not completed.', {
@@ -130,8 +173,8 @@ const Checkout = () => {
   return (
     <div className="min-h-screen px-6 py-12 bg-[rgba(197,195,195,0.165)] text-black">
       {items.length === 0 ? (
-        <div className="flex flex-col gap-4 items-center justify-center">
-          <LogoComponent />
+        <div className="flex flex-col mx-auto gap-4 items-center justify-center w-full">
+          {/* <LogoComponent /> */}
           <p>You have no products in cart</p>
           <Button onPress={() => navigate('/')}>Go Home</Button>
         </div>
