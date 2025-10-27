@@ -11,12 +11,11 @@ import 'primeicons/primeicons.css';
 // import { Link } from "react-router-dom";
 // import { InputText } from 'primereact/inputtext';
 
-import Confirmation from './Confirmation';
 import html2canvas from 'html2canvas';
 
 import { Dialog } from 'primereact/dialog';
 // import './styles.css';
-import { useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 
 //arrays
 import { colorOptions, noSpinFor, onlySashes } from '@/lib/neededArrays';
@@ -35,6 +34,7 @@ import { CustomButton } from '@/components/shared/shared_customs';
 
 const ConfiguratorUnisexSpecial = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const selectedClothing = TemplatedSash.find((item) => item.name === id);
 
   const displayImage = selectedClothing?.model_image;
@@ -130,6 +130,9 @@ const ConfiguratorUnisexSpecial = () => {
 
   // const imageLeftRef = useRef();
   // const imageRightRef = useRef();
+
+  // Container ref for capturing the canvas
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // Early return if no product found
   // if (!selectedClothing) {
@@ -293,20 +296,56 @@ const ConfiguratorUnisexSpecial = () => {
   // }));
 
   // Confrimation or not
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [stateImage, setStateImage] = useState('');
 
   const captureCanvasAsImage = async () => {
-    // setIsRotating(false);
+    console.log('captureCanvasAsImage started');
 
-    setTimeout(async () => {
-      const canvas = canvasRef.current;
-      const canvasImage = await html2canvas(canvas as any);
+    try {
+      // Use the container ref which wraps the Canvas
+      const containerElement = canvasContainerRef.current;
+
+      if (!containerElement) {
+        console.error('Container element not found');
+        return;
+      }
+
+      console.log('Capturing image...');
+      const canvasImage = await html2canvas(containerElement, {
+        allowTaint: true,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        scale: 1,
+      });
+
+      console.log('Image captured successfully');
       const dataUrl = canvasImage.toDataURL();
-      setStateImage(dataUrl);
-      setShowConfirmation(true);
-      // setIsRotating(true);
-    }, 100);
+
+      // Store the order data in sessionStorage
+      const orderData = {
+        currencySymbol,
+        total: Number(total),
+        readyBy: selectedClothing?.readyIn || 0,
+        name: selectedClothing?.name || '',
+        textLeft: enteredTextLeft || '',
+        textRight: enteredTextRight || '',
+        modelImage: dataUrl,
+        customSizeValues: {},
+        uploadedImageLeft: uploadedImageLeft || '',
+        uploadedImageRight: uploadedImageRight || '',
+        fontSizeLeft,
+        fontSizeRight,
+        fontFamily,
+        textColor,
+      };
+
+      sessionStorage.setItem('orderData', JSON.stringify(orderData));
+      console.log('Order data stored, navigating to confirmation...');
+
+      // Navigate to confirmation page
+      navigate('/confirmation');
+    } catch (error) {
+      console.error('Error capturing canvas:', error);
+    }
   };
 
   // Create a state object to store the form field values
@@ -529,345 +568,302 @@ const ConfiguratorUnisexSpecial = () => {
         </AnimatePresence>
       </>
 
-      {showConfirmation ? (
-        <Confirmation
-          currencySymbol={currencySymbol}
-          total={Number(total)}
-          readyBy={selectedClothing?.readyIn || 0}
-          // weight={selectedClothing?.weight}
-          name={selectedClothing?.name || ''}
-          // selectedParts={
-          //   notAll.includes(selectedClothing?.name as string)
-          //     ? []
-          //     : selectedParts || []
-          // }
-          // selectedPrintOn={{
-          //   isColor:
-          //     selectedPart !== null
-          //       ? state.texture[selectedPart] === null
-          //       : true,
-          //   item: selectedPrintOn || '',
-          // }}
-          // uploadedImageLeft={firebaseImageLeft}
-          // uploadedImageRight={firebaseImageRight}
-          textLeft={enteredTextLeft || ''}
-          textRight={enteredTextRight || ''}
-          setShowConfirmation={setShowConfirmation}
-          // selectedSize={
-          //   selectedClothing?.sizeOptions?.find(
-          //     (option) => option.value === selectedSize,
-          //   )?.label || ''
-          // }
-          modelImage={stateImage}
-          customSizeValues={{}}
+      <div className="main-space ">
+        {/* Header Section */}
+        <div className="flex items-center justify-center text-center p-4 ">
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-xl lg:text-2xl font-bold text-gray-900 capitalize">
+                Customizing {selectedClothing?.name}
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Design your personalized sash with custom text and images
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-center">
+          <div className="hidden">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 ">
+              {/* Format Text Section */}
+              <div className="flex items-center justify-between ">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Format Text
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Customize text appearance and styling
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-5 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  onClick={(e) => (textEditRef.current as any)?.toggle(e)}
+                >
+                  <i className="pi pi-cog text-sm"></i>
+                  <span>Customize</span>
+                  <i className="pi pi-chevron-down text-xs"></i>
+                </button>
+              </div>
 
-          // height={height}
-          // gender={gender}
-          // beadType={beadType}
-        />
-      ) : (
-        <>
-          <div className="main-space ">
-            {/* Header Section */}
-            <div className="flex items-center justify-center text-center p-4 ">
-              <div className="flex items-center gap-4">
+              <OverlayPanel
+                showCloseIcon
+                ref={textEditRef}
+                className="w-96 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl"
+              >
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h6 className="text-lg font-semibold text-gray-900 mb-1">
+                      Text Styling
+                    </h6>
+                    <p className="text-sm text-gray-500">
+                      Customize your text appearance
+                    </p>
+                  </div>
+
+                  {/* Color Selection */}
+                  <div>
+                    <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <i className="pi pi-palette text-blue-500"></i>
+                      Text Color
+                    </h6>
+                    {selectedClothing?.name === 'Beads Bracelet' ? (
+                      <div className="text-center py-4">
+                        <span className="text-gray-500 text-sm">
+                          Color customization not available for this product
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-6 gap-2">
+                        {colorOptions.slice(0, 6).map((colorOption, index) => (
+                          <button
+                            key={index}
+                            className={`w-10 h-10 rounded-full border-3 transition-all transform hover:scale-110 ${
+                              textColor === colorOption.label
+                                ? 'border-gray-800 scale-110 shadow-lg'
+                                : 'border-gray-300 hover:border-gray-500'
+                            }`}
+                            onClick={() => setTextColor(colorOption.label)}
+                            style={{
+                              backgroundColor: colorOption.color,
+                            }}
+                            title={colorOption.label}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Font Style */}
+                  <div>
+                    <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <i className="pi pi-font text-green-500"></i>
+                      Font Style
+                    </h6>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <span className="text-sm font-medium text-gray-700 block">
+                          Current Font
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {fontFamily}
+                        </span>
+                      </div>
+                      <button
+                        className="p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105"
+                        onClick={handleChangeFont}
+                        title="Change font style"
+                      >
+                        <i className="pi pi-sync text-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Font Size Controls */}
+                  <div className="space-y-4">
+                    {/* Left Text Size */}
+                    <div>
+                      <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i className="pi pi-text text-purple-500"></i>
+                        Font Size{' '}
+                        {selectedClothing?.name === 'Beads Bracelet'
+                          ? ''
+                          : '(Left)'}
+                      </h6>
+                      <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
+                        <button
+                          className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
+                          onClick={decreaseFontSizeLeft}
+                          title="Decrease font size"
+                        >
+                          <i className="pi pi-minus text-sm"></i>
+                        </button>
+                        <div className="text-center">
+                          <span className="text-lg font-bold text-gray-900 block">
+                            {fontSizeLeft as number}
+                          </span>
+                          <span className="text-xs text-gray-500">px</span>
+                        </div>
+                        <button
+                          className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
+                          onClick={increaseFontSizeLeft}
+                          title="Increase font size"
+                        >
+                          <i className="pi pi-plus text-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Right Text Size */}
+                    {selectedClothing?.name !== 'Beads Bracelet' && (
+                      <div>
+                        <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                          <i className="pi pi-text text-orange-500"></i>
+                          Font Size (Right)
+                        </h6>
+                        <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
+                          <button
+                            className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
+                            onClick={decreaseFontSizeRight}
+                            title="Decrease font size"
+                          >
+                            <i className="pi pi-minus text-sm"></i>
+                          </button>
+                          <div className="text-center">
+                            <span className="text-lg font-bold text-gray-900 block">
+                              {fontSizeRight as number}
+                            </span>
+                            <span className="text-xs text-gray-500">px</span>
+                          </div>
+                          <button
+                            className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
+                            onClick={increaseFontSizeRight}
+                            title="Increase font size"
+                          >
+                            <i className="pi pi-plus text-sm"></i>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </OverlayPanel>
+            </div>
+          </div>
+          <button
+            onClick={handleShowInstructions}
+            className="flex items-center gap-2"
+            title="Show editing tips"
+          >
+            <i className="pi pi-question-circle text-sm"></i>
+            <span className="font-medium">Help</span>
+          </button>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-1">
+            <div
+              ref={canvasContainerRef}
+              className="right-panel h-[40rem] lg:h-[80vh]"
+            >
+              <Canvas
+                camera={{
+                  position: [0, 0, selectedClothing?.myZoom || 5],
+                }}
+                ref={canvasRef}
+                gl={{ preserveDrawingBuffer: true }}
+                className="main-canvas h-full resize-right-panel"
+              >
+                {displayImage && (
+                  <Image
+                    scale={selectedClothing?.scale || 1}
+                    url={displayImage}
+                  />
+                )}
+                {isLoading === false && (
+                  <>
+                    <HtmlComponent
+                      textLeft={enteredTextLeft}
+                      textRight={enteredTextRight}
+                      textColor={textColor}
+                      textSizeleft={fontSizeLeft as number}
+                      textSizeRight={fontSizeRight as number}
+                      fontFamily={fontFamily}
+                      // textLeftOrientation={textLeftOrientation}
+                      // textRightOrientation={textRightOrientation}
+
+                      ImprintTextPosition={ImprintTextPosition as any}
+                      hideRightText={
+                        selectedClothing?.name === 'Beads Bracelet'
+                      }
+                      onTextLeftChange={setEnteredTextLeft}
+                      onTextRightChange={setEnteredTextRight}
+                    />
+                    <HtmlImageComponent
+                      ImprintTextPosition={ImprintTextPosition}
+                      imageLeft={uploadedImageLeft || ''}
+                      imageRight={uploadedImageRight || ''}
+                      hideLogo={selectedClothing?.name === 'Beads Bracelet'}
+                      hideRightText={
+                        selectedClothing?.name === 'Beads Bracelet'
+                      }
+                      textColor={textColor}
+                      onImageLeftChange={handleImageUploadLeft}
+                      onImageRightChange={handleImageUploadRight}
+                    />
+                  </>
+                )}
+              </Canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            {/* Order Details */}
+            <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-6 lg:gap-8">
+              {/* Delivery Time */}
+              <div className="flex items-center gap-3 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm">
                 <div>
-                  <h2 className="text-xl lg:text-2xl font-bold text-gray-900 capitalize">
-                    Customizing {selectedClothing?.name}
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Design your personalized sash with custom text and images
+                  <p className="text-sm text-gray-300 font-medium">
+                    Estimated Delivery
+                  </p>
+                  <p className="text-xl font-bold text-white">
+                    {selectedClothing?.readyIn} days
+                  </p>
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="flex items-center gap-3 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm">
+                <div>
+                  <p className="text-sm text-gray-300 font-medium">
+                    Total Price
+                  </p>
+                  <p className="text-xl font-bold text-white">
+                    {currencySymbol}
+                    {total}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex justify-center">
-              <div className="hidden">
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 ">
-                  {/* Format Text Section */}
-                  <div className="flex items-center justify-between ">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Format Text
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          Customize text appearance and styling
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-5 py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                      onClick={(e) => (textEditRef.current as any)?.toggle(e)}
-                    >
-                      <i className="pi pi-cog text-sm"></i>
-                      <span>Customize</span>
-                      <i className="pi pi-chevron-down text-xs"></i>
-                    </button>
-                  </div>
 
-                  <OverlayPanel
-                    showCloseIcon
-                    ref={textEditRef}
-                    className="w-96 p-6 bg-white border border-gray-200 rounded-xl shadow-2xl"
-                  >
-                    <div className="space-y-6">
-                      <div className="text-center">
-                        <h6 className="text-lg font-semibold text-gray-900 mb-1">
-                          Text Styling
-                        </h6>
-                        <p className="text-sm text-gray-500">
-                          Customize your text appearance
-                        </p>
-                      </div>
-
-                      {/* Color Selection */}
-                      <div>
-                        <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <i className="pi pi-palette text-blue-500"></i>
-                          Text Color
-                        </h6>
-                        {selectedClothing?.name === 'Beads Bracelet' ? (
-                          <div className="text-center py-4">
-                            <span className="text-gray-500 text-sm">
-                              Color customization not available for this product
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-6 gap-2">
-                            {colorOptions
-                              .slice(0, 6)
-                              .map((colorOption, index) => (
-                                <button
-                                  key={index}
-                                  className={`w-10 h-10 rounded-full border-3 transition-all transform hover:scale-110 ${
-                                    textColor === colorOption.label
-                                      ? 'border-gray-800 scale-110 shadow-lg'
-                                      : 'border-gray-300 hover:border-gray-500'
-                                  }`}
-                                  onClick={() =>
-                                    setTextColor(colorOption.label)
-                                  }
-                                  style={{
-                                    backgroundColor: colorOption.color,
-                                  }}
-                                  title={colorOption.label}
-                                />
-                              ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Font Style */}
-                      <div>
-                        <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <i className="pi pi-font text-green-500"></i>
-                          Font Style
-                        </h6>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <span className="text-sm font-medium text-gray-700 block">
-                              Current Font
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {fontFamily}
-                            </span>
-                          </div>
-                          <button
-                            className="p-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105"
-                            onClick={handleChangeFont}
-                            title="Change font style"
-                          >
-                            <i className="pi pi-sync text-sm"></i>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Font Size Controls */}
-                      <div className="space-y-4">
-                        {/* Left Text Size */}
-                        <div>
-                          <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <i className="pi pi-text text-purple-500"></i>
-                            Font Size{' '}
-                            {selectedClothing?.name === 'Beads Bracelet'
-                              ? ''
-                              : '(Left)'}
-                          </h6>
-                          <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
-                            <button
-                              className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                              onClick={decreaseFontSizeLeft}
-                              title="Decrease font size"
-                            >
-                              <i className="pi pi-minus text-sm"></i>
-                            </button>
-                            <div className="text-center">
-                              <span className="text-lg font-bold text-gray-900 block">
-                                {fontSizeLeft as number}
-                              </span>
-                              <span className="text-xs text-gray-500">px</span>
-                            </div>
-                            <button
-                              className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                              onClick={increaseFontSizeLeft}
-                              title="Increase font size"
-                            >
-                              <i className="pi pi-plus text-sm"></i>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Right Text Size */}
-                        {selectedClothing?.name !== 'Beads Bracelet' && (
-                          <div>
-                            <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                              <i className="pi pi-text text-orange-500"></i>
-                              Font Size (Right)
-                            </h6>
-                            <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
-                              <button
-                                className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                                onClick={decreaseFontSizeRight}
-                                title="Decrease font size"
-                              >
-                                <i className="pi pi-minus text-sm"></i>
-                              </button>
-                              <div className="text-center">
-                                <span className="text-lg font-bold text-gray-900 block">
-                                  {fontSizeRight as number}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  px
-                                </span>
-                              </div>
-                              <button
-                                className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                                onClick={increaseFontSizeRight}
-                                title="Increase font size"
-                              >
-                                <i className="pi pi-plus text-sm"></i>
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </OverlayPanel>
-                </div>
-              </div>
-              <button
-                onClick={handleShowInstructions}
-                className="flex items-center gap-2"
-                title="Show editing tips"
+            {/* Complete Button */}
+            <div className="flex justify-center lg:justify-end">
+              <CustomButton
+                className="bg-primary text-white"
+                onPress={captureCanvasAsImage}
               >
-                <i className="pi pi-question-circle text-sm"></i>
-                <span className="font-medium">Help</span>
-              </button>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="flex-1">
-                <div className="right-panel h-[40rem] lg:h-[80vh]">
-                  <Canvas
-                    camera={{
-                      position: [0, 0, selectedClothing?.myZoom || 5],
-                    }}
-                    ref={canvasRef}
-                    gl={{ preserveDrawingBuffer: true }}
-                    className="main-canvas h-full resize-right-panel"
-                  >
-                    {displayImage && (
-                      <Image
-                        scale={selectedClothing?.scale || 1}
-                        url={displayImage}
-                      />
-                    )}
-                    {isLoading === false && (
-                      <>
-                        <HtmlComponent
-                          textLeft={enteredTextLeft}
-                          textRight={enteredTextRight}
-                          textColor={textColor}
-                          textSizeleft={fontSizeLeft as number}
-                          textSizeRight={fontSizeRight as number}
-                          fontFamily={fontFamily}
-                          // textLeftOrientation={textLeftOrientation}
-                          // textRightOrientation={textRightOrientation}
-
-                          ImprintTextPosition={ImprintTextPosition as any}
-                          hideRightText={
-                            selectedClothing?.name === 'Beads Bracelet'
-                          }
-                          onTextLeftChange={setEnteredTextLeft}
-                          onTextRightChange={setEnteredTextRight}
-                        />
-                        <HtmlImageComponent
-                          ImprintTextPosition={ImprintTextPosition}
-                          imageLeft={uploadedImageLeft || ''}
-                          imageRight={uploadedImageRight || ''}
-                          hideLogo={selectedClothing?.name === 'Beads Bracelet'}
-                          hideRightText={
-                            selectedClothing?.name === 'Beads Bracelet'
-                          }
-                          textColor={textColor}
-                          onImageLeftChange={handleImageUploadLeft}
-                          onImageRightChange={handleImageUploadRight}
-                        />
-                      </>
-                    )}
-                  </Canvas>
-                </div>
-              </div>
+                <i className="pi pi-check-circle text-lg"></i>
+                Complete Order
+              </CustomButton>
             </div>
           </div>
-
-          <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
-            <div className="container mx-auto px-6 py-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                {/* Order Details */}
-                <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-6 lg:gap-8">
-                  {/* Delivery Time */}
-                  <div className="flex items-center gap-3 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm">
-                    <div>
-                      <p className="text-sm text-gray-300 font-medium">
-                        Estimated Delivery
-                      </p>
-                      <p className="text-xl font-bold text-white">
-                        {selectedClothing?.readyIn} days
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div className="flex items-center gap-3 bg-gray-800/50 rounded-xl p-4 backdrop-blur-sm">
-                    <div>
-                      <p className="text-sm text-gray-300 font-medium">
-                        Total Price
-                      </p>
-                      <p className="text-xl font-bold text-white">
-                        {currencySymbol}
-                        {total}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Complete Button */}
-                <div className="flex justify-center lg:justify-end">
-                  <CustomButton
-                    className="bg-primary text-white"
-                    onClick={captureCanvasAsImage}
-                  >
-                    <i className="pi pi-check-circle text-lg"></i>
-                    Complete Order
-                  </CustomButton>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </>
   );
 };

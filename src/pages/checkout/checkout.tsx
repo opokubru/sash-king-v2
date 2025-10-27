@@ -66,6 +66,11 @@ const Checkout = () => {
           discount: item.discount,
           size: item.selectedSize,
           color: item.selectedColor,
+          // Custom design fields
+          isCustom: item.isCustom,
+          customTextLeft: item.customTextLeft,
+          customTextRight: item.customTextRight,
+          customImage: item.customImage,
         })),
         subject: 'New Product Order',
         dateTime: new Date().toLocaleString('en-US', {
@@ -95,6 +100,11 @@ const Checkout = () => {
           discount: item.discount,
           size: item.selectedSize,
           color: item.selectedColor,
+          // Custom design fields
+          isCustom: item.isCustom,
+          customTextLeft: item.customTextLeft,
+          customTextRight: item.customTextRight,
+          customImage: item.customImage,
         })),
         total: totalAmount,
         created_at: now,
@@ -152,6 +162,24 @@ const Checkout = () => {
                         Qty: {item.quantity} | {getCurrencySymbol('GHS')}{' '}
                         {parseToMoney(item.price)}
                       </p>
+                      {/* Show custom design details */}
+                      {item.isCustom && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs text-purple-600 font-medium">
+                            Custom Design
+                          </p>
+                          {item.customTextLeft && (
+                            <p className="text-xs text-gray-600">
+                              Text Left: {item.customTextLeft}
+                            </p>
+                          )}
+                          {item.customTextRight && (
+                            <p className="text-xs text-gray-600">
+                              Text Right: {item.customTextRight}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

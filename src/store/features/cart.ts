@@ -9,8 +9,18 @@ export interface CartItem {
   quantity: number;
   in_stock?: boolean;
   selectedSize?: string | null;
-selectedColor?: string | null;
-
+  selectedColor?: string | null;
+  // Custom design fields
+  isCustom?: boolean;
+  customTextLeft?: string;
+  customTextRight?: string;
+  customImage?: string;
+  uploadedImageLeft?: string;
+  uploadedImageRight?: string;
+  fontSizeLeft?: number;
+  fontSizeRight?: number;
+  fontFamily?: string;
+  textColor?: string;
 }
 
 interface CartState {
