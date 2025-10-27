@@ -5,7 +5,7 @@ interface ICustomButton extends ButtonProps {
   className?: string;
   selector?: string;
   to?: string;
-  variant?:
+  variant_type?:
     | 'primary'
     | 'secondary'
     | 'tertiary'
@@ -26,18 +26,18 @@ export const CustomButton = ({
   onPressEnd,
   isDisabled,
   isLoading,
-  variant,
+  variant_type,
 }: ICustomButton) => {
   const buttonClass = cn(
     'bg-[#F9FFF6] rounded-lg capitalize text-[#316449]',
     className,
-    variant === 'primary' && 'bg-primary text-white',
-    variant === 'secondary' && 'border border-primary text-primary',
-    variant === 'tertiary' && 'bg-tertiary text-white',
-    variant === 'ghost' && 'bg-transparent text-primary',
-    variant === 'link' && 'text-primary underline',
-    variant === 'faded' && 'bg-faded text-primary',
-    variant === 'flat' && 'bg-flat text-primary',
+    variant_type === 'primary' && 'bg-primary text-white',
+    variant_type === 'secondary' && 'border border-primary text-primary',
+    variant_type === 'tertiary' && 'bg-tertiary text-white',
+    variant_type === 'ghost' && 'bg-transparent text-primary',
+    variant_type === 'link' && 'text-primary underline',
+    variant_type === 'faded' && 'bg-faded text-primary',
+    variant_type === 'flat' && 'bg-flat text-primary',
   );
   return (
     <Button

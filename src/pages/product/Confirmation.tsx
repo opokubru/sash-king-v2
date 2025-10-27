@@ -211,7 +211,7 @@ const Confirmation = () => {
                   >
                     <CustomButton
                       onPress={handleGoToCheckout}
-                      variant="primary"
+                      variant_type="primary"
                       className="w-full"
                     >
                       Go to Checkout
@@ -227,7 +227,7 @@ const Confirmation = () => {
                   >
                     <CustomButton
                       onPress={() => navigate('/')}
-                      variant="secondary"
+                      variant_type="secondary"
                       className="w-full"
                     >
                       <i className="pi pi-home mr-2"></i>
@@ -253,7 +253,7 @@ const Confirmation = () => {
                     <CustomButton
                       onPress={handleAddToCart}
                       disabled={addedToCart}
-                      variant="primary"
+                      variant_type="primary"
                       className="w-full"
                     >
                       <i className="pi pi-shopping-cart mr-2"></i>
@@ -268,7 +268,7 @@ const Confirmation = () => {
                   >
                     <CustomButton
                       onPress={() => navigate(-1)}
-                      variant="secondary"
+                      variant_type="secondary"
                       className="w-full"
                     >
                       <i className="pi pi-plus-circle mr-2"></i>
