@@ -91,12 +91,12 @@ const HtmlImageComponent = ({
             <div
               className="flex items-center justify-center h-full text-white text-xs"
               style={{
-                fontSize: '0.3rem',
-                lineHeight: '0.5rem',
+                fontSize: '0.5rem',
+                lineHeight: '0.8rem',
               }}
             >
               <div className="text-center">
-                <div className="mb-1">📷</div>
+                {/* <div className="mb-1">📷</div> */}
                 <div>TAP TO</div>
                 <div>UPLOAD</div>
               </div>
@@ -150,12 +150,12 @@ const HtmlImageComponent = ({
             <div
               className="flex items-center justify-center h-full text-white text-xs"
               style={{
-                fontSize: '0.3rem',
-                lineHeight: '0.5rem',
+                fontSize: '0.5rem',
+                lineHeight: '0.8rem',
               }}
             >
               <div className="text-center">
-                <div className="mb-1">📷</div>
+                {/* <div className="mb-1">📷</div> */}
                 <div>TAP TO</div>
                 <div>UPLOAD</div>
               </div>

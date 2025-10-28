@@ -12,6 +12,8 @@ interface HtmlComponentProps {
   fontFamily: string;
   // textLeftOrientation: string;
   // textRightOrientation: string;
+  textLeftRotate?: number;
+  textRightRotate?: number;
   ImprintTextPosition: {
     left: {
       top: string;
@@ -57,6 +59,8 @@ const HtmlComponent = ({
   fontFamily,
   // textLeftOrientation,
   // textRightOrientation,
+  textLeftRotate,
+  textRightRotate,
   ImprintTextPosition,
   hideRightText,
   onTextLeftChange,
@@ -151,7 +155,9 @@ const HtmlComponent = ({
         className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
         style={{
           position: 'absolute',
-          transform: `translate(${ImprintTextPosition?.left?.left}, ${ImprintTextPosition.left?.top})`,
+          transform: `translate(${ImprintTextPosition?.left?.left}, ${
+            ImprintTextPosition.left?.top
+          }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
           color: textColor,
           fontSize: textSizeleft,
           width: ImprintTextPosition?.left?.width,
@@ -164,7 +170,12 @@ const HtmlComponent = ({
           // opacity: textLeft !== '' ? 1 : 0.3,
           borderRadius: '4px',
           padding: '2px',
-          border: selectedText === 'left' ? '2px dashed #3B82F6' : 'none',
+          border:
+            selectedText === 'left'
+              ? '2px dashed #3B82F6'
+              : textLeft === ''
+              ? '2px dashed #ccc'
+              : '2px solid transparent',
           boxShadow:
             selectedText === 'left'
               ? '0 0 10px rgba(59, 130, 246, 0.3)'
@@ -173,15 +184,14 @@ const HtmlComponent = ({
         onClick={handleLeftTextClick}
       >
         {editingLeft ? (
-          <input
-            ref={leftInputRef}
-            type="text"
-            value={separateWordsWithLineBreak(tempTextLeft)}
+          <textarea
+            ref={leftInputRef as any}
+            value={tempTextLeft}
             onChange={(e) => setTempTextLeft(e.target.value)}
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
-              background: 'transparent',
+              background: 'rgba(59, 130, 246, 0.1)',
               border: '2px solid #3B82F6',
               borderRadius: '4px',
               padding: '4px',
@@ -191,18 +201,28 @@ const HtmlComponent = ({
               width: '100%',
               height: '100%',
               color: '#fff',
+              resize: 'none',
+              overflow: 'auto',
             }}
           />
         ) : (
           <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              textAlign: textLeft === '' ? 'center' : 'left',
+            }}
             dangerouslySetInnerHTML={{
               __html: hideRightText
                 ? textLeft !== ''
                   ? textLeft
-                  : 'TEXT HERE'
-                : separateWordsWithLineBreak(
-                    textLeft !== '' ? textLeft : 'TEXT HERE',
-                  ),
+                  : 'TAP TO ADD TEXT'
+                : textLeft !== ''
+                ? separateWordsWithLineBreak(textLeft)
+                : 'TAP TO ADD TEXT',
             }}
           />
         )}
@@ -214,7 +234,9 @@ const HtmlComponent = ({
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
             position: 'absolute',
-            transform: `translate(${ImprintTextPosition.right.left}, ${ImprintTextPosition.right?.top})`,
+            transform: `translate(${ImprintTextPosition.right.left}, ${
+              ImprintTextPosition.right?.top
+            }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
             color: textColor,
             fontSize: textSizeRight,
             width: ImprintTextPosition?.right.width,
@@ -228,7 +250,12 @@ const HtmlComponent = ({
             zIndex: 0.8,
             borderRadius: '4px',
             padding: '2px',
-            border: selectedText === 'right' ? '2px dashed #3B82F6' : 'none',
+            border:
+              selectedText === 'right'
+                ? '2px dashed #3B82F6'
+                : textRight === ''
+                ? '2px dashed #ccc'
+                : '2px solid transparent',
             boxShadow:
               selectedText === 'right'
                 ? '0 0 10px rgba(59, 130, 246, 0.3)'
@@ -237,15 +264,14 @@ const HtmlComponent = ({
           onClick={handleRightTextClick}
         >
           {editingRight ? (
-            <input
-              ref={rightInputRef}
-              type="text"
+            <textarea
+              ref={rightInputRef as any}
               value={tempTextRight}
               onChange={(e) => setTempTextRight(e.target.value)}
               onBlur={handleRightTextBlur}
               onKeyDown={handleRightTextKeyDown}
               style={{
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: 'rgba(59, 130, 246, 0.1)',
                 border: '2px solid #3B82F6',
                 borderRadius: '4px',
                 padding: '4px',
@@ -254,15 +280,26 @@ const HtmlComponent = ({
                 textTransform: 'uppercase',
                 width: '100%',
                 height: '100%',
-                color: '#000',
+                color: '#fff',
+                resize: 'none',
+                overflow: 'auto',
               }}
             />
           ) : (
             <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                textAlign: textRight === '' ? 'center' : 'left',
+              }}
               dangerouslySetInnerHTML={{
-                __html: separateWordsWithLineBreak(
-                  textRight !== '' ? textRight : 'TEXT HERE',
-                ),
+                __html:
+                  textRight !== ''
+                    ? separateWordsWithLineBreak(textRight)
+                    : 'TAP TO ADD TEXT',
               }}
             />
           )}

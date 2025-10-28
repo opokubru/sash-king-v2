@@ -2,7 +2,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ProductCard } from '@/components/ProductCard';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
@@ -10,8 +10,10 @@ import 'slick-carousel/slick/slick-theme.css';
 import { TemplatedSash } from '@/lib/templated-sash';
 import { ThreeDSashes } from '@/lib/3d-sash';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
+import { CustomButton } from '@/components/shared/shared_customs';
 
 const Home = () => {
+  const navigate = useNavigate();
   // Hero carousel settings
   const heroSettings = {
     dots: true,
@@ -399,7 +401,11 @@ const Home = () => {
           <div className="relative ">
             <Slider {...greekSettings} className="greek-carousel">
               {ThreeDSashes.map((stole, index) => (
-                <div key={index} className="px-2">
+                <Link
+                  to={`/product/3d/${stole.id}`}
+                  key={index}
+                  className="px-2"
+                >
                   <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -420,12 +426,15 @@ const Home = () => {
                       <p className="text-base md:text-lg font-semibold text-gray-900 mb-3">
                         {getCurrencySymbol('GHS') + parseToMoney(stole.price)}
                       </p>
-                      <button className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors">
+                      <CustomButton
+                        onClick={() => navigate(`/product/3d/${stole.id}`)}
+                        className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
+                      >
                         Use
-                      </button>
+                      </CustomButton>
                     </div>
                   </motion.div>
-                </div>
+                </Link>
               ))}
             </Slider>
           </div>

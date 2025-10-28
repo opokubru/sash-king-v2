@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import './styles.css';
+// import './styles.css';
 
 import { ProgressSpinner } from 'primereact/progressspinner';
 

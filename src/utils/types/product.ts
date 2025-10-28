@@ -10,6 +10,9 @@ export interface Product {
     image: string;
     model_image?: string;
     image_url?: string; // Keep for backward compatibility
+    model?: string;
+    confirm_image?: string;
+    sizeGuide?: string;
     created_at?: string;
     discount?: number;
     category?: CategoryType['value']; // restricts to allowed values
@@ -27,6 +30,7 @@ export interface Product {
         width: string;
         lineHeight: string;
         size?: number;
+        rotate?: number;
       };
       image: {
         top: string;
@@ -43,6 +47,7 @@ export interface Product {
         width: string;
         lineHeight: string;
         size?: number;
+        rotate?: number;
       };
       image: {
         top: string;

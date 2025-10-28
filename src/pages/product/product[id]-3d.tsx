@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Image } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useGLTF, OrbitControls } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSnapshot } from 'valtio';
+import uuid from 'react-uuid';
+import { TextureLoader } from 'three';
 
 import 'primeicons/primeicons.css';
 
-// import { state } from '@/lib/store';
-
-// import { Link } from "react-router-dom";
-// import { InputText } from 'primereact/inputtext';
+import { state } from '@/lib/store';
 
 import html2canvas from 'html2canvas';
 
 import { Dialog } from 'primereact/dialog';
-// import './styles.css';
 import { useParams, useNavigate } from 'react-router';
 
 //arrays
@@ -25,30 +24,133 @@ import HtmlComponent from '@/components/HtmlComponent';
 
 import { getCurrencySymbol } from '@/utils/helper';
 import { OverlayPanel } from 'primereact/overlaypanel';
-// import { readFileAsDataURL, uploadToStorage } from '@/utils/helper';
 import HtmlImageComponent from '@/components/HtmlImageComponent';
-import { TemplatedSash } from '@/lib/templated-sash';
-import TakeTour from '@/components/TakeTour';
-// import ImageUpload from '@/components/ImageUpload';
 import { CustomButton } from '@/components/shared/shared_customs';
+import { ThreeDSashes } from '@/lib/3d-sash';
+import TakeTour from '@/components/TakeTour';
+import LoadingAnimation from '@/components/LoadingAnimation';
 
-const ConfiguratorUnisexSpecial = () => {
+interface ShirtProps {
+  isRotating: boolean;
+  selectedClothing: any;
+  selectedPart: number | null;
+  setSelectedPart: (value: number | null) => void;
+  selectedTexture: any;
+  showGlow: boolean;
+}
+
+const Shirt = ({
+  isRotating,
+  selectedClothing,
+  selectedPart,
+  // setSelectedPart,
+  showGlow,
+}: ShirtProps) => {
+  const snap = useSnapshot(state);
+  const gltf = useGLTF(selectedClothing.model);
+  const nodes = Array.isArray(gltf) ? (gltf as any).nodes : gltf.nodes;
+
+  const groupRef = useRef<any>();
+
+  useFrame(() => {
+    if (isRotating && groupRef.current) {
+      const rotationSpeed = 0.01;
+      groupRef.current.rotation.y += rotationSpeed;
+    }
+  });
+
+  useEffect(() => {
+    if (!isRotating && groupRef.current) {
+      groupRef.current.rotation.y = 0;
+    }
+  }, [isRotating]);
+
+  // const handlePartClick = (index: number) => {
+  //   if (index === selectedPart) {
+  //     setSelectedPart(null); // Deselect the part if it is clicked again
+  //   } else {
+  //     setSelectedPart(index);
+  //   }
+  // };
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+
+    const loadingTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    if (state.color && Array.isArray(state.color)) {
+      for (let i = 0; i < state.color.length; i++) {
+        (state.color as any)[i] = '#ffffff';
+      }
+    }
+
+    if (state.texture && Array.isArray(state.texture)) {
+      for (let i = 0; i < state.texture.length; i++) {
+        (state.texture as any)[i] = null;
+      }
+    }
+
+    return () => clearTimeout(loadingTimeout);
+  }, [selectedClothing.name]);
+
+  return (
+    <group ref={groupRef}>
+      {isLoading ? (
+        <>
+          <LoadingAnimation />
+        </>
+      ) : (
+        selectedClothing.myNode?.map((node: any, index: number) => {
+          const nodeName = node?.name;
+          const color = snap.color[index] || '#ffffff';
+          const texture = snap.texture[index] || null;
+
+          return (
+            <mesh
+              key={uuid()}
+              castShadow
+              geometry={(nodes as any)[nodeName]?.geometry}
+              // onClick={() => handlePartClick(index)}
+            >
+              <meshStandardMaterial
+                attach="material"
+                color={color || '#ffffff'}
+                map={texture ? new TextureLoader().load(texture) : null}
+                roughness={1}
+                emissive={selectedPart === index ? '#FF8C00' : undefined}
+                emissiveIntensity={showGlow && selectedPart === index ? 5 : 0}
+              />
+            </mesh>
+          );
+        })
+      )}
+    </group>
+  );
+};
+
+const ConfiguratorUnisex3D = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const selectedClothing = TemplatedSash.find((item) => item.name === id);
 
-  const displayImage = selectedClothing?.model_image;
+  const selectedClothing = ThreeDSashes.find((item) => item.id === id);
+
+  // console.log({ selectedClothing, id });
+
+  // const displayImage = selectedClothing?.model_image;
 
   // const [selectedSize, setSelectedSize] = useState(1);
   // const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
-  // const [selectedPart, setSelectedPart] = useState<number | null>(
-  //   notAll.includes(selectedClothing?.name as string) ? 0 : null,
-  // );
+  const [selectedPart, setSelectedPart] = useState<number | null>(null);
 
-  // const [isRotating, setIsRotating] = useState(true);
+  const [isRotating] = useState(false);
+  const [showGlow] = useState(false);
 
-  const canvasRef = useRef(null);
+  // const canvasRef = useRef(null);
   // toast
   const toastRef = useRef(null);
   const currencySymbol = getCurrencySymbol('GHS');
@@ -88,14 +190,9 @@ const ConfiguratorUnisexSpecial = () => {
   ]);
 
   // Declare state for entered text and generated texture
-  const [enteredTextLeft, setEnteredTextLeft] = useState('');
-  const [enteredTextRight, setEnteredTextRight] = useState('');
-  // const [activeTab, setActiveTab] = useState<'left' | 'right'>('left');
-  // const [textLeftOrientation, setTextLeftOrientation] = useState('horizontal');
-  // const [textRightOrientation, setTextRightOrientation] =
-  //   useState('horizontal');
+  const [enteredTextLeft] = useState('');
+  const [enteredTextRight] = useState('');
 
-  // const [textPosition] = useState([-0.65, -0.15, 0.05]); // Initialize text position
   const [textColor, setTextColor] = useState(
     selectedClothing?.textColor || 'gold',
   );
@@ -114,78 +211,48 @@ const ConfiguratorUnisexSpecial = () => {
   const textEditRef = useRef(null);
 
   // Image imprint
-  const [uploadedImageLeft, setUploadedImageLeft] = useState<string | null>(
-    null,
-  );
-  const [uploadedImageRight, setUploadedImageRight] = useState<string | null>(
-    null,
-  );
-
-  // const [firebaseImageLeft, setFirebaseImageLeft] = useState<string | null>(
-  //   null,
-  // );
-  // const [firebaseImageRight, setFirebaseImageRight] = useState<string | null>(
-  //   null,
-  // );
-
-  // const imageLeftRef = useRef();
-  // const imageRightRef = useRef();
+  const [uploadedImageLeft] = useState<string | null>(null);
+  const [uploadedImageRight] = useState<string | null>(null);
 
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  // Early return if no product found
-  // if (!selectedClothing) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <h1 className="text-2xl font-bold text-gray-900 mb-4">
-  //           Product Not Found
-  //         </h1>
-  //         <p className="text-gray-600">
-  //           The requested sash template could not be found.
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // const handleImageUploadLeft = async (file: File) => {
+  //   setUploadedImageLeft(URL.createObjectURL(file));
+  //   (toastRef.current as any)?.show({
+  //     severity: 'success',
+  //     summary: 'Please Note',
+  //     detail:
+  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
+  //   });
 
-  const handleImageUploadLeft = async (file: File) => {
-    setUploadedImageLeft(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+  //   // try {
+  //   //   const dataURL = await readFileAsDataURL(file);
+  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+  //   //   setFirebaseImageLeft(downloadURL);
+  //   // } catch (error) {
+  //   //   console.error('Image upload failed:', error);
+  //   // }
+  // };
 
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageLeft(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
-  };
+  // const handleImageUploadRight = async (file: File) => {
+  //   setUploadedImageRight(URL.createObjectURL(file));
 
-  const handleImageUploadRight = async (file: File) => {
-    setUploadedImageRight(URL.createObjectURL(file));
+  //   (toastRef.current as any)?.show({
+  //     severity: 'success',
+  //     summary: 'Please Note',
+  //     detail:
+  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
+  //   });
 
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
-
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageRight(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
-  };
+  //   // try {
+  //   //   const dataURL = await readFileAsDataURL(file);
+  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+  //   //   setFirebaseImageRight(downloadURL);
+  //   // } catch (error) {
+  //   //   console.error('Image upload failed:', error);
+  //   // }
+  // };
 
   const ImprintTextPosition = useMemo(() => {
     return {
@@ -229,11 +296,11 @@ const ConfiguratorUnisexSpecial = () => {
     ImprintTextPosition?.right?.size || 12,
   );
 
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoadingModel, setIsLoadingModel] = useState(true);
 
   useEffect(() => {
     const loadingTimeout = setTimeout(() => {
-      setIsLoading(false);
+      setIsLoadingModel(false);
     }, 3000);
 
     return () => clearTimeout(loadingTimeout);
@@ -272,21 +339,21 @@ const ConfiguratorUnisexSpecial = () => {
     setFontFamily(fonts[newIndex]);
   };
 
-  const increaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize: any) => prevSize + 1);
-  };
+  // const increaseFontSizeLeft = () => {
+  //   setFontSizeLeft((prevSize: any) => prevSize + 1);
+  // };
 
-  const decreaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize: any) => prevSize - 1);
-  };
+  // const decreaseFontSizeLeft = () => {
+  //   setFontSizeLeft((prevSize: any) => prevSize - 1);
+  // };
 
-  const increaseFontSizeRight = () => {
-    setFontSizeRight((prevSize: any) => prevSize + 1);
-  };
+  // const increaseFontSizeRight = () => {
+  //   setFontSizeRight((prevSize: any) => prevSize + 1);
+  // };
 
-  const decreaseFontSizeRight = () => {
-    setFontSizeRight((prevSize: any) => prevSize - 1);
-  };
+  // const decreaseFontSizeRight = () => {
+  //   setFontSizeRight((prevSize: any) => prevSize - 1);
+  // };
 
   // Create an array to store selected parts with their color and texture information
   // const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
@@ -451,10 +518,10 @@ const ConfiguratorUnisexSpecial = () => {
     setShowInstructions(true);
   };
 
-  const handleTextClick = (side: 'left' | 'right') => {
-    setEditingText(side);
-    setShowTextEditor(true);
-  };
+  // const handleTextClick = (side: 'left' | 'right') => {
+  //   setEditingText(side);
+  //   setShowTextEditor(true);
+  // };
 
   const handleTextEditorClose = () => {
     setShowTextEditor(false);
@@ -548,7 +615,7 @@ const ConfiguratorUnisexSpecial = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-99999 bg-black bg-opacity-50"
+                className="fixed inset-0 z-50 bg-black bg-opacity-50"
                 onClick={handleInstructionsDismiss}
               />
 
@@ -737,74 +804,6 @@ const ConfiguratorUnisexSpecial = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Font Size Controls */}
-                  <div className="space-y-4">
-                    {/* Left Text Size */}
-                    <div>
-                      <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <i className="pi pi-text text-purple-500"></i>
-                        Font Size{' '}
-                        {selectedClothing?.name === 'Beads Bracelet'
-                          ? ''
-                          : '(Left)'}
-                      </h6>
-                      <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
-                        <button
-                          className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                          onClick={decreaseFontSizeLeft}
-                          title="Decrease font size"
-                        >
-                          <i className="pi pi-minus text-sm"></i>
-                        </button>
-                        <div className="text-center">
-                          <span className="text-lg font-bold text-gray-900 block">
-                            {fontSizeLeft as number}
-                          </span>
-                          <span className="text-xs text-gray-500">px</span>
-                        </div>
-                        <button
-                          className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                          onClick={increaseFontSizeLeft}
-                          title="Increase font size"
-                        >
-                          <i className="pi pi-plus text-sm"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Right Text Size */}
-                    {selectedClothing?.name !== 'Beads Bracelet' && (
-                      <div>
-                        <h6 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <i className="pi pi-text text-orange-500"></i>
-                          Font Size (Right)
-                        </h6>
-                        <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg">
-                          <button
-                            className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                            onClick={decreaseFontSizeRight}
-                            title="Decrease font size"
-                          >
-                            <i className="pi pi-minus text-sm"></i>
-                          </button>
-                          <div className="text-center">
-                            <span className="text-lg font-bold text-gray-900 block">
-                              {fontSizeRight as number}
-                            </span>
-                            <span className="text-xs text-gray-500">px</span>
-                          </div>
-                          <button
-                            className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 flex items-center justify-center"
-                            onClick={increaseFontSizeRight}
-                            title="Increase font size"
-                          >
-                            <i className="pi pi-plus text-sm"></i>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </OverlayPanel>
             </div>
@@ -821,91 +820,63 @@ const ConfiguratorUnisexSpecial = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 relative">
-            {/* Edit Button */}
-            {/* <button
-              onClick={() => {
-                if (!showTextEditor) {
-                  // Open editor for the currently selected text or default to left
-                  setEditingText(editingText || 'left');
-                  setShowTextEditor(true);
-                } else {
-                  handleTextEditorClose();
-                }
-              }}
-              className="absolute top-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transition-colors"
-            >
-              <i className="pi pi-pencil mr-2"></i>
-              Edit Text
-            </button> */}
-
             <div
               ref={canvasContainerRef}
               className="right-panel h-[40rem] lg:h-[80vh]"
             >
               <Canvas
-                camera={{
-                  position: [0, 0, selectedClothing?.myZoom || 5],
-                }}
-                ref={canvasRef}
+                camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
                 gl={{ preserveDrawingBuffer: true }}
-                className="h-full w-full"
+                className="main-canvas h-full "
               >
-                {displayImage && (
-                  <Image
-                    scale={
-                      selectedClothing?.aspect
-                        ? [
-                            selectedClothing?.scale || 1,
-                            (selectedClothing?.scale || 1) /
-                              selectedClothing.aspect,
-                          ]
-                        : selectedClothing?.scale || 1
-                    }
-                    url={displayImage}
-                  />
-                )}
-                {isLoading === false && (
-                  <>
-                    <HtmlComponent
-                      textLeft={enteredTextLeft}
-                      textRight={enteredTextRight}
-                      textColor={textColor}
-                      textSizeleft={fontSizeLeft as number}
-                      textSizeRight={fontSizeRight as number}
-                      fontFamily={fontFamily}
-                      textLeftRotate={
-                        selectedClothing?.positioningLeft?.text?.rotate
-                      }
-                      textRightRotate={
-                        selectedClothing?.positioningRight?.text?.rotate
-                      }
-                      // textLeftOrientation={textLeftOrientation}
-                      // textRightOrientation={textRightOrientation}
-
-                      ImprintTextPosition={ImprintTextPosition as any}
-                      hideRightText={
-                        selectedClothing?.name === 'Beads Bracelet'
-                      }
-                      onTextLeftChange={setEnteredTextLeft}
-                      onTextRightChange={setEnteredTextRight}
-                      onTextLeftClick={() => handleTextClick('left')}
-                      onTextRightClick={() => handleTextClick('right')}
-                      selectedText={editingText}
-                    />
-                    <HtmlImageComponent
-                      ImprintTextPosition={ImprintTextPosition}
-                      imageLeft={uploadedImageLeft || ''}
-                      imageRight={uploadedImageRight || ''}
-                      hideLogo={selectedClothing?.name === 'Beads Bracelet'}
-                      hideRightText={
-                        selectedClothing?.name === 'Beads Bracelet'
-                      }
-                      textColor={textColor}
-                      onImageLeftChange={handleImageUploadLeft}
-                      onImageRightChange={handleImageUploadRight}
-                    />
-                  </>
-                )}
+                <ambientLight intensity={0.5} />
+                <pointLight position={[10, 10, 10]} />
+                {selectedClothing &&
+                  selectedClothing.name &&
+                  noSpinFor.includes(selectedClothing.name) &&
+                  isLoadingModel === false && (
+                    <>
+                      <HtmlComponent
+                        textLeft={enteredTextLeft}
+                        textRight={enteredTextRight}
+                        textColor={textColor}
+                        textSizeleft={fontSizeLeft}
+                        textSizeRight={fontSizeRight}
+                        fontFamily={fontFamily}
+                        ImprintTextPosition={ImprintTextPosition as any}
+                        hideRightText={
+                          selectedClothing?.name?.includes('Beads Bracelet') ||
+                          false
+                        }
+                      />
+                      <HtmlImageComponent
+                        ImprintTextPosition={ImprintTextPosition as any}
+                        imageLeft={uploadedImageLeft}
+                        imageRight={uploadedImageRight || ''}
+                        hideLogo={
+                          selectedClothing?.name?.includes('Beads Bracelet') ||
+                          false
+                        }
+                        hideRightText={
+                          selectedClothing?.name?.includes('Beads Bracelet') ||
+                          false
+                        }
+                        textColor={textColor}
+                      />
+                    </>
+                  )}
+                <Shirt
+                  isRotating={isRotating}
+                  selectedClothing={selectedClothing}
+                  selectedPart={selectedPart}
+                  setSelectedPart={setSelectedPart}
+                  selectedTexture={state.texture[selectedPart || 0]}
+                  showGlow={showGlow}
+                />
+                {selectedClothing?.name &&
+                  !noSpinFor.includes(selectedClothing.name) && (
+                    <OrbitControls />
+                  )}
               </Canvas>
             </div>
           </div>
@@ -1122,4 +1093,4 @@ const ConfiguratorUnisexSpecial = () => {
   );
 };
 
-export default ConfiguratorUnisexSpecial;
+export default ConfiguratorUnisex3D;

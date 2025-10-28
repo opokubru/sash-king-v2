@@ -9,6 +9,23 @@ const generateUUID = () => {
   });
 };
 
+
+// models
+const sash_model = '/models/sash.glb';
+const sash_both_down = '/models/sash_both_down.glb';
+const sash_striped_edge = '/models/sash_striped_edge.glb';
+
+// confim images
+const image_confirm_1 = '/images/confirm-images/sash1.png';
+const image_confirm_2 = '/images/confirm-images/sash2.png';
+const image_confirm_3 = '/images/confirm-images/sash3.png';
+const image_confirm_5 = '/images/confirm-images/sash5.png';
+
+const sash_guide = '/images/size-guide/the_sash.jpg';
+
+
+
+
 export const ThreeDSashes: Product[] = [
     {
       id: generateUUID(),
@@ -17,8 +34,8 @@ export const ThreeDSashes: Product[] = [
       description:
         'This sash allows logos/designs at the top and text at the bottom on either side',
       image: '/images/3d-sash/1.jpeg',
-    //   model: sash_model,
-    //   confirm_image: image_confirm_1,
+      model: sash_model,
+      confirm_image: image_confirm_1,
       myNode: [
         { name: 'plain_sections', yardNeeded: 1 },
         { name: 'Stripe_1', yardNeeded: 1 },
@@ -31,7 +48,7 @@ export const ThreeDSashes: Product[] = [
       // sizeModels: tshirt_model,
       readyIn: 7,
       weight: 0.25,
-    //   sizeGuide: sash_guide,
+      sizeGuide: sash_guide,
       sizeOptions: [
         { label: 'S', value: 0.5 },
         { label: 'M', value: 1 },
@@ -57,8 +74,8 @@ export const ThreeDSashes: Product[] = [
       description:
         'This sash allows logos/designs at the bottom and text at the top on either side',
       image: '/images/3d-sash/2.jpeg',
-      // model: sash_both_down,
-      // confirm_image: image_confirm_2,
+      model: sash_both_down,
+      confirm_image: image_confirm_2,
       myNode: [
         { name: 'plain_section', yardNeeded: 1 },
         { name: 'stripe_1', yardNeeded: 1 },
@@ -70,7 +87,7 @@ export const ThreeDSashes: Product[] = [
       price: 110,
       readyIn: 7,
       // weight: 0.25,
-    //   sizeGuide: sash_guide,
+      sizeGuide: sash_guide,
       sizeOptions: [
         { label: 'S', value: 0.5 },
         { label: 'M', value: 1 },
@@ -96,8 +113,8 @@ export const ThreeDSashes: Product[] = [
       description:
         'This sash has logos/design positions contrasting with text on either side',
       image: '/images/3d-sash/3.jpeg',
-    //   model: sash_striped_edge,
-    //   confirm_image: image_confirm_3,
+      model: sash_striped_edge,
+      confirm_image: image_confirm_3,
       myNode: [
         { name: 'mid_section', yardNeeded: 1 },
         { name: 'stripe_1', yardNeeded: 1 },
@@ -108,7 +125,7 @@ export const ThreeDSashes: Product[] = [
       price: 110,
       readyIn: 7,
       // weight: 0.25,
-    //   sizeGuide: sash_guide,
+      sizeGuide: sash_guide,
       sizeOptions: [
         { label: 'S', value: 0.5 },
         { label: 'M', value: 1 },
@@ -135,8 +152,8 @@ export const ThreeDSashes: Product[] = [
       description:
         'This sash allows logos/designs on one side and text on both sides',
       image: '/images/3d-sash/4.jpeg',
-    //   model: sash_striped_edge,
-    //   confirm_image: image_confirm_5,
+      model: sash_striped_edge,
+      confirm_image: image_confirm_5,
       myNode: [
         { name: 'mid_section', yardNeeded: 1 },
         { name: 'stripe_1', yardNeeded: 1 },
@@ -146,7 +163,7 @@ export const ThreeDSashes: Product[] = [
       myZoom: 2,
       price: 110,
       readyIn: 7,
-    //   sizeGuide: sash_guide,
+      sizeGuide: sash_guide,
       sizeOptions: [
         { label: 'S', value: 0.5 },
         { label: 'M', value: 1 },

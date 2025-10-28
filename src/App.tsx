@@ -24,6 +24,7 @@ import About from './pages/info_pages/about';
 import { TemplatedSashesPage } from './pages/view-all/templated-sashes';
 import { ThreeDSashesPage } from './pages/view-all/3d-sashes';
 import ConfiguratorUnisexSpecial from './pages/product/product[id]';
+import ConfiguratorUnisex3D from './pages/product/product[id]-3d';
 import Confirmation from './pages/product/Confirmation';
 import Checkout from './pages/checkout/checkout';
 // import ComingSoon from './layout/coming-soon';
@@ -71,7 +72,7 @@ function App() {
             <Route path="templated-sash" element={<TemplatedSashesPage />} />
             <Route path="design-your-own" element={<ThreeDSashesPage />} />
             <Route path="product/:id" element={<ConfiguratorUnisexSpecial />} />
-
+            <Route path="product/3d/:id" element={<ConfiguratorUnisex3D />} />
             {/* Confirmation Page */}
             <Route path="confirmation" element={<Confirmation />} />
 
