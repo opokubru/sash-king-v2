@@ -12,6 +12,8 @@ interface HtmlComponentProps {
   fontFamily: string;
   // textLeftOrientation: string;
   // textRightOrientation: string;
+  textLeftRotate?: number;
+  textRightRotate?: number;
   ImprintTextPosition: {
     left: {
       top: string;
@@ -57,6 +59,8 @@ const HtmlComponent = ({
   fontFamily,
   // textLeftOrientation,
   // textRightOrientation,
+  textLeftRotate,
+  textRightRotate,
   ImprintTextPosition,
   hideRightText,
   onTextLeftChange,
@@ -151,7 +155,9 @@ const HtmlComponent = ({
         className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
         style={{
           position: 'absolute',
-          transform: `translate(${ImprintTextPosition?.left?.left}, ${ImprintTextPosition.left?.top})`,
+          transform: `translate(${ImprintTextPosition?.left?.left}, ${
+            ImprintTextPosition.left?.top
+          }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
           color: textColor,
           fontSize: textSizeleft,
           width: ImprintTextPosition?.left?.width,
@@ -164,7 +170,12 @@ const HtmlComponent = ({
           // opacity: textLeft !== '' ? 1 : 0.3,
           borderRadius: '4px',
           padding: '2px',
-          border: selectedText === 'left' ? '2px dashed #3B82F6' : 'none',
+          border:
+            selectedText === 'left'
+              ? '2px dashed #3B82F6'
+              : textLeft === ''
+              ? '2px dashed #ccc'
+              : '2px solid transparent',
           boxShadow:
             selectedText === 'left'
               ? '0 0 10px rgba(59, 130, 246, 0.3)'
@@ -195,6 +206,14 @@ const HtmlComponent = ({
           />
         ) : (
           <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              textAlign: textLeft === '' ? 'center' : 'left',
+            }}
             dangerouslySetInnerHTML={{
               __html: hideRightText
                 ? textLeft !== ''
@@ -214,7 +233,9 @@ const HtmlComponent = ({
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
             position: 'absolute',
-            transform: `translate(${ImprintTextPosition.right.left}, ${ImprintTextPosition.right?.top})`,
+            transform: `translate(${ImprintTextPosition.right.left}, ${
+              ImprintTextPosition.right?.top
+            }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
             color: textColor,
             fontSize: textSizeRight,
             width: ImprintTextPosition?.right.width,
@@ -228,7 +249,12 @@ const HtmlComponent = ({
             zIndex: 0.8,
             borderRadius: '4px',
             padding: '2px',
-            border: selectedText === 'right' ? '2px dashed #3B82F6' : 'none',
+            border:
+              selectedText === 'right'
+                ? '2px dashed #3B82F6'
+                : textRight === ''
+                ? '2px dashed #ccc'
+                : '2px solid transparent',
             boxShadow:
               selectedText === 'right'
                 ? '0 0 10px rgba(59, 130, 246, 0.3)'
@@ -259,6 +285,14 @@ const HtmlComponent = ({
             />
           ) : (
             <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                height: '100%',
+                textAlign: textRight === '' ? 'center' : 'left',
+              }}
               dangerouslySetInnerHTML={{
                 __html: separateWordsWithLineBreak(
                   textRight !== '' ? textRight : 'TEXT HERE',

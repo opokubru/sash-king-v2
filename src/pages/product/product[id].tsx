@@ -869,6 +869,12 @@ const ConfiguratorUnisexSpecial = () => {
                       textSizeleft={fontSizeLeft as number}
                       textSizeRight={fontSizeRight as number}
                       fontFamily={fontFamily}
+                      textLeftRotate={
+                        selectedClothing?.positioningLeft?.text?.rotate
+                      }
+                      textRightRotate={
+                        selectedClothing?.positioningRight?.text?.rotate
+                      }
                       // textLeftOrientation={textLeftOrientation}
                       // textRightOrientation={textRightOrientation}
 

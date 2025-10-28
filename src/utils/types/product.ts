@@ -30,6 +30,7 @@ export interface Product {
         width: string;
         lineHeight: string;
         size?: number;
+        rotate?: number;
       };
       image: {
         top: string;
@@ -46,6 +47,7 @@ export interface Product {
         width: string;
         lineHeight: string;
         size?: number;
+        rotate?: number;
       };
       image: {
         top: string;
