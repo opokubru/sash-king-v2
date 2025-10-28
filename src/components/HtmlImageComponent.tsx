@@ -155,7 +155,7 @@ const HtmlImageComponent = ({
               }}
             >
               <div className="text-center">
-                <div className="mb-1">📷</div>
+                {/* <div className="mb-1">📷</div> */}
                 <div>TAP TO</div>
                 <div>UPLOAD</div>
               </div>

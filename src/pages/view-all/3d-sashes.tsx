@@ -4,8 +4,11 @@ import { motion } from 'framer-motion';
 // import { ProductCard } from '@/components/ProductCard';
 import { ThreeDSashes } from '@/lib/3d-sash';
 import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
+import { Link, useNavigate } from 'react-router-dom';
+import { CustomButton } from '@/components/shared/shared_customs';
 
 export const ThreeDSashesPage = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
@@ -34,7 +37,7 @@ export const ThreeDSashesPage = () => {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {ThreeDSashes.map((stole, index) => (
-              <div key={index} className="px-2">
+              <Link to={`/product/3d/${stole.id}`} key={index} className="px-2">
                 <motion.div
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -55,12 +58,15 @@ export const ThreeDSashesPage = () => {
                     <p className="text-sm font-semibold text-gray-900 mb-3">
                       {getCurrencySymbol('GHS') + parseToMoney(stole.price)}
                     </p>
-                    <button className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors">
+                    <CustomButton
+                      className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
+                      onPress={() => navigate(`/product/3d/${stole.id}`)}
+                    >
                       Use
-                    </button>
+                    </CustomButton>
                   </div>
                 </motion.div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

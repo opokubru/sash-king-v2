@@ -19,36 +19,36 @@ export const TemplatedSash: Product[] = [
       image: '/images/templates/1.jpg',
       model_image: "/images/templates/2.jpg",
     //   confirm_image: sash1_actual,
-      positioningLeft: {
-        text: {
-          top: '-1.5rem',
-          left: '-5.5rem',
-          height: '12rem',
-          width: '5.4rem',
-          lineHeight: '',
-        },
-        image: {
-          top: '-8.5rem',
-          left: '-4.5rem',
-          height: '3rem',
-          width: '3rem',
-        },
+    positioningLeft: {
+      text: {
+        top: '4rem',
+        left: '-4.7rem',
+        height: '9rem',
+        width: '3.8rem',
+        lineHeight: '',
       },
-      positioningRight: {
-        text: {
-          top: '-1.8rem',
-          left: '0.5rem',
-          height: '12rem',
-          width: '5.4rem',
-          lineHeight: '',
-        },
-        image: {
-          top: '-8.5rem',
-          left: '2rem',
-          height: '3rem',
-          width: '3rem',
-        },
+      image: {
+        top: '-4rem',
+        left: '-5rem',
+        height: '3.5rem',
+        width: '3.5rem',
       },
+    },
+    positioningRight: {
+      text: {
+        top: '4rem',
+        left: '2rem',
+        height: '9rem',
+        width: '3.8rem',
+        lineHeight: '',
+      },
+      image: {
+        top: '-4rem',
+        left: '2.5rem',
+        height: '3.5rem',
+        width: '3.5rem',
+      },
+    },
       otherYards: { small: 2, large: 3, extraLarge: 4, extraExtraLarge: 4 },
       myZoom: 1.2,
       price: 110,
@@ -70,8 +70,8 @@ export const TemplatedSash: Product[] = [
 
     {
       id: generateUUID(),
-      name: 'Sash Three',
-      title: 'Sash Three',
+      name: 'Sash Two',
+      title: 'Sash Two',
       description: '',
       image: '/images/templates/3.jpg',
       model_image: "/images/templates/4.jpg",
