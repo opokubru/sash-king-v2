@@ -548,7 +548,7 @@ const ConfiguratorUnisexSpecial = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-50 bg-black bg-opacity-50"
+                className="fixed inset-0 z-99999 bg-black bg-opacity-50"
                 onClick={handleInstructionsDismiss}
               />
 
@@ -604,6 +604,10 @@ const ConfiguratorUnisexSpecial = () => {
                         Use the "Format Text" button to change colors, fonts,
                         and sizes
                       </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-text text-purple-500"></i>
+                      <span>Use space to wrap text to the next line</span>
                     </div>
                   </div>
 

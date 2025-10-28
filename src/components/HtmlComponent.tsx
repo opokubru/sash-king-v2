@@ -184,15 +184,14 @@ const HtmlComponent = ({
         onClick={handleLeftTextClick}
       >
         {editingLeft ? (
-          <input
-            ref={leftInputRef}
-            type="text"
-            value={separateWordsWithLineBreak(tempTextLeft)}
+          <textarea
+            ref={leftInputRef as any}
+            value={tempTextLeft}
             onChange={(e) => setTempTextLeft(e.target.value)}
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
-              background: 'transparent',
+              background: 'rgba(59, 130, 246, 0.1)',
               border: '2px solid #3B82F6',
               borderRadius: '4px',
               padding: '4px',
@@ -202,6 +201,8 @@ const HtmlComponent = ({
               width: '100%',
               height: '100%',
               color: '#fff',
+              resize: 'none',
+              overflow: 'auto',
             }}
           />
         ) : (
@@ -218,10 +219,10 @@ const HtmlComponent = ({
               __html: hideRightText
                 ? textLeft !== ''
                   ? textLeft
-                  : 'TEXT HERE'
-                : separateWordsWithLineBreak(
-                    textLeft !== '' ? textLeft : 'TEXT HERE',
-                  ),
+                  : 'TAP TO ADD TEXT'
+                : textLeft !== ''
+                ? separateWordsWithLineBreak(textLeft)
+                : 'TAP TO ADD TEXT',
             }}
           />
         )}
@@ -263,15 +264,14 @@ const HtmlComponent = ({
           onClick={handleRightTextClick}
         >
           {editingRight ? (
-            <input
-              ref={rightInputRef}
-              type="text"
+            <textarea
+              ref={rightInputRef as any}
               value={tempTextRight}
               onChange={(e) => setTempTextRight(e.target.value)}
               onBlur={handleRightTextBlur}
               onKeyDown={handleRightTextKeyDown}
               style={{
-                background: 'rgba(255, 255, 255, 0.9)',
+                background: 'rgba(59, 130, 246, 0.1)',
                 border: '2px solid #3B82F6',
                 borderRadius: '4px',
                 padding: '4px',
@@ -280,7 +280,9 @@ const HtmlComponent = ({
                 textTransform: 'uppercase',
                 width: '100%',
                 height: '100%',
-                color: '#000',
+                color: '#fff',
+                resize: 'none',
+                overflow: 'auto',
               }}
             />
           ) : (
@@ -294,9 +296,10 @@ const HtmlComponent = ({
                 textAlign: textRight === '' ? 'center' : 'left',
               }}
               dangerouslySetInnerHTML={{
-                __html: separateWordsWithLineBreak(
-                  textRight !== '' ? textRight : 'TEXT HERE',
-                ),
+                __html:
+                  textRight !== ''
+                    ? separateWordsWithLineBreak(textRight)
+                    : 'TAP TO ADD TEXT',
               }}
             />
           )}

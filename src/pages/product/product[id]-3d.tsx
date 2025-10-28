@@ -43,7 +43,7 @@ const Shirt = ({
   isRotating,
   selectedClothing,
   selectedPart,
-  setSelectedPart,
+  // setSelectedPart,
   showGlow,
 }: ShirtProps) => {
   const snap = useSnapshot(state);
@@ -65,13 +65,13 @@ const Shirt = ({
     }
   }, [isRotating]);
 
-  const handlePartClick = (index: number) => {
-    if (index === selectedPart) {
-      setSelectedPart(null); // Deselect the part if it is clicked again
-    } else {
-      setSelectedPart(index);
-    }
-  };
+  // const handlePartClick = (index: number) => {
+  //   if (index === selectedPart) {
+  //     setSelectedPart(null); // Deselect the part if it is clicked again
+  //   } else {
+  //     setSelectedPart(index);
+  //   }
+  // };
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -142,17 +142,15 @@ const ConfiguratorUnisex3D = () => {
 
   // const displayImage = selectedClothing?.model_image;
 
-  const [selectedSize, setSelectedSize] = useState(1);
-  const [selectedPrintOn, setSelectedPrintOn] = useState(null);
+  // const [selectedSize, setSelectedSize] = useState(1);
+  // const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
   const [selectedPart, setSelectedPart] = useState<number | null>(null);
 
   const [isRotating] = useState(false);
   const [showGlow] = useState(false);
-  const [textLeftOrientation] = useState('horizontal');
-  const [textRightOrientation] = useState('horizontal');
 
-  const canvasRef = useRef(null);
+  // const canvasRef = useRef(null);
   // toast
   const toastRef = useRef(null);
   const currencySymbol = getCurrencySymbol('GHS');
@@ -192,8 +190,8 @@ const ConfiguratorUnisex3D = () => {
   ]);
 
   // Declare state for entered text and generated texture
-  const [enteredTextLeft, setEnteredTextLeft] = useState('');
-  const [enteredTextRight, setEnteredTextRight] = useState('');
+  const [enteredTextLeft] = useState('');
+  const [enteredTextRight] = useState('');
 
   const [textColor, setTextColor] = useState(
     selectedClothing?.textColor || 'gold',
@@ -213,52 +211,48 @@ const ConfiguratorUnisex3D = () => {
   const textEditRef = useRef(null);
 
   // Image imprint
-  const [uploadedImageLeft, setUploadedImageLeft] = useState<string | null>(
-    null,
-  );
-  const [uploadedImageRight, setUploadedImageRight] = useState<string | null>(
-    null,
-  );
+  const [uploadedImageLeft] = useState<string | null>(null);
+  const [uploadedImageRight] = useState<string | null>(null);
 
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleImageUploadLeft = async (file: File) => {
-    setUploadedImageLeft(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+  // const handleImageUploadLeft = async (file: File) => {
+  //   setUploadedImageLeft(URL.createObjectURL(file));
+  //   (toastRef.current as any)?.show({
+  //     severity: 'success',
+  //     summary: 'Please Note',
+  //     detail:
+  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
+  //   });
 
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageLeft(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
-  };
+  //   // try {
+  //   //   const dataURL = await readFileAsDataURL(file);
+  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+  //   //   setFirebaseImageLeft(downloadURL);
+  //   // } catch (error) {
+  //   //   console.error('Image upload failed:', error);
+  //   // }
+  // };
 
-  const handleImageUploadRight = async (file: File) => {
-    setUploadedImageRight(URL.createObjectURL(file));
+  // const handleImageUploadRight = async (file: File) => {
+  //   setUploadedImageRight(URL.createObjectURL(file));
 
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+  //   (toastRef.current as any)?.show({
+  //     severity: 'success',
+  //     summary: 'Please Note',
+  //     detail:
+  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
+  //   });
 
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageRight(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
-  };
+  //   // try {
+  //   //   const dataURL = await readFileAsDataURL(file);
+  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
+  //   //   setFirebaseImageRight(downloadURL);
+  //   // } catch (error) {
+  //   //   console.error('Image upload failed:', error);
+  //   // }
+  // };
 
   const ImprintTextPosition = useMemo(() => {
     return {
@@ -345,21 +339,21 @@ const ConfiguratorUnisex3D = () => {
     setFontFamily(fonts[newIndex]);
   };
 
-  const increaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize: any) => prevSize + 1);
-  };
+  // const increaseFontSizeLeft = () => {
+  //   setFontSizeLeft((prevSize: any) => prevSize + 1);
+  // };
 
-  const decreaseFontSizeLeft = () => {
-    setFontSizeLeft((prevSize: any) => prevSize - 1);
-  };
+  // const decreaseFontSizeLeft = () => {
+  //   setFontSizeLeft((prevSize: any) => prevSize - 1);
+  // };
 
-  const increaseFontSizeRight = () => {
-    setFontSizeRight((prevSize: any) => prevSize + 1);
-  };
+  // const increaseFontSizeRight = () => {
+  //   setFontSizeRight((prevSize: any) => prevSize + 1);
+  // };
 
-  const decreaseFontSizeRight = () => {
-    setFontSizeRight((prevSize: any) => prevSize - 1);
-  };
+  // const decreaseFontSizeRight = () => {
+  //   setFontSizeRight((prevSize: any) => prevSize - 1);
+  // };
 
   // Create an array to store selected parts with their color and texture information
   // const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
@@ -524,10 +518,10 @@ const ConfiguratorUnisex3D = () => {
     setShowInstructions(true);
   };
 
-  const handleTextClick = (side: 'left' | 'right') => {
-    setEditingText(side);
-    setShowTextEditor(true);
-  };
+  // const handleTextClick = (side: 'left' | 'right') => {
+  //   setEditingText(side);
+  //   setShowTextEditor(true);
+  // };
 
   const handleTextEditorClose = () => {
     setShowTextEditor(false);
@@ -677,6 +671,10 @@ const ConfiguratorUnisex3D = () => {
                         Use the "Format Text" button to change colors, fonts,
                         and sizes
                       </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <i className="pi pi-text text-purple-500"></i>
+                      <span>Use space to wrap text to the next line</span>
                     </div>
                   </div>
 
