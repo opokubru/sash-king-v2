@@ -66,6 +66,41 @@ export const ThreeDSashes: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
+      textColor: 'gold',
+      positioningLeft: {
+        text: {
+          top: '2rem',
+          left: '-5.5rem',
+          height: '9rem',
+          width: '5rem',
+          lineHeight: '2.4rem',
+          rotate: 0,
+          size: 12,
+        },
+        image: {
+          top: '-5.4rem',
+          left: '-5.2rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
+      positioningRight: {
+        text: {
+          top: '2rem',
+          left: '2.1rem',
+          height: '9rem',
+          width: '4.5rem',
+          lineHeight: '2.4rem',
+          rotate: -4,
+          size: 12,
+        },
+        image: {
+          top: '-5.4rem',
+          left: '1.3rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
     },
     {
       id: generateUUID(),
@@ -105,6 +140,41 @@ export const ThreeDSashes: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
+      textColor: 'gold',
+      positioningLeft: {
+        text: {
+          top: '-5.4rem',
+          left: '-5.5rem',
+          height: '9rem',
+          width: '5rem',
+          lineHeight: '2.4rem',
+          rotate: 0,
+          size: 12,
+        },
+        image: {
+          top: '2rem',
+          left: '-5.2rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
+      positioningRight: {
+        text: {
+          top: '-5.4rem',
+          left: '2.1rem',
+          height: '9rem',
+          width: '4.5rem',
+          lineHeight: '2.4rem',
+          rotate: -4,
+          size: 12,
+        },
+        image: {
+          top: '2rem',
+          left: '1.3rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
     },
     {
       id: generateUUID(),
@@ -143,11 +213,46 @@ export const ThreeDSashes: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
+      textColor: 'gold',
+      positioningLeft: {
+        text: {
+          top: '2rem',
+          left: '-5.5rem',
+          height: '9rem',
+          width: '5rem',
+          lineHeight: '2.4rem',
+          rotate: 0,
+          size: 12,
+        },
+        image: {
+          top: '-5.4rem',
+          left: '-5.2rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
+      positioningRight: {
+        text: {
+          top: '-5.4rem',
+          left: '2.1rem',
+          height: '9rem',
+          width: '4.5rem',
+          lineHeight: '2.4rem',
+          rotate: -4,
+          size: 12,
+        },
+        image: {
+          top: '2rem',
+          left: '1.3rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
     },
     
     {
       id: generateUUID(),
-      name: 'One-Sided Logo, Two-Sided Text Sash',
+      name: 'One-Sided Logo, Two-Sided Text Sash',
       title: 'Sash Variant 4',
       description:
         'This sash allows logos/designs on one side and text on both sides',
@@ -181,6 +286,41 @@ export const ThreeDSashes: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
+      textColor: 'gold',
+      positioningLeft: {
+        text: {
+          top: '2rem',
+          left: '-5.5rem',
+          height: '9rem',
+          width: '5rem',
+          lineHeight: '2.4rem',
+          rotate: 0,
+          size: 12,
+        },
+        image: {
+          top: '-5.4rem',
+          left: '-5.2rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
+      positioningRight: {
+        text: {
+          top: '2rem',
+          left: '2.1rem',
+          height: '9rem',
+          width: '4.5rem',
+          lineHeight: '2.4rem',
+          rotate: -4,
+          size: 12,
+        },
+        image: {
+          top: '-5.4rem',
+          left: '1.3rem',
+          height: '3.5rem',
+          width: '3.5rem',
+        },
+      },
     },
    
   

@@ -191,8 +191,8 @@ const ConfiguratorUnisex3D = () => {
   ]);
 
   // Declare state for entered text and generated texture
-  const [enteredTextLeft] = useState('');
-  const [enteredTextRight] = useState('');
+  const [enteredTextLeft, setEnteredTextLeft] = useState('');
+  const [enteredTextRight, setEnteredTextRight] = useState('');
 
   const [textColor, setTextColor] = useState(
     selectedClothing?.textColor || 'gold',
@@ -212,48 +212,35 @@ const ConfiguratorUnisex3D = () => {
   const textEditRef = useRef(null);
 
   // Image imprint
-  const [uploadedImageLeft] = useState<string | null>(null);
-  const [uploadedImageRight] = useState<string | null>(null);
+  const [uploadedImageLeft, setUploadedImageLeft] = useState<string | null>(
+    null,
+  );
+  const [uploadedImageRight, setUploadedImageRight] = useState<string | null>(
+    null,
+  );
 
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  // const handleImageUploadLeft = async (file: File) => {
-  //   setUploadedImageLeft(URL.createObjectURL(file));
-  //   (toastRef.current as any)?.show({
-  //     severity: 'success',
-  //     summary: 'Please Note',
-  //     detail:
-  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
-  //   });
+  const handleImageUploadLeft = async (file: File) => {
+    setUploadedImageLeft(URL.createObjectURL(file));
+    (toastRef.current as any)?.show({
+      severity: 'success',
+      summary: 'Please Note',
+      detail:
+        'Focus would be on the pattern in your image, hence background may be removed where applicable',
+    });
+  };
 
-  //   // try {
-  //   //   const dataURL = await readFileAsDataURL(file);
-  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-  //   //   setFirebaseImageLeft(downloadURL);
-  //   // } catch (error) {
-  //   //   console.error('Image upload failed:', error);
-  //   // }
-  // };
-
-  // const handleImageUploadRight = async (file: File) => {
-  //   setUploadedImageRight(URL.createObjectURL(file));
-
-  //   (toastRef.current as any)?.show({
-  //     severity: 'success',
-  //     summary: 'Please Note',
-  //     detail:
-  //       'Focus would be on the pattern in your image, hence background may be removed where applicable',
-  //   });
-
-  //   // try {
-  //   //   const dataURL = await readFileAsDataURL(file);
-  //   //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-  //   //   setFirebaseImageRight(downloadURL);
-  //   // } catch (error) {
-  //   //   console.error('Image upload failed:', error);
-  //   // }
-  // };
+  const handleImageUploadRight = async (file: File) => {
+    setUploadedImageRight(URL.createObjectURL(file));
+    (toastRef.current as any)?.show({
+      severity: 'success',
+      summary: 'Please Note',
+      detail:
+        'Focus would be on the pattern in your image, hence background may be removed where applicable',
+    });
+  };
 
   const ImprintTextPosition = useMemo(() => {
     return {
@@ -519,10 +506,10 @@ const ConfiguratorUnisex3D = () => {
     setShowInstructions(true);
   };
 
-  // const handleTextClick = (side: 'left' | 'right') => {
-  //   setEditingText(side);
-  //   setShowTextEditor(true);
-  // };
+  const handleTextClick = (side: 'left' | 'right') => {
+    setEditingText(side);
+    setShowTextEditor(true);
+  };
 
   const handleTextEditorClose = () => {
     setShowTextEditor(false);
@@ -673,7 +660,7 @@ const ConfiguratorUnisex3D = () => {
                           <i className="pi pi-palette text-purple-500"></i>
                           <span>
                             Use the "Format Text" button to change colors,
-                            fonts, and sizes
+                            fonts, and sizes to fit space available
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -849,11 +836,22 @@ const ConfiguratorUnisex3D = () => {
                         textSizeleft={fontSizeLeft}
                         textSizeRight={fontSizeRight}
                         fontFamily={fontFamily}
+                        textLeftRotate={
+                          selectedClothing?.positioningLeft?.text?.rotate
+                        }
+                        textRightRotate={
+                          selectedClothing?.positioningRight?.text?.rotate
+                        }
                         ImprintTextPosition={ImprintTextPosition as any}
                         hideRightText={
                           selectedClothing?.name?.includes('Beads Bracelet') ||
                           false
                         }
+                        onTextLeftChange={setEnteredTextLeft}
+                        onTextRightChange={setEnteredTextRight}
+                        onTextLeftClick={() => handleTextClick('left')}
+                        onTextRightClick={() => handleTextClick('right')}
+                        selectedText={editingText}
                         disableInteractions={showTextEditor || showInstructions}
                       />
                       <HtmlImageComponent
@@ -869,6 +867,8 @@ const ConfiguratorUnisex3D = () => {
                           false
                         }
                         textColor={textColor}
+                        onImageLeftChange={handleImageUploadLeft}
+                        onImageRightChange={handleImageUploadRight}
                         disableInteractions={showTextEditor || showInstructions}
                       />
                     </>
