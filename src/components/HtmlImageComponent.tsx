@@ -12,6 +12,7 @@ const HtmlImageComponent = ({
   textColor,
   onImageLeftChange,
   onImageRightChange,
+  disableInteractions = false,
 }: {
   ImprintTextPosition: any;
   hideRightText: boolean;
@@ -21,6 +22,7 @@ const HtmlImageComponent = ({
   textColor: string;
   onImageLeftChange?: (file: File) => void;
   onImageRightChange?: (file: File) => void;
+  disableInteractions?: boolean;
 }) => {
   const isMobile = window.innerWidth < 768;
   const leftFileInputRef = useRef<HTMLInputElement>(null);
@@ -53,11 +55,17 @@ const HtmlImageComponent = ({
   };
 
   return (
-    <Html style={{ zIndex: 1 }}>
+    <Html
+      style={{
+        zIndex: disableInteractions ? -1 : 0,
+        pointerEvents: disableInteractions ? 'none' : 'auto',
+      }}
+    >
       {!hideLogo && (
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
+            pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
             transform: `translate(${ImprintTextPosition.left?.image?.left}, ${ImprintTextPosition.left?.image?.top})`,
             fontSize: '0.5rem',
@@ -117,6 +125,7 @@ const HtmlImageComponent = ({
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
+            pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
             transform: `translate(${ImprintTextPosition.right?.image?.left}, ${ImprintTextPosition.right?.image?.top})`,
             fontSize: '0.5rem',

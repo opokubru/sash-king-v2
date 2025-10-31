@@ -1,11 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .custom-button::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: -100%;
@@ -30,17 +30,46 @@
 }
 
 input,
-select {
+select,
+textarea {
   font-size: 16px;
+  transform: scale(0.75); /* 12 / 16 = 0.75 */
+  transform-origin: left center;
 }
 
-input[type="number"] {
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea {
+    font-size: 16px;
+    transform: scale(0.75);
+    transform-origin: left center;
+  }
+}
+
+input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* Bottom sheet z-index override */
+.bottom-sheet-backdrop {
+  z-index: 999998 !important;
+  isolation: isolate;
+}
+
+.bottom-sheet-container {
+  z-index: 999999 !important;
+  isolation: isolate;
+  position: fixed !important;
+}
+
+/* Force drei Html overlays below bottom sheets */
+[data-three-html] {
+  z-index: 0 !important;
 }
