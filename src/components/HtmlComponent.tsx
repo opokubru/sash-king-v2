@@ -48,6 +48,7 @@ interface HtmlComponentProps {
   onTextLeftClick?: () => void;
   onTextRightClick?: () => void;
   selectedText?: 'left' | 'right' | null;
+  disableInteractions?: boolean;
 }
 
 const HtmlComponent = ({
@@ -68,6 +69,7 @@ const HtmlComponent = ({
   onTextLeftClick,
   onTextRightClick,
   selectedText,
+  disableInteractions = false,
 }: HtmlComponentProps) => {
   const [editingLeft, setEditingLeft] = useState(false);
   const [editingRight, setEditingRight] = useState(false);
@@ -149,11 +151,17 @@ const HtmlComponent = ({
   };
 
   return (
-    <Html style={{ zIndex: 1 }}>
+    <Html
+      style={{
+        zIndex: disableInteractions ? -1 : 0,
+        pointerEvents: disableInteractions ? 'none' : 'auto',
+      }}
+    >
       {/* Left Text */}
       <div
         className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
         style={{
+          pointerEvents: disableInteractions ? 'none' : 'auto',
           position: 'absolute',
           transform: `translate(${ImprintTextPosition?.left?.left}, ${
             ImprintTextPosition.left?.top
@@ -233,6 +241,7 @@ const HtmlComponent = ({
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
+            pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
             transform: `translate(${ImprintTextPosition.right.left}, ${
               ImprintTextPosition.right?.top

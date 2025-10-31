@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -606,91 +607,96 @@ const ConfiguratorUnisex3D = () => {
         )}
 
         {/* Direct Editing Instructions Bottom Sheet */}
-        <AnimatePresence>
-          {showInstructions && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="fixed inset-0 z-50 bg-black bg-opacity-50"
-                onClick={handleInstructionsDismiss}
-              />
+        {typeof window !== 'undefined' &&
+          createPortal(
+            <AnimatePresence>
+              {showInstructions && (
+                <>
+                  {/* Backdrop */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
+                    onClick={handleInstructionsDismiss}
+                  />
 
-              {/* Bottom Sheet */}
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{
-                  type: 'spring',
-                  damping: 25,
-                  stiffness: 200,
-                }}
-                className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl"
-              >
-                {/* Drag Handle */}
-                <div className="flex justify-center pt-3 pb-2">
-                  <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-                </div>
+                  {/* Bottom Sheet */}
+                  <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{
+                      type: 'spring',
+                      damping: 25,
+                      stiffness: 200,
+                    }}
+                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Drag Handle */}
+                    <div className="flex justify-center pt-3 pb-2">
+                      <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+                    </div>
 
-                <div className="px-6 pb-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-lightbulb text-yellow-500 text-lg"></i>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Quick Tip
-                      </h3>
-                    </div>
-                    <button
-                      onClick={handleInstructionsDismiss}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <i className="pi pi-times text-sm"></i>
-                    </button>
-                  </div>
+                    <div className="px-6 pb-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-lightbulb text-yellow-500 text-lg"></i>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Quick Tip
+                          </h3>
+                        </div>
+                        <button
+                          onClick={handleInstructionsDismiss}
+                          className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <i className="pi pi-times text-sm"></i>
+                        </button>
+                      </div>
 
-                  <div className="space-y-3 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-info-circle text-blue-500"></i>
-                      <span>
-                        Click directly on text in the 3D model to edit it
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-image text-green-500"></i>
-                      <span>
-                        Click on image areas to upload logos or images
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-palette text-purple-500"></i>
-                      <span>
-                        Use the "Format Text" button to change colors, fonts,
-                        and sizes
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <i className="pi pi-text text-purple-500"></i>
-                      <span>Use space to wrap text to the next line</span>
-                    </div>
-                  </div>
+                      <div className="space-y-3 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-info-circle text-blue-500"></i>
+                          <span>
+                            Click directly on text in the 3D model to edit it
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-image text-green-500"></i>
+                          <span>
+                            Click on image areas to upload logos or images
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-palette text-purple-500"></i>
+                          <span>
+                            Use the "Format Text" button to change colors,
+                            fonts, and sizes
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-text text-purple-500"></i>
+                          <span>Use space to wrap text to the next line</span>
+                        </div>
+                      </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={handleInstructionsDismiss}
-                      className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                    >
-                      Got it!
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </>
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={handleInstructionsDismiss}
+                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                        >
+                          Got it!
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>,
+            document.body,
           )}
-        </AnimatePresence>
       </>
 
       <div className="main-space ">
@@ -848,6 +854,7 @@ const ConfiguratorUnisex3D = () => {
                           selectedClothing?.name?.includes('Beads Bracelet') ||
                           false
                         }
+                        disableInteractions={showTextEditor || showInstructions}
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition as any}
@@ -862,6 +869,7 @@ const ConfiguratorUnisex3D = () => {
                           false
                         }
                         textColor={textColor}
+                        disableInteractions={showTextEditor || showInstructions}
                       />
                     </>
                   )}
@@ -884,166 +892,173 @@ const ConfiguratorUnisex3D = () => {
       </div>
 
       {/* Text Editing Bottom Sheet */}
-      <AnimatePresence>
-        {showTextEditor && editingText && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-50 bg-black bg-opacity-50"
-              onClick={handleTextEditorClose}
-            />
+      {typeof window !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {showTextEditor && editingText && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
+                  onClick={handleTextEditorClose}
+                />
 
-            {/* Bottom Sheet */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{
-                type: 'spring',
-                damping: 25,
-                stiffness: 200,
-              }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl  "
-            >
-              {/* Drag Handle */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
-              </div>
+                {/* Bottom Sheet */}
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{
+                    type: 'spring',
+                    damping: 25,
+                    stiffness: 200,
+                  }}
+                  className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Drag Handle */}
+                  <div className="flex justify-center pt-3 pb-2">
+                    <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+                  </div>
 
-              <div className="px-6 pb-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Edit Text - {editingText === 'left' ? 'Left' : 'Right'}
-                  </h3>
-                  <button
-                    onClick={handleTextEditorClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <i className="pi pi-times text-xl"></i>
-                  </button>
-                </div>
-
-                <section className="overflow-y-auto h-full max-h-[6rem]">
-                  {/* Font Size Controls */}
-                  <div className="mb-4 ">
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                      Size:{' '}
-                      {editingText === 'left'
-                        ? Number(fontSizeLeft)
-                        : Number(fontSizeRight)}
-                      px
-                    </label>
-                    <div className="flex items-center gap-3">
+                  <div className="px-6 pb-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Edit Text - {editingText === 'left' ? 'Left' : 'Right'}
+                      </h3>
                       <button
-                        onClick={() => {
-                          if (editingText === 'left') {
-                            setFontSizeLeft((prev: any) =>
-                              Math.max(10, Number(prev) - 1),
-                            );
-                          } else {
-                            setFontSizeRight((prev: any) =>
-                              Math.max(10, Number(prev) - 1),
-                            );
-                          }
-                        }}
-                        className="w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+                        onClick={handleTextEditorClose}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
                       >
-                        <i className="pi pi-minus text-sm"></i>
+                        <i className="pi pi-times text-xl"></i>
                       </button>
-                      <div className="flex-1 bg-gray-100 rounded-lg h-2 relative">
-                        <div
-                          className="bg-blue-600 h-full rounded-lg transition-all"
-                          style={{
-                            width: `${
-                              ((Number(
-                                editingText === 'left'
-                                  ? fontSizeLeft
-                                  : fontSizeRight,
-                              ) -
-                                10) /
-                                50) *
-                              100
-                            }%`,
-                          }}
-                        />
+                    </div>
+
+                    <section className="overflow-y-auto h-full max-h-[6rem]">
+                      {/* Font Size Controls */}
+                      <div className="mb-4 ">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Size:{' '}
+                          {editingText === 'left'
+                            ? Number(fontSizeLeft)
+                            : Number(fontSizeRight)}
+                          px
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => {
+                              if (editingText === 'left') {
+                                setFontSizeLeft((prev: any) =>
+                                  Math.max(10, Number(prev) - 1),
+                                );
+                              } else {
+                                setFontSizeRight((prev: any) =>
+                                  Math.max(10, Number(prev) - 1),
+                                );
+                              }
+                            }}
+                            className="w-10 h-10 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-minus text-sm"></i>
+                          </button>
+                          <div className="flex-1 bg-gray-100 rounded-lg h-2 relative">
+                            <div
+                              className="bg-blue-600 h-full rounded-lg transition-all"
+                              style={{
+                                width: `${
+                                  ((Number(
+                                    editingText === 'left'
+                                      ? fontSizeLeft
+                                      : fontSizeRight,
+                                  ) -
+                                    10) /
+                                    50) *
+                                  100
+                                }%`,
+                              }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (editingText === 'left') {
+                                setFontSizeLeft((prev: any) =>
+                                  Math.min(60, Number(prev) + 1),
+                                );
+                              } else {
+                                setFontSizeRight((prev: any) =>
+                                  Math.min(60, Number(prev) + 1),
+                                );
+                              }
+                            }}
+                            className="w-10 h-10 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-plus text-sm"></i>
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => {
-                          if (editingText === 'left') {
-                            setFontSizeLeft((prev: any) =>
-                              Math.min(60, Number(prev) + 1),
-                            );
-                          } else {
-                            setFontSizeRight((prev: any) =>
-                              Math.min(60, Number(prev) + 1),
-                            );
-                          }
-                        }}
-                        className="w-10 h-10 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
-                      >
-                        <i className="pi pi-plus text-sm"></i>
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Text Color */}
-                  <div className="mb-4">
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                      Color
-                    </label>
-                    <div className="grid grid-cols-6 gap-2">
-                      {colorOptions.slice(0, 6).map((colorOption, index) => (
-                        <button
-                          key={index}
-                          className={`w-8 h-8 rounded-full border-3 transition-all transform hover:scale-110 ${
-                            textColor === colorOption.label
-                              ? 'border-gray-800 scale-110 shadow-lg'
-                              : 'border-gray-300 hover:border-gray-500'
-                          }`}
-                          onClick={() => setTextColor(colorOption.label)}
-                          style={{ backgroundColor: colorOption.color }}
-                          title={colorOption.label}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                      {/* Text Color */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Color
+                        </label>
+                        <div className="grid grid-cols-6 gap-2">
+                          {colorOptions
+                            .slice(0, 6)
+                            .map((colorOption, index) => (
+                              <button
+                                key={index}
+                                className={`w-8 h-8 rounded-full border-3 transition-all transform hover:scale-110 ${
+                                  textColor === colorOption.label
+                                    ? 'border-gray-800 scale-110 shadow-lg'
+                                    : 'border-gray-300 hover:border-gray-500'
+                                }`}
+                                onClick={() => setTextColor(colorOption.label)}
+                                style={{ backgroundColor: colorOption.color }}
+                                title={colorOption.label}
+                              />
+                            ))}
+                        </div>
+                      </div>
 
-                  {/* Font Style */}
-                  <div className="mb-4">
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                      Font
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {fonts.map((font, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setCurrentFontIndex(index);
-                            setFontFamily(font);
-                          }}
-                          className={`px-1  py-2 rounded-lg border-2 transition-all text-sm ${
-                            fontFamily === font
-                              ? 'border-blue-500 bg-blue-50 font-semibold'
-                              : 'border-gray-200 hover:border-gray-400'
-                          }`}
-                          style={{ fontFamily: font }}
-                        >
-                          {font}
-                        </button>
-                      ))}
-                    </div>
+                      {/* Font Style */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Font
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {fonts.map((font, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setCurrentFontIndex(index);
+                                setFontFamily(font);
+                              }}
+                              className={`px-1  py-2 rounded-lg border-2 transition-all text-sm ${
+                                fontFamily === font
+                                  ? 'border-blue-500 bg-blue-50 font-semibold'
+                                  : 'border-gray-200 hover:border-gray-400'
+                              }`}
+                              style={{ fontFamily: font }}
+                            >
+                              {font}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
                   </div>
-                </section>
-              </div>
-            </motion.div>
-          </>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
 
       <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
         <div className="container mx-auto px-6 py-8">
