@@ -95,7 +95,7 @@ const Home = () => {
   const heroSlides = [
     {
       id: 1,
-      image: '/images/carousel/IMG_2039.JPG',
+      image: '/images/carousel/landing-page-re-3.webp',
       title: 'Wear Your Story',
       subtitle: 'Every Thread Tells a Tale',
       description: 'Authentic Kente Sashes',
@@ -103,7 +103,7 @@ const Home = () => {
     },
     {
       id: 2,
-      image: '/images/carousel/IMG_2047.JPG',
+      image: '/images/carousel/landing-page-re-3.webp',
       title: 'Graduate Like Royalty',
       subtitle: 'Your Crown Awaits',
       description: 'Premium Graduation Sashes',
@@ -111,7 +111,7 @@ const Home = () => {
     },
     {
       id: 3,
-      image: '/images/carousel/IMG_2054.JPG',
+      image: '/images/carousel/landing-page-re-3.webp',
       title: 'Brotherhood & Sisterhood',
       subtitle: 'Wear Your Letters with Pride',
       description: 'Faculty & College Sashes',
@@ -119,7 +119,7 @@ const Home = () => {
     },
     {
       id: 4,
-      image: '/images/carousel/IMG_2073.JPG',
+      image: '/images/carousel/landing-page-re-3.webp',
       title: 'Create Your Legacy',
       subtitle: 'From Vision to Reality',
       description: 'Custom Made Sashes',
@@ -248,13 +248,13 @@ const Home = () => {
         <Slider {...heroSettings} className="hero-carousel">
           {heroSlides.map((slide) => (
             <div key={slide.id} className="relative">
-              <div className="relative h-[400px] md:h-[800px] flex items-center justify-center">
+              <div className="relative  flex items-center justify-center">
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="w-full h-full object-cover "
+                  className="w-full h-full object-contain "
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                {/* <div className="absolute inset-0 bg-black bg-opacity-40"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center text-white max-w-4xl px-6">
                     <motion.div
@@ -289,7 +289,7 @@ const Home = () => {
                       </Link>
                     </motion.div>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           ))}
@@ -337,7 +337,7 @@ const Home = () => {
       </section> */}
 
       {/* Featured Products Section */}
-      <section className="py-10 bg-gray-50">
+      <section className="py-6 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

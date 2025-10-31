@@ -50,7 +50,7 @@ export const ProductCard = ({
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-md flex items-center justify-center">
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <div className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold">
-                View Details
+                Edit Template
               </div>
             </div>
           </div>

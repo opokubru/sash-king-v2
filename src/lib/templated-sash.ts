@@ -80,8 +80,8 @@ export const TemplatedSash: Product[] = [
       // confirm_image: sash3_actual,
       positioningLeft: {
         text: {
-          top: '5.2rem',
-          left: '-5.5rem',
+          top: '4rem',
+          left: '-5rem',
           height: '9rem',
           width: '4.4rem',
           lineHeight: '',
@@ -89,24 +89,24 @@ export const TemplatedSash: Product[] = [
         },
         image: {
           top: '-4rem',
-          left: '-5.7rem',
+          left: '-5rem',
           height: '3.5rem',
           width: '3.5rem',
         },
       },
       positioningRight: {
         text: {
-          top: '4.8rem',
-          left: '2rem',
+          top: '3.3rem',
+          left: '1.4rem',
           height: '9rem',
           width: '4.4rem',
           lineHeight: '',
           // rotate: 2,
-
+  
         },
         image: {
           top: '-4.4rem',
-          left: '3rem',
+          left: '2rem',
           height: '3.5rem',
           width: '3.5rem',
         },
@@ -125,9 +125,9 @@ export const TemplatedSash: Product[] = [
       sizes: [],
       colors: [],
       in_stock: true,
-      scale: 1.2,
+      scale: 1.02,
       aspect: 0.65,
-
+  
     },
   
 
