@@ -56,6 +56,7 @@ const HtmlImageComponent = ({
 
   return (
     <Html
+      className={disableInteractions ? 'html-disabled' : ''}
       style={{
         zIndex: disableInteractions ? -1 : 0,
         pointerEvents: disableInteractions ? 'none' : 'auto',
@@ -86,7 +87,8 @@ const HtmlImageComponent = ({
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            // opacity: imageLeft !== null ? 1 : 0.3,
+            opacity: disableInteractions ? 0 : imageLeft !== null ? 1 : 1,
+            visibility: disableInteractions ? 'hidden' : 'visible',
             color: textColor,
             borderRadius: '4px',
             border: imageLeft ? '2px solid transparent' : '2px dashed #ccc',
@@ -147,7 +149,8 @@ const HtmlImageComponent = ({
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            // opacity: imageRight !== null ? 1 : 0.3,
+            opacity: disableInteractions ? 0 : imageRight !== null ? 1 : 1,
+            visibility: disableInteractions ? 'hidden' : 'visible',
             color: textColor,
             borderRadius: '4px',
             border: imageRight ? '2px solid transparent' : '2px dashed #ccc',
