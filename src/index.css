@@ -34,6 +34,12 @@ select {
   font-size: 16px;
 }
 
+textarea {
+  font-size: 16px;
+  transform: scale(0.875); /* ~14px look */
+  transform-origin: left center;
+}
+
 @supports (-webkit-touch-callout: none) {
   input,
   textarea {
