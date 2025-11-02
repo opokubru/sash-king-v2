@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
-import { separateWordsWithLineBreak } from '@/utils/helper';
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface HtmlComponentProps {
   textLeft: string;
@@ -311,32 +311,154 @@ const HtmlComponent = ({
     };
   }, []);
 
+  // Helper function to wrap text at 7 characters per line
+  const wrapTextAt7Chars = (text: string): string => {
+    const lines: string[] = [];
+    const currentLines = text.split('\n');
+
+    for (const line of currentLines) {
+      let remaining = line;
+
+      while (remaining.length > 0) {
+        if (remaining.length <= 7) {
+          lines.push(remaining);
+          break;
+        }
+
+        // Try to break at word boundary first (space within first 7 chars)
+        const first7Chars = remaining.substring(0, 7);
+        const lastSpaceIndex = first7Chars.lastIndexOf(' ');
+
+        let breakPoint = 7;
+        if (lastSpaceIndex > 0) {
+          // Break after the space
+          breakPoint = lastSpaceIndex + 1;
+        }
+
+        lines.push(remaining.substring(0, breakPoint));
+        // Trim leading spaces from next line
+        remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
+      }
+    }
+
+    return lines.join('\n');
+  };
+
+  // Helper function to convert wrapped text (with \n) to HTML (with <br>)
+  const wrapTextToHtml = (text: string): string => {
+    const wrappedText = wrapTextAt7Chars(text);
+    return wrappedText.split('\n').join('<br>');
+  };
+
+  // Helper function to get current line count
+  const getLineCount = (text: string): number => {
+    return text.split('\n').length;
+  };
+
+  const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
+    // Wrapping will be applied when displaying (escaped mode) or on blur
+    const lineCount = getLineCount(newText);
+    if (lineCount > 3) {
+      // Prevent typing and show toast notification
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return; // Don't update the text
+    }
+
+    setTempTextLeft(newText);
+  };
+
+  const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
+    // Wrapping will be applied when displaying (escaped mode) or on blur
+    const lineCount = getLineCount(newText);
+    if (lineCount > 3) {
+      // Prevent typing and show toast notification
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return; // Don't update the text
+    }
+
+    setTempTextRight(newText);
+  };
+
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
     if (onTextLeftChange) {
-      onTextLeftChange(tempTextLeft);
+      // Apply wrapping when saving the text
+      const wrappedText = wrapTextAt7Chars(tempTextLeft);
+      onTextLeftChange(wrappedText);
     }
   };
 
   const handleRightTextBlur = () => {
     setEditingRight(false);
     if (onTextRightChange) {
-      onTextRightChange(tempTextRight);
+      // Apply wrapping when saving the text
+      const wrappedText = wrapTextAt7Chars(tempTextRight);
+      onTextRightChange(wrappedText);
     }
   };
 
-  const handleLeftTextKeyDown = (e: React.KeyboardEvent) => {
-    // Enter key now creates a new line (default textarea behavior)
-    // Only handle Escape to cancel editing
+  const handleLeftTextKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    // Handle Enter key - allow manual line breaks
+    if (e.key === 'Enter') {
+      // Use the actual textarea value (not state) to get current text
+      const textarea = e.currentTarget;
+      const currentValue = textarea.value;
+      const currentLineCount = getLineCount(currentValue);
+
+      // Prevent Enter if it would exceed 3 lines
+      if (currentLineCount >= 3) {
+        e.preventDefault();
+        toast.error('Maximum 3 lines allowed', {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Escape to cancel editing
     if (e.key === 'Escape') {
       setTempTextLeft(textLeft);
       setEditingLeft(false);
     }
   };
 
-  const handleRightTextKeyDown = (e: React.KeyboardEvent) => {
-    // Enter key now creates a new line (default textarea behavior)
-    // Only handle Escape to cancel editing
+  const handleRightTextKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    // Handle Enter key - allow manual line breaks
+    if (e.key === 'Enter') {
+      // Use the actual textarea value (not state) to get current text
+      const textarea = e.currentTarget;
+      const currentValue = textarea.value;
+      const currentLineCount = getLineCount(currentValue);
+
+      // Prevent Enter if it would exceed 3 lines
+      if (currentLineCount >= 3) {
+        e.preventDefault();
+        toast.error('Maximum 3 lines allowed', {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Escape to cancel editing
     if (e.key === 'Escape') {
       setTempTextRight(textRight);
       setEditingRight(false);
@@ -395,7 +517,7 @@ const HtmlComponent = ({
           <textarea
             ref={leftInputRef as any}
             value={tempTextLeft}
-            onChange={(e) => setTempTextLeft(e.target.value)}
+            onChange={handleLeftTextChange}
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
@@ -403,7 +525,8 @@ const HtmlComponent = ({
               border: 'none',
               outline: 'none',
               borderRadius: '4px',
-              padding: '2px',
+              padding: '0',
+              margin: '0',
               fontSize: textSizeleft,
               fontFamily: fontFamily,
               textTransform: 'uppercase',
@@ -411,32 +534,41 @@ const HtmlComponent = ({
               height: '100%',
               color: textColor,
               resize: 'none',
-              overflow: 'auto',
+              overflow: 'hidden',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              wordBreak: 'normal',
+              whiteSpace: 'pre-wrap',
               lineHeight: `${
                 ImprintTextPosition?.left?.lineHeight || '2.8rem'
               }`,
               textAlign: textLeft === '' ? 'center' : 'left',
-              display: 'flex',
-              alignItems: 'center',
+              display: 'block',
+              boxSizing: 'border-box',
             }}
           />
         ) : (
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               width: '100%',
               height: '100%',
               textAlign: textLeft === '' ? 'center' : 'left',
+              lineHeight: `${
+                ImprintTextPosition?.left?.lineHeight || '2.8rem'
+              }`,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              wordBreak: 'normal',
+              whiteSpace: 'pre-wrap',
+              display: 'block',
             }}
             dangerouslySetInnerHTML={{
               __html: hideRightText
                 ? textLeft !== ''
-                  ? textLeft
+                  ? wrapTextToHtml(textLeft)
                   : 'TAP TO ADD TEXT'
                 : textLeft !== ''
-                ? separateWordsWithLineBreak(textLeft)
+                ? wrapTextToHtml(textLeft)
                 : 'TAP TO ADD TEXT',
             }}
           />
@@ -488,7 +620,7 @@ const HtmlComponent = ({
             <textarea
               ref={rightInputRef as any}
               value={tempTextRight}
-              onChange={(e) => setTempTextRight(e.target.value)}
+              onChange={handleRightTextChange}
               onBlur={handleRightTextBlur}
               onKeyDown={handleRightTextKeyDown}
               style={{
@@ -496,7 +628,8 @@ const HtmlComponent = ({
                 border: 'none',
                 outline: 'none',
                 borderRadius: '4px',
-                padding: '2px',
+                padding: '0',
+                margin: '0',
                 fontSize: textSizeRight,
                 fontFamily: fontFamily,
                 textTransform: 'uppercase',
@@ -504,29 +637,38 @@ const HtmlComponent = ({
                 height: '100%',
                 color: textColor,
                 resize: 'none',
-                overflow: 'auto',
+                overflow: 'hidden',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                wordBreak: 'normal',
+                whiteSpace: 'pre-wrap',
                 lineHeight: `${
                   ImprintTextPosition?.right?.lineHeight || '2.8rem'
                 }`,
                 textAlign: textRight === '' ? 'center' : 'left',
-                display: 'flex',
-                alignItems: 'center',
+                display: 'block',
+                boxSizing: 'border-box',
               }}
             />
           ) : (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 width: '100%',
                 height: '100%',
                 textAlign: textRight === '' ? 'center' : 'left',
+                lineHeight: `${
+                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                }`,
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                wordBreak: 'normal',
+                whiteSpace: 'pre-wrap',
+                display: 'block',
               }}
               dangerouslySetInnerHTML={{
                 __html:
                   textRight !== ''
-                    ? separateWordsWithLineBreak(textRight)
+                    ? wrapTextToHtml(textRight)
                     : 'TAP TO ADD TEXT',
               }}
             />
