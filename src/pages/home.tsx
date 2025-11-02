@@ -21,7 +21,7 @@ const Home = () => {
     speed: 1000,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: false,
     autoplaySpeed: 4000,
     fade: true,
     cssEase: 'linear',
@@ -35,7 +35,7 @@ const Home = () => {
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
-    autoplay: false,
+    autoplay: true,
     autoplaySpeed: 3000,
     arrows: true,
     responsive: [
@@ -70,7 +70,7 @@ const Home = () => {
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: false,
     autoplaySpeed: 4000,
     arrows: true,
     responsive: [
@@ -244,7 +244,7 @@ const Home = () => {
         }
       `}</style>
       {/* Hero Carousel Section */}
-      <section className="relative">
+      <section className="relative pb-5">
         <Slider {...heroSettings} className="hero-carousel">
           {heroSlides.map((slide) => (
             <div key={slide.id} className="relative">
@@ -267,7 +267,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-2"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
               Make It Uniquely Yours
@@ -302,20 +302,25 @@ const Home = () => {
         >
           View All
         </Link> */}
-        <CustomButton variant_type="primary">View All</CustomButton>
+        <CustomButton
+          onPress={() => navigate('/templated-sash')}
+          variant_type="primary"
+        >
+          View All Templates
+        </CustomButton>
       </div>
 
       {/* ThreeDSashes Section */}
-      <section className="py-10 bg-gray-50">
+      <section className="py-5 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-2"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
-              Design Your Dream Sash
+              Design From Scratch
             </h2>
             <p className="text-lg text-gray-600">
               Start from scratch and create something truly extraordinary. Our
@@ -324,59 +329,38 @@ const Home = () => {
           </motion.div>
 
           <div className="relative ">
-            <Slider {...greekSettings} className="greek-carousel">
-              {ThreeDSashes.map((stole, index) => (
-                <Link
-                  to={`/product/3d/${stole.id}`}
-                  key={index}
-                  className="px-2"
+            {/* <Slider {...greekSettings} className="greek-carousel"> */}
+            {ThreeDSashes.slice(0, 1).map((stole, index) => (
+              <div key={index} className="px-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="group"
                 >
-                  <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    className="group"
-                  >
-                    <div className="relative overflow-hidden bg-gray-100">
-                      <img
-                        src={stole.image}
-                        alt={stole.name}
-                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <h3 className="text-base md:text-lg font-medium text-gray-900 mb-1 line-clamp-2">
-                        {stole.name}
-                      </h3>
-                      <p className="text-base md:text-lg font-semibold text-gray-900 mb-3">
-                        {getCurrencySymbol('GHS') + parseToMoney(stole.price)}
-                      </p>
-                      <CustomButton
-                        onClick={() => navigate(`/product/3d/${stole.id}`)}
-                        className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
-                      >
-                        Use
-                      </CustomButton>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
-            </Slider>
+                  <div className="relative overflow-hidden bg-gray-100">
+                    <img
+                      src={stole.image}
+                      alt={stole.name}
+                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="mt-3">
+                    <CustomButton
+                      variant_type="primary"
+                      onPress={() => navigate('/design-your-own')}
+                      className="w-full text-sm font-medium bg-black text-white "
+                    >
+                      Design Now
+                    </CustomButton>
+                  </div>
+                </motion.div>
+              </div>
+            ))}
+            {/* </Slider> */}
           </div>
         </div>
       </section>
-
-      <div className="text-center mt-5 md:mt-10">
-        {/* <Link
-          to="/design-your-own"
-          className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-        >
-          View All
-        </Link> */}
-        <CustomButton variant_type="primary" className="">
-          View All
-        </CustomButton>
-      </div>
 
       {/* Shop with Friends Section */}
       <section className="py-20 bg-white">
@@ -385,7 +369,7 @@ const Home = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center mb-2"
           >
             <h2 className="text-2xl font-bold text-gray-900 mb-0 md:mb-2 uppercase">
               Your Journey, Your Way

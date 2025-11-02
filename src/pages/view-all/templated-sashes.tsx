@@ -9,7 +9,7 @@ export const TemplatedSashesPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
-      <section className="py-20 bg-gray-50">
+      <section className=" bg-gray-50 py-5">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -17,10 +17,10 @@ export const TemplatedSashesPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 capitalize">
               Your Perfect Sash Awaits!
             </h1>
-            <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto text-center">
               Discover our stunning collection of authentic Kente sashes. Each
               template is a masterpiece of traditional Ghanaian artistry,
               waiting to be transformed into your personal statement piece.
@@ -55,7 +55,7 @@ export const TemplatedSashesPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 capitalize">
               Want Something Truly Unique?
             </h2>
             <p className="text-sm md:text-base text-gray-600 mb-8">
