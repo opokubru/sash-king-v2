@@ -508,6 +508,11 @@ const ConfiguratorUnisex3D = () => {
 
   const handleTextClick = (side: 'left' | 'right') => {
     setEditingText(side);
+    // Regular tap - just select for inline editing, don't show bottom sheet
+  };
+
+  const handleTextLongPress = (side: 'left' | 'right') => {
+    setEditingText(side);
     setShowTextEditor(true);
   };
 
@@ -607,6 +612,7 @@ const ConfiguratorUnisex3D = () => {
                     transition={{ duration: 0.3 }}
                     className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
                     onClick={handleInstructionsDismiss}
+                    style={{ zIndex: 999998 }}
                   />
 
                   {/* Bottom Sheet */}
@@ -621,6 +627,7 @@ const ConfiguratorUnisex3D = () => {
                     }}
                     className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
                     onClick={(e) => e.stopPropagation()}
+                    style={{ zIndex: 999999 }}
                   >
                     {/* Drag Handle */}
                     <div className="flex justify-center pt-3 pb-2">
@@ -851,6 +858,10 @@ const ConfiguratorUnisex3D = () => {
                         onTextRightChange={setEnteredTextRight}
                         onTextLeftClick={() => handleTextClick('left')}
                         onTextRightClick={() => handleTextClick('right')}
+                        onTextLeftLongPress={() => handleTextLongPress('left')}
+                        onTextRightLongPress={() =>
+                          handleTextLongPress('right')
+                        }
                         selectedText={editingText}
                         disableInteractions={showTextEditor || showInstructions}
                       />
@@ -905,6 +916,7 @@ const ConfiguratorUnisex3D = () => {
                   transition={{ duration: 0.3 }}
                   className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
                   onClick={handleTextEditorClose}
+                  style={{ zIndex: 999998 }}
                 />
 
                 {/* Bottom Sheet */}
@@ -919,6 +931,7 @@ const ConfiguratorUnisex3D = () => {
                   }}
                   className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
                   onClick={(e) => e.stopPropagation()}
+                  style={{ zIndex: 999999 }}
                 >
                   {/* Drag Handle */}
                   <div className="flex justify-center pt-3 pb-2">

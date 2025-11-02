@@ -254,42 +254,6 @@ const Home = () => {
                   alt={slide.title}
                   className="w-full h-full object-contain "
                 />
-                {/* <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white max-w-4xl px-6">
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8 }}
-                    >
-                      <h1 className="text-xxl md:text-6xl lg:text-7xl font-bold mb-4">
-                        {slide.title}
-                      </h1>
-                      <p className="text-xl md:text-2xl mb-2 opacity-90">
-                        {slide.subtitle}
-                      </p>
-                      <h2 className="text-3xl md:text-6xl lg:text-7xl font-bold mb-4">
-                        {slide.description}
-                      </h2>
-                      <p className="text-lg md:text-xl mb-8 opacity-90">
-                        {slide.tagline}
-                      </p>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.8, delay: 0.4 }}
-                    >
-                      <Link
-                        to="/templated-sash"
-                        className="inline-block bg-white text-black px-4 py-2 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
-                      >
-                        Shop Now
-                      </Link>
-                    </motion.div>
-                  </div>
-                </div> */}
               </div>
             </div>
           ))}
@@ -305,7 +269,7 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
               Make It Uniquely Yours
             </h2>
             <p className="text-lg text-gray-600">
@@ -350,7 +314,7 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
               Design Your Dream Sash
             </h2>
             <p className="text-lg text-gray-600">
@@ -423,7 +387,7 @@ const Home = () => {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-0 md:mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-0 md:mb-2 uppercase">
               Your Journey, Your Way
             </h2>
           </motion.div>

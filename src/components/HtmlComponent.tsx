@@ -47,6 +47,8 @@ interface HtmlComponentProps {
   onTextRightChange?: (text: string) => void;
   onTextLeftClick?: () => void;
   onTextRightClick?: () => void;
+  onTextLeftLongPress?: () => void;
+  onTextRightLongPress?: () => void;
   selectedText?: 'left' | 'right' | null;
   disableInteractions?: boolean;
 }
@@ -68,6 +70,8 @@ const HtmlComponent = ({
   onTextRightChange,
   onTextLeftClick,
   onTextRightClick,
+  onTextLeftLongPress,
+  onTextRightLongPress,
   selectedText,
   disableInteractions = false,
 }: HtmlComponentProps) => {
@@ -77,6 +81,11 @@ const HtmlComponent = ({
   const [tempTextRight, setTempTextRight] = useState(textRight);
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
+
+  // Long press detection
+  const leftPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const rightPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const PRESS_DURATION = 500; // 500ms for long press
 
   useEffect(() => {
     setTempTextLeft(textLeft);
@@ -88,35 +97,175 @@ const HtmlComponent = ({
 
   useEffect(() => {
     if (editingLeft && leftInputRef.current) {
-      leftInputRef.current.focus();
-      leftInputRef.current.select();
+      // Use setTimeout to ensure the textarea is rendered before focusing
+      setTimeout(() => {
+        if (leftInputRef.current) {
+          leftInputRef.current.focus();
+          leftInputRef.current.select();
+        }
+      }, 0);
     }
   }, [editingLeft]);
 
   useEffect(() => {
     if (editingRight && rightInputRef.current) {
-      rightInputRef.current.focus();
-      rightInputRef.current.select();
+      // Use setTimeout to ensure the textarea is rendered before focusing
+      setTimeout(() => {
+        if (rightInputRef.current) {
+          rightInputRef.current.focus();
+          rightInputRef.current.select();
+        }
+      }, 0);
     }
   }, [editingRight]);
 
+  const handleLeftTextMouseDown = () => {
+    // Start timer for long press
+    leftPressTimer.current = setTimeout(() => {
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+      leftPressTimer.current = null;
+    }, PRESS_DURATION);
+  };
+
   const handleLeftTextClick = () => {
-    // Keep inline editing behavior
-    setEditingLeft(true);
-    // Also trigger bottom sheet if handler provided
-    if (onTextLeftClick) {
-      onTextLeftClick();
+    // Immediate click handler - go straight to edit
+    // This ensures keyboard appears on first click
+    if (!editingLeft) {
+      setEditingLeft(true);
+      if (onTextLeftClick) {
+        onTextLeftClick();
+      }
+    }
+    // Cancel any pending long press
+    if (leftPressTimer.current) {
+      clearTimeout(leftPressTimer.current);
+      leftPressTimer.current = null;
     }
   };
 
-  const handleRightTextClick = () => {
-    // Keep inline editing behavior
-    setEditingRight(true);
-    // Also trigger bottom sheet if handler provided
-    if (onTextRightClick) {
-      onTextRightClick();
+  const handleLeftTextMouseUp = () => {
+    // Cancel long press timer
+    if (leftPressTimer.current) {
+      clearTimeout(leftPressTimer.current);
+      leftPressTimer.current = null;
     }
   };
+
+  const handleLeftTextMouseLeave = () => {
+    // Cancel timer if mouse leaves
+    if (leftPressTimer.current) {
+      clearTimeout(leftPressTimer.current);
+      leftPressTimer.current = null;
+    }
+  };
+
+  const handleLeftTextTouchStart = (e: React.TouchEvent) => {
+    // Start timer for long press on touch
+    leftPressTimer.current = setTimeout(() => {
+      if (onTextLeftLongPress) {
+        e.preventDefault(); // Prevent click event
+        onTextLeftLongPress();
+      }
+      leftPressTimer.current = null;
+    }, PRESS_DURATION);
+  };
+
+  const handleLeftTextTouchEnd = () => {
+    // Cancel long press timer and handle tap immediately
+    if (leftPressTimer.current) {
+      clearTimeout(leftPressTimer.current);
+      leftPressTimer.current = null;
+      // Regular tap - go straight to edit (for touch devices)
+      if (!editingLeft) {
+        setEditingLeft(true);
+        if (onTextLeftClick) {
+          onTextLeftClick();
+        }
+      }
+    }
+  };
+
+  const handleRightTextMouseDown = () => {
+    // Start timer for long press
+    rightPressTimer.current = setTimeout(() => {
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+      rightPressTimer.current = null;
+    }, PRESS_DURATION);
+  };
+
+  const handleRightTextClick = () => {
+    // Immediate click handler - go straight to edit
+    // This ensures keyboard appears on first click
+    if (!editingRight) {
+      setEditingRight(true);
+      if (onTextRightClick) {
+        onTextRightClick();
+      }
+    }
+    // Cancel any pending long press
+    if (rightPressTimer.current) {
+      clearTimeout(rightPressTimer.current);
+      rightPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextMouseUp = () => {
+    // Cancel long press timer
+    if (rightPressTimer.current) {
+      clearTimeout(rightPressTimer.current);
+      rightPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextMouseLeave = () => {
+    // Cancel timer if mouse leaves
+    if (rightPressTimer.current) {
+      clearTimeout(rightPressTimer.current);
+      rightPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextTouchStart = (e: React.TouchEvent) => {
+    // Start timer for long press on touch
+    rightPressTimer.current = setTimeout(() => {
+      if (onTextRightLongPress) {
+        e.preventDefault(); // Prevent click event
+        onTextRightLongPress();
+      }
+      rightPressTimer.current = null;
+    }, PRESS_DURATION);
+  };
+
+  const handleRightTextTouchEnd = () => {
+    // Cancel long press timer and handle tap immediately
+    if (rightPressTimer.current) {
+      clearTimeout(rightPressTimer.current);
+      rightPressTimer.current = null;
+      // Regular tap - go straight to edit (for touch devices)
+      if (!editingRight) {
+        setEditingRight(true);
+        if (onTextRightClick) {
+          onTextRightClick();
+        }
+      }
+    }
+  };
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (leftPressTimer.current) {
+        clearTimeout(leftPressTimer.current);
+      }
+      if (rightPressTimer.current) {
+        clearTimeout(rightPressTimer.current);
+      }
+    };
+  }, []);
 
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
@@ -152,6 +301,7 @@ const HtmlComponent = ({
 
   return (
     <Html
+      className={disableInteractions ? 'html-disabled' : ''}
       style={{
         zIndex: disableInteractions ? -1 : 0,
         pointerEvents: disableInteractions ? 'none' : 'auto',
@@ -175,7 +325,8 @@ const HtmlComponent = ({
           textTransform: 'uppercase',
           lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
           fontFamily: fontFamily,
-          // opacity: textLeft !== '' ? 1 : 0.3,
+          opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
+          visibility: disableInteractions ? 'hidden' : 'visible',
           borderRadius: '4px',
           padding: '2px',
           border:
@@ -190,6 +341,11 @@ const HtmlComponent = ({
               : 'none',
         }}
         onClick={handleLeftTextClick}
+        onMouseDown={handleLeftTextMouseDown}
+        onMouseUp={handleLeftTextMouseUp}
+        onMouseLeave={handleLeftTextMouseLeave}
+        onTouchStart={handleLeftTextTouchStart}
+        onTouchEnd={handleLeftTextTouchEnd}
       >
         {editingLeft ? (
           <textarea
@@ -199,18 +355,25 @@ const HtmlComponent = ({
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
-              background: 'rgba(59, 130, 246, 0.1)',
-              border: '2px solid #3B82F6',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
               borderRadius: '4px',
-              padding: '4px',
+              padding: '2px',
               fontSize: textSizeleft,
               fontFamily: fontFamily,
               textTransform: 'uppercase',
               width: '100%',
               height: '100%',
-              color: '#fff',
+              color: textColor,
               resize: 'none',
               overflow: 'auto',
+              lineHeight: `${
+                ImprintTextPosition?.left?.lineHeight || '2.8rem'
+              }`,
+              textAlign: textLeft === '' ? 'center' : 'left',
+              display: 'flex',
+              alignItems: 'center',
             }}
           />
         ) : (
@@ -255,8 +418,8 @@ const HtmlComponent = ({
             overflow: 'hidden',
             textTransform: 'uppercase',
             fontFamily: fontFamily,
-            // opacity: textRight !== '' ? 1 : 0.3,
-            zIndex: 0.8,
+            opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+            visibility: disableInteractions ? 'hidden' : 'visible',
             borderRadius: '4px',
             padding: '2px',
             border:
@@ -271,6 +434,11 @@ const HtmlComponent = ({
                 : 'none',
           }}
           onClick={handleRightTextClick}
+          onMouseDown={handleRightTextMouseDown}
+          onMouseUp={handleRightTextMouseUp}
+          onMouseLeave={handleRightTextMouseLeave}
+          onTouchStart={handleRightTextTouchStart}
+          onTouchEnd={handleRightTextTouchEnd}
         >
           {editingRight ? (
             <textarea
@@ -280,18 +448,25 @@ const HtmlComponent = ({
               onBlur={handleRightTextBlur}
               onKeyDown={handleRightTextKeyDown}
               style={{
-                background: 'rgba(59, 130, 246, 0.1)',
-                border: '2px solid #3B82F6',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
                 borderRadius: '4px',
-                padding: '4px',
+                padding: '2px',
                 fontSize: textSizeRight,
                 fontFamily: fontFamily,
                 textTransform: 'uppercase',
                 width: '100%',
                 height: '100%',
-                color: '#fff',
+                color: textColor,
                 resize: 'none',
                 overflow: 'auto',
+                lineHeight: `${
+                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                }`,
+                textAlign: textRight === '' ? 'center' : 'left',
+                display: 'flex',
+                alignItems: 'center',
               }}
             />
           ) : (

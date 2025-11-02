@@ -55,7 +55,7 @@ input[type='number']::-webkit-outer-spin-button {
 }
 
 /* Bottom sheet z-index override */
-/* .bottom-sheet-backdrop {
+.bottom-sheet-backdrop {
   z-index: 999998 !important;
   isolation: isolate;
 }
@@ -64,9 +64,10 @@ input[type='number']::-webkit-outer-spin-button {
   z-index: 999999 !important;
   isolation: isolate;
   position: fixed !important;
-} */
+}
 
-/* Force drei Html overlays below bottom sheets */
-[data-three-html] {
-  z-index: 0 !important;
+/* Force drei Html overlays below bottom sheets when disabled */
+.html-disabled,
+[data-three-html].html-disabled {
+  z-index: -1 !important;
 }

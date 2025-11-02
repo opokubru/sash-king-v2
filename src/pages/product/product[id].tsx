@@ -91,10 +91,6 @@ const ConfiguratorUnisexSpecial = () => {
   // Declare state for entered text and generated texture
   const [enteredTextLeft, setEnteredTextLeft] = useState('');
   const [enteredTextRight, setEnteredTextRight] = useState('');
-  // const [activeTab, setActiveTab] = useState<'left' | 'right'>('left');
-  // const [textLeftOrientation, setTextLeftOrientation] = useState('horizontal');
-  // const [textRightOrientation, setTextRightOrientation] =
-  //   useState('horizontal');
 
   // const [textPosition] = useState([-0.65, -0.15, 0.05]); // Initialize text position
   const [textColor, setTextColor] = useState(
@@ -122,34 +118,8 @@ const ConfiguratorUnisexSpecial = () => {
     null,
   );
 
-  // const [firebaseImageLeft, setFirebaseImageLeft] = useState<string | null>(
-  //   null,
-  // );
-  // const [firebaseImageRight, setFirebaseImageRight] = useState<string | null>(
-  //   null,
-  // );
-
-  // const imageLeftRef = useRef();
-  // const imageRightRef = useRef();
-
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
-
-  // Early return if no product found
-  // if (!selectedClothing) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <h1 className="text-2xl font-bold text-gray-900 mb-4">
-  //           Product Not Found
-  //         </h1>
-  //         <p className="text-gray-600">
-  //           The requested sash template could not be found.
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
@@ -240,26 +210,6 @@ const ConfiguratorUnisexSpecial = () => {
     return () => clearTimeout(loadingTimeout);
   }, []);
 
-  // const handleLeftTextOrientation = () => {
-  //   if (textLeftOrientation === 'horizontal') {
-  //     setTextLeftOrientation('vertical');
-  //   }
-
-  //   if (textLeftOrientation === 'vertical') {
-  //     setTextLeftOrientation('horizontal');
-  //   }
-  // };
-
-  // const handleRightTextOrientation = () => {
-  //   if (textRightOrientation === 'horizontal') {
-  //     setTextRightOrientation('vertical');
-  //   }
-
-  //   if (textRightOrientation === 'vertical') {
-  //     setTextRightOrientation('horizontal');
-  //   }
-  // };
-
   const handleChangeFont = () => {
     let newIndex = currentFontIndex + 1;
 
@@ -288,15 +238,6 @@ const ConfiguratorUnisexSpecial = () => {
   const decreaseFontSizeRight = () => {
     setFontSizeRight((prevSize: any) => prevSize - 1);
   };
-
-  // Create an array to store selected parts with their color and texture information
-  // const selectedParts = selectedClothing?.myNode?.map((nodeName, index) => ({
-  //   name: nodeName.name,
-  //   color: state.color[index] || null,
-  //   texture: state.texture[index] || null,
-  // }));
-
-  // Confrimation or not
 
   // Helper function to convert blob URL to data URL
   const blobToDataURL = (blobUrl: string): Promise<string> => {
@@ -454,6 +395,11 @@ const ConfiguratorUnisexSpecial = () => {
 
   const handleTextClick = (side: 'left' | 'right') => {
     setEditingText(side);
+    // Regular tap - just select for inline editing, don't show bottom sheet
+  };
+
+  const handleTextLongPress = (side: 'left' | 'right') => {
+    setEditingText(side);
     setShowTextEditor(true);
   };
 
@@ -461,28 +407,6 @@ const ConfiguratorUnisexSpecial = () => {
     setShowTextEditor(false);
     setEditingText(null);
   };
-
-  // const handleRetakeTour = () => {
-  //   setShowTour(true);
-  // };
-
-  // customer height
-  // const [gender, setGender] = useState('');
-  // const [beadType, setBeadType] = useState('Glass');
-
-  // const handleAllPartsClick = () => {
-  //   setSelectedPart(0); // Use 0 instead of 'all'
-  // };
-
-  // const handleSelectPart = (index: number) => {
-  //   if (selectedPart === index) {
-  //     setShowGlow(false);
-  //     setSelectedPart(null);
-  //     return;
-  //   }
-  //   setSelectedPart(index);
-  //   setShowGlow(true);
-  // };
 
   const demoType = useMemo(() => {
     if (selectedClothing?.name === 'Earring') {
@@ -553,6 +477,7 @@ const ConfiguratorUnisexSpecial = () => {
                     transition={{ duration: 0.3 }}
                     className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
                     onClick={handleInstructionsDismiss}
+                    style={{ zIndex: 999998 }}
                   />
 
                   {/* Bottom Sheet */}
@@ -567,6 +492,7 @@ const ConfiguratorUnisexSpecial = () => {
                     }}
                     className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
                     onClick={(e) => e.stopPropagation()}
+                    style={{ zIndex: 999999 }}
                   >
                     {/* Drag Handle */}
                     <div className="flex justify-center pt-3 pb-2">
@@ -605,8 +531,8 @@ const ConfiguratorUnisexSpecial = () => {
                         <div className="flex items-center gap-2">
                           <i className="pi pi-palette text-purple-500"></i>
                           <span>
-                            Use the "Format Text" button to change colors,
-                            fonts, and sizes
+                            Long press on text to change colors, fonts, and
+                            sizes
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -827,23 +753,6 @@ const ConfiguratorUnisexSpecial = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 relative">
-            {/* Edit Button */}
-            {/* <button
-              onClick={() => {
-                if (!showTextEditor) {
-                  // Open editor for the currently selected text or default to left
-                  setEditingText(editingText || 'left');
-                  setShowTextEditor(true);
-                } else {
-                  handleTextEditorClose();
-                }
-              }}
-              className="absolute top-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transition-colors"
-            >
-              <i className="pi pi-pencil mr-2"></i>
-              Edit Text
-            </button> */}
-
             <div
               ref={canvasContainerRef}
               className="right-panel h-[40rem] lg:h-[80vh]"
@@ -896,6 +805,8 @@ const ConfiguratorUnisexSpecial = () => {
                       onTextRightChange={setEnteredTextRight}
                       onTextLeftClick={() => handleTextClick('left')}
                       onTextRightClick={() => handleTextClick('right')}
+                      onTextLeftLongPress={() => handleTextLongPress('left')}
+                      onTextRightLongPress={() => handleTextLongPress('right')}
                       selectedText={editingText}
                       disableInteractions={showTextEditor || showInstructions}
                     />
@@ -934,6 +845,7 @@ const ConfiguratorUnisexSpecial = () => {
                   transition={{ duration: 0.3 }}
                   className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
                   onClick={handleTextEditorClose}
+                  style={{ zIndex: 999998 }}
                 />
 
                 {/* Bottom Sheet */}
@@ -948,6 +860,7 @@ const ConfiguratorUnisexSpecial = () => {
                   }}
                   className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
                   onClick={(e) => e.stopPropagation()}
+                  style={{ zIndex: 999999 }}
                 >
                   {/* Drag Handle */}
                   <div className="flex justify-center pt-3 pb-2">
