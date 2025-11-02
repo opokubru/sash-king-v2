@@ -30,22 +30,59 @@
 }
 
 input,
-select {
+select,
+textarea {
   font-size: 16px;
+  touch-action: manipulation; /* Prevents double-tap zoom, improves keyboard responsiveness */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1); /* Show tap feedback */
+  -webkit-touch-callout: none; /* Disable long-press menu */
+  -webkit-user-select: text; /* Allow text selection */
+  user-select: text;
 }
 
 textarea {
-  font-size: 16px;
+  /* Use font-size scaling instead of transform to avoid coordinate issues */
+  font-size: 14px;
+  line-height: 1.4;
   transform: scale(0.875); /* ~14px look */
   transform-origin: left center;
 }
 
 @supports (-webkit-touch-callout: none) {
   input,
+  select,
   textarea {
     font-size: 16px;
-    transform: scale(0.75);
-    transform-origin: left center;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  textarea {
+    font-size: 12px; /* Smaller size for iOS */
+    line-height: 1.4;
+  }
+}
+
+/* Ensure inputs are immediately focusable on touch */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Force immediate focus on touch for mobile */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    cursor: text;
+    /* Remove any delays */
+    -webkit-appearance: none;
+    appearance: none;
   }
 }
 
