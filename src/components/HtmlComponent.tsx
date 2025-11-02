@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
-import { separateWordsWithLineBreak } from '@/utils/helper';
 import { useState, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface HtmlComponentProps {
   textLeft: string;
@@ -85,6 +85,10 @@ const HtmlComponent = ({
   // Long press detection
   const leftPressTimer = useRef<NodeJS.Timeout | null>(null);
   const rightPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const leftTouchStartTime = useRef<number | null>(null);
+  const rightTouchStartTime = useRef<number | null>(null);
+  const leftTouchHandled = useRef<boolean>(false);
+  const rightTouchHandled = useRef<boolean>(false);
   const PRESS_DURATION = 500; // 500ms for long press
 
   useEffect(() => {
@@ -130,6 +134,11 @@ const HtmlComponent = ({
   };
 
   const handleLeftTextClick = () => {
+    // Prevent click from firing if touch was already handled
+    if (leftTouchHandled.current) {
+      leftTouchHandled.current = false;
+      return;
+    }
     // Immediate click handler - go straight to edit
     // This ensures keyboard appears on first click
     if (!editingLeft) {
@@ -162,29 +171,44 @@ const HtmlComponent = ({
   };
 
   const handleLeftTextTouchStart = (e: React.TouchEvent) => {
+    leftTouchStartTime.current = Date.now();
+    leftTouchHandled.current = false;
     // Start timer for long press on touch
     leftPressTimer.current = setTimeout(() => {
       if (onTextLeftLongPress) {
         e.preventDefault(); // Prevent click event
         onTextLeftLongPress();
+        leftTouchHandled.current = true;
       }
       leftPressTimer.current = null;
     }, PRESS_DURATION);
   };
 
-  const handleLeftTextTouchEnd = () => {
-    // Cancel long press timer and handle tap immediately
+  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
+    const touchDuration = leftTouchStartTime.current
+      ? Date.now() - leftTouchStartTime.current
+      : 0;
+
+    // Cancel long press timer
     if (leftPressTimer.current) {
       clearTimeout(leftPressTimer.current);
       leftPressTimer.current = null;
-      // Regular tap - go straight to edit (for touch devices)
+    }
+
+    // If it was a short tap (not long press), enter edit mode immediately
+    if (touchDuration < PRESS_DURATION && !leftTouchHandled.current) {
       if (!editingLeft) {
+        leftTouchHandled.current = true;
         setEditingLeft(true);
         if (onTextLeftClick) {
           onTextLeftClick();
         }
+        // Prevent click event from firing
+        e.preventDefault();
       }
     }
+
+    leftTouchStartTime.current = null;
   };
 
   const handleRightTextMouseDown = () => {
@@ -198,6 +222,11 @@ const HtmlComponent = ({
   };
 
   const handleRightTextClick = () => {
+    // Prevent click from firing if touch was already handled
+    if (rightTouchHandled.current) {
+      rightTouchHandled.current = false;
+      return;
+    }
     // Immediate click handler - go straight to edit
     // This ensures keyboard appears on first click
     if (!editingRight) {
@@ -230,29 +259,44 @@ const HtmlComponent = ({
   };
 
   const handleRightTextTouchStart = (e: React.TouchEvent) => {
+    rightTouchStartTime.current = Date.now();
+    rightTouchHandled.current = false;
     // Start timer for long press on touch
     rightPressTimer.current = setTimeout(() => {
       if (onTextRightLongPress) {
         e.preventDefault(); // Prevent click event
         onTextRightLongPress();
+        rightTouchHandled.current = true;
       }
       rightPressTimer.current = null;
     }, PRESS_DURATION);
   };
 
-  const handleRightTextTouchEnd = () => {
-    // Cancel long press timer and handle tap immediately
+  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
+    const touchDuration = rightTouchStartTime.current
+      ? Date.now() - rightTouchStartTime.current
+      : 0;
+
+    // Cancel long press timer
     if (rightPressTimer.current) {
       clearTimeout(rightPressTimer.current);
       rightPressTimer.current = null;
-      // Regular tap - go straight to edit (for touch devices)
+    }
+
+    // If it was a short tap (not long press), enter edit mode immediately
+    if (touchDuration < PRESS_DURATION && !rightTouchHandled.current) {
       if (!editingRight) {
+        rightTouchHandled.current = true;
         setEditingRight(true);
         if (onTextRightClick) {
           onTextRightClick();
         }
+        // Prevent click event from firing
+        e.preventDefault();
       }
     }
+
+    rightTouchStartTime.current = null;
   };
 
   // Cleanup timers on unmount
@@ -267,33 +311,155 @@ const HtmlComponent = ({
     };
   }, []);
 
+  // Helper function to wrap text at 7 characters per line
+  const wrapTextAt7Chars = (text: string): string => {
+    const lines: string[] = [];
+    const currentLines = text.split('\n');
+
+    for (const line of currentLines) {
+      let remaining = line;
+
+      while (remaining.length > 0) {
+        if (remaining.length <= 7) {
+          lines.push(remaining);
+          break;
+        }
+
+        // Try to break at word boundary first (space within first 7 chars)
+        const first7Chars = remaining.substring(0, 7);
+        const lastSpaceIndex = first7Chars.lastIndexOf(' ');
+
+        let breakPoint = 7;
+        if (lastSpaceIndex > 0) {
+          // Break after the space
+          breakPoint = lastSpaceIndex + 1;
+        }
+
+        lines.push(remaining.substring(0, breakPoint));
+        // Trim leading spaces from next line
+        remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
+      }
+    }
+
+    return lines.join('\n');
+  };
+
+  // Helper function to convert wrapped text (with \n) to HTML (with <br>)
+  const wrapTextToHtml = (text: string): string => {
+    const wrappedText = wrapTextAt7Chars(text);
+    return wrappedText.split('\n').join('<br>');
+  };
+
+  // Helper function to get current line count
+  const getLineCount = (text: string): number => {
+    return text.split('\n').length;
+  };
+
+  const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
+    // Wrapping will be applied when displaying (escaped mode) or on blur
+    const lineCount = getLineCount(newText);
+    if (lineCount > 3) {
+      // Prevent typing and show toast notification
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return; // Don't update the text
+    }
+
+    setTempTextLeft(newText);
+  };
+
+  const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+
+    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
+    // Wrapping will be applied when displaying (escaped mode) or on blur
+    const lineCount = getLineCount(newText);
+    if (lineCount > 3) {
+      // Prevent typing and show toast notification
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return; // Don't update the text
+    }
+
+    setTempTextRight(newText);
+  };
+
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
     if (onTextLeftChange) {
-      onTextLeftChange(tempTextLeft);
+      // Apply wrapping when saving the text
+      const wrappedText = wrapTextAt7Chars(tempTextLeft);
+      onTextLeftChange(wrappedText);
     }
   };
 
   const handleRightTextBlur = () => {
     setEditingRight(false);
     if (onTextRightChange) {
-      onTextRightChange(tempTextRight);
+      // Apply wrapping when saving the text
+      const wrappedText = wrapTextAt7Chars(tempTextRight);
+      onTextRightChange(wrappedText);
     }
   };
 
-  const handleLeftTextKeyDown = (e: React.KeyboardEvent) => {
+  const handleLeftTextKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    // Handle Enter key - allow manual line breaks
     if (e.key === 'Enter') {
-      handleLeftTextBlur();
-    } else if (e.key === 'Escape') {
+      // Use the actual textarea value (not state) to get current text
+      const textarea = e.currentTarget;
+      const currentValue = textarea.value;
+      const currentLineCount = getLineCount(currentValue);
+
+      // Prevent Enter if it would exceed 3 lines
+      if (currentLineCount >= 3) {
+        e.preventDefault();
+        toast.error('Maximum 3 lines allowed', {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Escape to cancel editing
+    if (e.key === 'Escape') {
       setTempTextLeft(textLeft);
       setEditingLeft(false);
     }
   };
 
-  const handleRightTextKeyDown = (e: React.KeyboardEvent) => {
+  const handleRightTextKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    // Handle Enter key - allow manual line breaks
     if (e.key === 'Enter') {
-      handleRightTextBlur();
-    } else if (e.key === 'Escape') {
+      // Use the actual textarea value (not state) to get current text
+      const textarea = e.currentTarget;
+      const currentValue = textarea.value;
+      const currentLineCount = getLineCount(currentValue);
+
+      // Prevent Enter if it would exceed 3 lines
+      if (currentLineCount >= 3) {
+        e.preventDefault();
+        toast.error('Maximum 3 lines allowed', {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Escape to cancel editing
+    if (e.key === 'Escape') {
       setTempTextRight(textRight);
       setEditingRight(false);
     }
@@ -351,7 +517,7 @@ const HtmlComponent = ({
           <textarea
             ref={leftInputRef as any}
             value={tempTextLeft}
-            onChange={(e) => setTempTextLeft(e.target.value)}
+            onChange={handleLeftTextChange}
             onBlur={handleLeftTextBlur}
             onKeyDown={handleLeftTextKeyDown}
             style={{
@@ -359,7 +525,8 @@ const HtmlComponent = ({
               border: 'none',
               outline: 'none',
               borderRadius: '4px',
-              padding: '2px',
+              padding: '0',
+              margin: '0',
               fontSize: textSizeleft,
               fontFamily: fontFamily,
               textTransform: 'uppercase',
@@ -367,32 +534,41 @@ const HtmlComponent = ({
               height: '100%',
               color: textColor,
               resize: 'none',
-              overflow: 'auto',
+              overflow: 'hidden',
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              wordBreak: 'normal',
+              whiteSpace: 'pre-wrap',
               lineHeight: `${
                 ImprintTextPosition?.left?.lineHeight || '2.8rem'
               }`,
               textAlign: textLeft === '' ? 'center' : 'left',
-              display: 'flex',
-              alignItems: 'center',
+              display: 'block',
+              boxSizing: 'border-box',
             }}
           />
         ) : (
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               width: '100%',
               height: '100%',
               textAlign: textLeft === '' ? 'center' : 'left',
+              lineHeight: `${
+                ImprintTextPosition?.left?.lineHeight || '2.8rem'
+              }`,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              wordBreak: 'normal',
+              whiteSpace: 'pre-wrap',
+              display: 'block',
             }}
             dangerouslySetInnerHTML={{
               __html: hideRightText
                 ? textLeft !== ''
-                  ? textLeft
+                  ? wrapTextToHtml(textLeft)
                   : 'TAP TO ADD TEXT'
                 : textLeft !== ''
-                ? separateWordsWithLineBreak(textLeft)
+                ? wrapTextToHtml(textLeft)
                 : 'TAP TO ADD TEXT',
             }}
           />
@@ -444,7 +620,7 @@ const HtmlComponent = ({
             <textarea
               ref={rightInputRef as any}
               value={tempTextRight}
-              onChange={(e) => setTempTextRight(e.target.value)}
+              onChange={handleRightTextChange}
               onBlur={handleRightTextBlur}
               onKeyDown={handleRightTextKeyDown}
               style={{
@@ -452,7 +628,8 @@ const HtmlComponent = ({
                 border: 'none',
                 outline: 'none',
                 borderRadius: '4px',
-                padding: '2px',
+                padding: '0',
+                margin: '0',
                 fontSize: textSizeRight,
                 fontFamily: fontFamily,
                 textTransform: 'uppercase',
@@ -460,29 +637,38 @@ const HtmlComponent = ({
                 height: '100%',
                 color: textColor,
                 resize: 'none',
-                overflow: 'auto',
+                overflow: 'hidden',
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                wordBreak: 'normal',
+                whiteSpace: 'pre-wrap',
                 lineHeight: `${
                   ImprintTextPosition?.right?.lineHeight || '2.8rem'
                 }`,
                 textAlign: textRight === '' ? 'center' : 'left',
-                display: 'flex',
-                alignItems: 'center',
+                display: 'block',
+                boxSizing: 'border-box',
               }}
             />
           ) : (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 width: '100%',
                 height: '100%',
                 textAlign: textRight === '' ? 'center' : 'left',
+                lineHeight: `${
+                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                }`,
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                wordBreak: 'normal',
+                whiteSpace: 'pre-wrap',
+                display: 'block',
               }}
               dangerouslySetInnerHTML={{
                 __html:
                   textRight !== ''
-                    ? separateWordsWithLineBreak(textRight)
+                    ? wrapTextToHtml(textRight)
                     : 'TAP TO ADD TEXT',
               }}
             />

@@ -518,29 +518,26 @@ const ConfiguratorUnisexSpecial = () => {
                       <div className="space-y-3 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
                           <i className="pi pi-info-circle text-blue-500"></i>
-                          <span>
-                            Click directly on text in the 3D model to edit it
-                          </span>
+                          <span>Click directly on text to edit it</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <i className="pi pi-image text-green-500"></i>
                           <span>
-                            Click on image areas to upload logos or images
+                            Click on image box to upload logos or images
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <i className="pi pi-palette text-purple-500"></i>
                           <span>
                             Long press on text to change colors, fonts, and
-                            sizes
+                            sizes to fit space available
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        {/* <div className="flex items-center gap-2">
                           <i className="pi pi-text text-purple-500"></i>
                           <span>Use space to wrap text to the next line</span>
-                        </div>
+                        </div> */}
                       </div>
-
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={handleInstructionsDismiss}
@@ -881,7 +878,7 @@ const ConfiguratorUnisexSpecial = () => {
                       </button>
                     </div>
 
-                    <section className="overflow-y-auto h-full max-h-[6rem]">
+                    <section className="overflow-y-auto h-full max-h-[10rem]">
                       {/* Font Size Controls */}
                       <div className="mb-4 ">
                         <label className="block text-xs font-medium text-gray-700 mb-2">
