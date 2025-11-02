@@ -2,14 +2,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ProductCard } from '@/components/ProductCard';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { TemplatedSash } from '@/lib/templated-sash';
 import { ThreeDSashes } from '@/lib/3d-sash';
-import { getCurrencySymbol, parseToMoney } from '@/utils/helper';
 import { CustomButton } from '@/components/shared/shared_customs';
 
 const Home = () => {
@@ -64,32 +63,32 @@ const Home = () => {
   };
 
   // Greek stoles carousel settings
-  const greekSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 1,
-    autoplay: false,
-    autoplaySpeed: 4000,
-    arrows: true,
-    responsive: [
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        },
-      },
-    ],
-  };
+  // const greekSettings = {
+  //   dots: true,
+  //   infinite: true,
+  //   speed: 500,
+  //   slidesToShow: 3,
+  //   slidesToScroll: 1,
+  //   autoplay: false,
+  //   autoplaySpeed: 4000,
+  //   arrows: true,
+  //   responsive: [
+  //     {
+  //       breakpoint: 768,
+  //       settings: {
+  //         slidesToShow: 2,
+  //         slidesToScroll: 1,
+  //       },
+  //     },
+  //     {
+  //       breakpoint: 480,
+  //       settings: {
+  //         slidesToShow: 1,
+  //         slidesToScroll: 1,
+  //       },
+  //     },
+  //   ],
+  // };
 
   // Hero carousel slides data
   const heroSlides = [
