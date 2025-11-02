@@ -12,7 +12,7 @@ export const ThreeDSashesPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -20,20 +20,20 @@ export const ThreeDSashesPage = () => {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Design Your Sash in 3D!
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 capitalize">
+              Design Your Sash from scratch
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Step into the future of sash design! Our cutting-edge 3D platform
-              gives you complete creative control. Position logos, customize
-              text, and see your vision come to life in real-time.
+            <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto text-center">
+              Step into the future of sash design! Our cutting-edge 3D
+              interactive tools give you complete creative control. See your
+              vision come to life in real-time.
             </p>
           </motion.div>
         </div>
       </section>
 
       {/* Products Grid */}
-      <section className="py-20">
+      <section className="">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {ThreeDSashes.map((stole, index) => (
@@ -79,9 +79,9 @@ export const ThreeDSashesPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-16"
+            className="text-center "
           >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 capitalize">
               Why 3D Design Changes Everything
             </h2>
           </motion.div>
