@@ -881,7 +881,7 @@ const ConfiguratorUnisexSpecial = () => {
                       </button>
                     </div>
 
-                    <section className="overflow-y-auto h-full max-h-[6rem]">
+                    <section className="overflow-y-auto h-full max-h-[10rem]">
                       {/* Font Size Controls */}
                       <div className="mb-4 ">
                         <label className="block text-xs font-medium text-gray-700 mb-2">

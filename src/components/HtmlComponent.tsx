@@ -85,6 +85,10 @@ const HtmlComponent = ({
   // Long press detection
   const leftPressTimer = useRef<NodeJS.Timeout | null>(null);
   const rightPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const leftTouchStartTime = useRef<number | null>(null);
+  const rightTouchStartTime = useRef<number | null>(null);
+  const leftTouchHandled = useRef<boolean>(false);
+  const rightTouchHandled = useRef<boolean>(false);
   const PRESS_DURATION = 500; // 500ms for long press
 
   useEffect(() => {
@@ -130,6 +134,11 @@ const HtmlComponent = ({
   };
 
   const handleLeftTextClick = () => {
+    // Prevent click from firing if touch was already handled
+    if (leftTouchHandled.current) {
+      leftTouchHandled.current = false;
+      return;
+    }
     // Immediate click handler - go straight to edit
     // This ensures keyboard appears on first click
     if (!editingLeft) {
@@ -162,29 +171,44 @@ const HtmlComponent = ({
   };
 
   const handleLeftTextTouchStart = (e: React.TouchEvent) => {
+    leftTouchStartTime.current = Date.now();
+    leftTouchHandled.current = false;
     // Start timer for long press on touch
     leftPressTimer.current = setTimeout(() => {
       if (onTextLeftLongPress) {
         e.preventDefault(); // Prevent click event
         onTextLeftLongPress();
+        leftTouchHandled.current = true;
       }
       leftPressTimer.current = null;
     }, PRESS_DURATION);
   };
 
-  const handleLeftTextTouchEnd = () => {
-    // Cancel long press timer and handle tap immediately
+  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
+    const touchDuration = leftTouchStartTime.current
+      ? Date.now() - leftTouchStartTime.current
+      : 0;
+
+    // Cancel long press timer
     if (leftPressTimer.current) {
       clearTimeout(leftPressTimer.current);
       leftPressTimer.current = null;
-      // Regular tap - go straight to edit (for touch devices)
+    }
+
+    // If it was a short tap (not long press), enter edit mode immediately
+    if (touchDuration < PRESS_DURATION && !leftTouchHandled.current) {
       if (!editingLeft) {
+        leftTouchHandled.current = true;
         setEditingLeft(true);
         if (onTextLeftClick) {
           onTextLeftClick();
         }
+        // Prevent click event from firing
+        e.preventDefault();
       }
     }
+
+    leftTouchStartTime.current = null;
   };
 
   const handleRightTextMouseDown = () => {
@@ -198,6 +222,11 @@ const HtmlComponent = ({
   };
 
   const handleRightTextClick = () => {
+    // Prevent click from firing if touch was already handled
+    if (rightTouchHandled.current) {
+      rightTouchHandled.current = false;
+      return;
+    }
     // Immediate click handler - go straight to edit
     // This ensures keyboard appears on first click
     if (!editingRight) {
@@ -230,29 +259,44 @@ const HtmlComponent = ({
   };
 
   const handleRightTextTouchStart = (e: React.TouchEvent) => {
+    rightTouchStartTime.current = Date.now();
+    rightTouchHandled.current = false;
     // Start timer for long press on touch
     rightPressTimer.current = setTimeout(() => {
       if (onTextRightLongPress) {
         e.preventDefault(); // Prevent click event
         onTextRightLongPress();
+        rightTouchHandled.current = true;
       }
       rightPressTimer.current = null;
     }, PRESS_DURATION);
   };
 
-  const handleRightTextTouchEnd = () => {
-    // Cancel long press timer and handle tap immediately
+  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
+    const touchDuration = rightTouchStartTime.current
+      ? Date.now() - rightTouchStartTime.current
+      : 0;
+
+    // Cancel long press timer
     if (rightPressTimer.current) {
       clearTimeout(rightPressTimer.current);
       rightPressTimer.current = null;
-      // Regular tap - go straight to edit (for touch devices)
+    }
+
+    // If it was a short tap (not long press), enter edit mode immediately
+    if (touchDuration < PRESS_DURATION && !rightTouchHandled.current) {
       if (!editingRight) {
+        rightTouchHandled.current = true;
         setEditingRight(true);
         if (onTextRightClick) {
           onTextRightClick();
         }
+        // Prevent click event from firing
+        e.preventDefault();
       }
     }
+
+    rightTouchStartTime.current = null;
   };
 
   // Cleanup timers on unmount
@@ -282,18 +326,18 @@ const HtmlComponent = ({
   };
 
   const handleLeftTextKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleLeftTextBlur();
-    } else if (e.key === 'Escape') {
+    // Enter key now creates a new line (default textarea behavior)
+    // Only handle Escape to cancel editing
+    if (e.key === 'Escape') {
       setTempTextLeft(textLeft);
       setEditingLeft(false);
     }
   };
 
   const handleRightTextKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleRightTextBlur();
-    } else if (e.key === 'Escape') {
+    // Enter key now creates a new line (default textarea behavior)
+    // Only handle Escape to cancel editing
+    if (e.key === 'Escape') {
       setTempTextRight(textRight);
       setEditingRight(false);
     }
