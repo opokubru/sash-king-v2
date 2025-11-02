@@ -7,11 +7,13 @@ import { Link } from 'react-router-dom';
 interface ProductCardProps {
   product: Product;
   height?: string;
+  hideoverlay?: boolean;
 }
 
 export const ProductCard = ({
   product,
   height = 'h-[400px] md:h-[500px]',
+  hideoverlay = false,
 }: ProductCardProps) => {
   const { name, price, discount, image } = product;
   const finalPrice = discount ? price - price * (discount / 100) : price;
@@ -28,16 +30,20 @@ export const ProductCard = ({
           />
 
           {/* Price Overlay */}
-          <div className="absolute bottom-3 left-3 bg-black bg-opacity-75 text-white px-3 py-1 rounded-full text-sm font-semibold backdrop-blur-sm">
-            {getCurrencySymbol('GHS') + parseToMoney(finalPrice)}
-          </div>
+          {!hideoverlay && (
+            <div className="absolute bottom-3 left-3 bg-black bg-opacity-75 text-white px-3 py-1 rounded-full text-sm font-semibold backdrop-blur-sm">
+              {getCurrencySymbol('GHS') + parseToMoney(finalPrice)}
+            </div>
+          )}
 
           {/* Edit Template Overlay */}
-          <div className="absolute inset-0 rounded-md flex items-center justify-center">
-            <div className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold">
-              Edit Template
+          {!hideoverlay && (
+            <div className="absolute inset-0 rounded-md flex items-center justify-center">
+              <div className="bg-white text-black px-4 py-2 rounded-full text-sm font-semibold">
+                Edit Template
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Link>
     </div>

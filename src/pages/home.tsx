@@ -14,18 +14,18 @@ import { CustomButton } from '@/components/shared/shared_customs';
 const Home = () => {
   const navigate = useNavigate();
   // Hero carousel settings
-  const heroSettings = {
-    dots: true,
-    infinite: true,
-    speed: 1000,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: false,
-    autoplaySpeed: 4000,
-    fade: true,
-    cssEase: 'linear',
-    arrows: true,
-  };
+  // const heroSettings = {
+  //   dots: true,
+  //   infinite: true,
+  //   speed: 1000,
+  //   slidesToShow: 1,
+  //   slidesToScroll: 1,
+  //   autoplay: false,
+  //   autoplaySpeed: 4000,
+  //   fade: true,
+  //   cssEase: 'linear',
+  //   arrows: true,
+  // };
 
   // Products carousel settings
   const productsSettings = {
@@ -99,30 +99,6 @@ const Home = () => {
       subtitle: 'Every Thread Tells a Tale',
       description: 'Authentic Kente Sashes',
       tagline: 'Crafted with Pride, Worn with Purpose',
-    },
-    {
-      id: 2,
-      image: '/images/carousel/landing-page-re-3.webp',
-      title: 'Graduate Like Royalty',
-      subtitle: 'Your Crown Awaits',
-      description: 'Premium Graduation Sashes',
-      tagline: 'Because You Earned This Moment',
-    },
-    {
-      id: 3,
-      image: '/images/carousel/landing-page-re-3.webp',
-      title: 'Brotherhood & Sisterhood',
-      subtitle: 'Wear Your Letters with Pride',
-      description: 'Faculty & College Sashes',
-      tagline: 'Unity in Every Stitch',
-    },
-    {
-      id: 4,
-      image: '/images/carousel/landing-page-re-3.webp',
-      title: 'Create Your Legacy',
-      subtitle: 'From Vision to Reality',
-      description: 'Custom Made Sashes',
-      tagline: 'Your Imagination, Our Mastery',
     },
   ];
 
@@ -244,19 +220,19 @@ const Home = () => {
       `}</style>
       {/* Hero Carousel Section */}
       <section className="relative pb-5">
-        <Slider {...heroSettings} className="hero-carousel">
-          {heroSlides.map((slide) => (
-            <div key={slide.id} className="relative">
-              <div className="relative  flex items-center justify-center">
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className="w-full h-full object-contain "
-                />
-              </div>
+        {/* <Slider {...heroSettings} className="hero-carousel"> */}
+        {heroSlides.map((slide) => (
+          <div key={slide.id} className="relative">
+            <div className="relative  flex items-center justify-center">
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full h-full object-contain "
+              />
             </div>
-          ))}
-        </Slider>
+          </div>
+        ))}
+        {/* </Slider> */}
       </section>
 
       {/* Featured Products Section */}

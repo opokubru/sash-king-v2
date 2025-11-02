@@ -40,7 +40,11 @@ export const TemplatedSashesPage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <ProductCard height="h-[200px] md:h-[300px]" product={sash} />
+                <ProductCard
+                  hideoverlay={true}
+                  height="h-[200px] md:h-[300px]"
+                  product={sash}
+                />
               </motion.div>
             ))}
           </div>
