@@ -35,7 +35,7 @@ const Home = () => {
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: false,
     autoplaySpeed: 3000,
     arrows: true,
     responsive: [
@@ -296,46 +296,6 @@ const Home = () => {
         </Slider>
       </section>
 
-      {/* Graduation Message Section */}
-      {/* <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              BECAUSE YOU WORKED HARD FOR THIS DAY...
-            </h2>
-            <div className="text-lg text-gray-700 leading-relaxed mb-8">
-              <p className="mb-4">
-                The sleepless nights, the ominous exams anxiety, the struggles
-                to meet deadlines, the courses you had to retake, the zero
-                willpower to continue, the immense feeling of defeat and
-                self-doubt...
-              </p>
-              <p className="mb-4 font-semibold text-xl">
-                And yet still, you're here!
-              </p>
-              <p className="mb-4">
-                Dear Grad, you more than deserve this. And yes! you are allowed
-                to be intentional, even dramatic about it.
-              </p>
-
-              <p className="mb-4">
-                Yours doesn't have to be just another regular walk in a gown,
-                cap and hood. Your journey was nothing close to regular. You
-                deserve to walk the stage with something extra – a Kente stole –
-                from <strong>SASH KING</strong>.
-              </p>
-              <p className="text-2xl font-bold text-gray-900">
-                Congratulations!
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section> */}
-
       {/* Featured Products Section */}
       <section className="py-6 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
@@ -371,13 +331,14 @@ const Home = () => {
         </div>
       </section>
 
-      <div className="text-center mt-5 md:mt-10">
-        <Link
+      <div className="text-center my-10">
+        {/* <Link
           to="/templated-sash"
-          className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+          className="inline-block bg-black text-white text-sm px-2 py-1 rounded-full font-semibold hover:bg-gray-800 transition-colors"
         >
           View All
-        </Link>
+        </Link> */}
+        <CustomButton variant_type="primary">View All</CustomButton>
       </div>
 
       {/* ThreeDSashes Section */}
@@ -442,12 +403,15 @@ const Home = () => {
       </section>
 
       <div className="text-center mt-5 md:mt-10">
-        <Link
+        {/* <Link
           to="/design-your-own"
           className="inline-block bg-black text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
         >
           View All
-        </Link>
+        </Link> */}
+        <CustomButton variant_type="primary" className="">
+          View All
+        </CustomButton>
       </div>
 
       {/* Shop with Friends Section */}
@@ -500,15 +464,6 @@ const Home = () => {
               </motion.div>
             ))}
           </div>
-
-          {/* <div className="text-center mt-12">
-            <Link
-              to="/templated-sash"
-              className="inline-block bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition-colors"
-            >
-              Shop Now
-            </Link>
-          </div> */}
         </div>
       </section>
     </div>
