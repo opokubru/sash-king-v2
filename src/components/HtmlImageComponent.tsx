@@ -42,14 +42,28 @@ const HtmlImageComponent = ({
   const isMobile = window.innerWidth < 768;
   const leftFileInputRef = useRef<HTMLInputElement>(null);
   const rightFileInputRef = useRef<HTMLInputElement>(null);
+  const leftImageDragStarted = useRef(false);
+  const rightImageDragStarted = useRef(false);
+  const leftImageDragStartPosition = useRef({ x: 0, y: 0 });
+  const rightImageDragStartPosition = useRef({ x: 0, y: 0 });
 
   const handleLeftImageClick = () => {
+    // If drag started, don't handle click
+    if (leftImageDragStarted.current) {
+      leftImageDragStarted.current = false;
+      return;
+    }
     if (leftFileInputRef.current) {
       leftFileInputRef.current.click();
     }
   };
 
   const handleRightImageClick = () => {
+    // If drag started, don't handle click
+    if (rightImageDragStarted.current) {
+      rightImageDragStarted.current = false;
+      return;
+    }
     if (rightFileInputRef.current) {
       rightFileInputRef.current.click();
     }
@@ -90,9 +104,19 @@ const HtmlImageComponent = ({
 
   const handleLeftImageDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const newPosition = { x: data.x, y: data.y };
-    setLeftImagePosition(newPosition);
-    if (onPositionChange) {
-      onPositionChange('left', newPosition);
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - leftImageDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - leftImageDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setLeftImagePosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('left', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      leftImageDragStarted.current = false;
     }
   };
 
@@ -101,9 +125,19 @@ const HtmlImageComponent = ({
     data: DraggableData,
   ) => {
     const newPosition = { x: data.x, y: data.y };
-    setRightImagePosition(newPosition);
-    if (onPositionChange) {
-      onPositionChange('right', newPosition);
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - rightImageDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - rightImageDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setRightImagePosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('right', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      rightImageDragStarted.current = false;
     }
   };
 
@@ -120,7 +154,14 @@ const HtmlImageComponent = ({
           {enableDragging && !disableInteractions ? (
             <Draggable
               position={leftImagePosition}
-              onStop={handleLeftImageDragStop}
+              onStart={(_e, data) => {
+                leftImageDragStartPosition.current = { x: data.x, y: data.y };
+                leftImageDragStarted.current = true;
+              }}
+              onStop={(e, data) => {
+                handleLeftImageDragStop(e, data);
+                leftImageDragStarted.current = false;
+              }}
             >
               <div
                 className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
@@ -240,7 +281,14 @@ const HtmlImageComponent = ({
           {enableDragging && !disableInteractions ? (
             <Draggable
               position={rightImagePosition}
-              onStop={handleRightImageDragStop}
+              onStart={(_e, data) => {
+                rightImageDragStartPosition.current = { x: data.x, y: data.y };
+                rightImageDragStarted.current = true;
+              }}
+              onStop={(e, data) => {
+                handleRightImageDragStop(e, data);
+                rightImageDragStarted.current = false;
+              }}
             >
               <div
                 className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"

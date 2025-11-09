@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react';
-import { SketchPicker, ColorResult } from 'react-color';
-import { motion, AnimatePresence } from 'framer-motion';
 import { state } from '@/lib/store';
+import { colorOptions } from '@/lib/neededArrays';
 
 interface MeshPartColorPickerProps {
   selectedPartIndex: number | null;
@@ -13,26 +11,13 @@ interface MeshPartColorPickerProps {
 
 export const MeshPartColorPicker = ({
   selectedPartIndex,
-  partName,
-  onClose,
+  // partName,
+  // onClose,
   currentColor,
 }: MeshPartColorPickerProps) => {
-  const [color, setColor] = useState(currentColor);
-
-  const handleColorChange = (newColor: ColorResult) => {
-    const hexColor = newColor.hex;
-    setColor(hexColor);
-    
+  const handleColorSelect = (colorHex: string) => {
     if (selectedPartIndex !== null && state.color) {
-      // Update the color for the selected part in valtio state
-      (state.color as any)[selectedPartIndex] = hexColor;
-    }
-  };
-
-  const handleColorChangeComplete = (newColor: ColorResult) => {
-    const hexColor = newColor.hex;
-    if (selectedPartIndex !== null && state.color) {
-      (state.color as any)[selectedPartIndex] = hexColor;
+      (state.color as any)[selectedPartIndex] = colorHex;
     }
   };
 
@@ -40,39 +25,28 @@ export const MeshPartColorPicker = ({
 
   return (
     <div className="space-y-4">
-      <SketchPicker
-        color={color}
-        onChange={handleColorChange}
-        onChangeComplete={handleColorChangeComplete}
-        disableAlpha
-        width="100%"
-      />
-
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={color}
-          onChange={(e) => {
-            const newColor = e.target.value;
-            setColor(newColor);
-            if (/^#[0-9A-F]{6}$/i.test(newColor)) {
-              if (selectedPartIndex !== null && state.color) {
-                (state.color as any)[selectedPartIndex] = newColor;
-              }
-            }
-          }}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
-          placeholder="#000000"
-        />
-        <button
-          onClick={onClose}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
-        >
-          Done
-        </button>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-3">
+          Select Color
+        </label>
+        <div className="w-full overflow-x-auto py-2 scrollbar-hide">
+          <div className="flex gap-3 min-w-max">
+            {colorOptions.map((colorOption, index) => (
+              <button
+                key={index}
+                onClick={() => handleColorSelect(colorOption.color)}
+                className={`flex-shrink-0 w-8 h-8 rounded-full border-3 transition-all transform hover:scale-110 ${
+                  currentColor.toLowerCase() === colorOption.color.toLowerCase()
+                    ? 'border-gray-800 scale-110 shadow-lg ring-2 ring-blue-500'
+                    : 'border-gray-300 hover:border-gray-500'
+                }`}
+                style={{ backgroundColor: colorOption.color }}
+                title={colorOption.label}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-
-
