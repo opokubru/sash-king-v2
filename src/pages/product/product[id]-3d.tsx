@@ -397,15 +397,86 @@ const ConfiguratorUnisex3D = () => {
   const [rotationAngle, setRotationAngle] = useState(0);
 
   // Dragging state
-  const [enableDragging, setEnableDragging] = useState(true);
+  const [enableDragging] = useState(true);
+
+  // Helper function to convert rem/px string to number (for drag positions)
+  const parsePosition = (value: string | undefined): number => {
+    if (!value) return 0;
+    // Remove 'rem' or 'px' and convert to number
+    const numStr = value.replace(/rem|px/g, '').trim();
+    const num = parseFloat(numStr);
+    // Convert rem to px (assuming 1rem = 16px, adjust if needed)
+    if (value.includes('rem')) {
+      return num * 16;
+    }
+    return num || 0;
+  };
+
+  // Initialize positions from selectedClothing defaults
+  const getInitialTextPositions = () => {
+    if (!selectedClothing) return {};
+    return {
+      left: {
+        x: parsePosition(selectedClothing.positioningLeft?.text?.left),
+        y: parsePosition(selectedClothing.positioningLeft?.text?.top),
+      },
+      right: {
+        x: parsePosition(selectedClothing.positioningRight?.text?.left),
+        y: parsePosition(selectedClothing.positioningRight?.text?.top),
+      },
+    };
+  };
+
+  const getInitialImagePositions = () => {
+    if (!selectedClothing) return {};
+    return {
+      left: {
+        x: parsePosition(selectedClothing.positioningLeft?.image?.left),
+        y: parsePosition(selectedClothing.positioningLeft?.image?.top),
+      },
+      right: {
+        x: parsePosition(selectedClothing.positioningRight?.image?.left),
+        y: parsePosition(selectedClothing.positioningRight?.image?.top),
+      },
+    };
+  };
+
   const [textPositions, setTextPositions] = useState<{
     left?: { x: number; y: number };
     right?: { x: number; y: number };
-  }>({});
+  }>(getInitialTextPositions());
+
   const [imagePositions, setImagePositions] = useState<{
     left?: { x: number; y: number };
     right?: { x: number; y: number };
-  }>({});
+  }>(getInitialImagePositions());
+
+  // Reset positions when clothing changes
+  useEffect(() => {
+    if (selectedClothing) {
+      setTextPositions({
+        left: {
+          x: parsePosition(selectedClothing.positioningLeft?.text?.left),
+          y: parsePosition(selectedClothing.positioningLeft?.text?.top),
+        },
+        right: {
+          x: parsePosition(selectedClothing.positioningRight?.text?.left),
+          y: parsePosition(selectedClothing.positioningRight?.text?.top),
+        },
+      });
+      setImagePositions({
+        left: {
+          x: parsePosition(selectedClothing.positioningLeft?.image?.left),
+          y: parsePosition(selectedClothing.positioningLeft?.image?.top),
+        },
+        right: {
+          x: parsePosition(selectedClothing.positioningRight?.image?.left),
+          y: parsePosition(selectedClothing.positioningRight?.image?.top),
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClothing?.name]);
 
   // Text editing bottom sheet
   const [showTextEditor, setShowTextEditor] = useState(false);
@@ -515,12 +586,27 @@ const ConfiguratorUnisex3D = () => {
     lineHeight,
   ]);
 
+  // Initialize font sizes from selectedClothing defaults
   const [fontSizeLeft, setFontSizeLeft] = useState(
-    ImprintTextPosition?.left?.size || 12,
+    selectedClothing?.positioningLeft?.text?.size || 12,
   );
   const [fontSizeRight, setFontSizeRight] = useState(
-    ImprintTextPosition?.right?.size || 12,
+    selectedClothing?.positioningRight?.text?.size || 12,
   );
+
+  // Update font sizes when clothing changes
+  useEffect(() => {
+    if (selectedClothing?.positioningLeft?.text?.size) {
+      setFontSizeLeft(selectedClothing.positioningLeft.text.size);
+    }
+    if (selectedClothing?.positioningRight?.text?.size) {
+      setFontSizeRight(selectedClothing.positioningRight.text.size);
+    }
+  }, [
+    selectedClothing?.name,
+    selectedClothing?.positioningLeft?.text?.size,
+    selectedClothing?.positioningRight?.text?.size,
+  ]);
 
   const [isLoadingModel, setIsLoadingModel] = useState(true);
 
@@ -920,7 +1006,7 @@ const ConfiguratorUnisex3D = () => {
                         <div className="flex items-center gap-2">
                           <i className="pi pi-palette text-purple-500"></i>
                           <span>
-                            Long press on text to change colors, fonts, and
+                            Double tap on text to change colors, fonts, and
                             sizes to fit space available
                           </span>
                         </div>
@@ -1063,7 +1149,7 @@ const ConfiguratorUnisex3D = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button
+            {/* <button
               onClick={() => setEnableDragging(!enableDragging)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 enableDragging
@@ -1080,7 +1166,7 @@ const ConfiguratorUnisex3D = () => {
               <span className="font-medium text-sm">
                 {enableDragging ? 'Lock Position' : 'Unlock Position'}
               </span>
-            </button>
+            </button> */}
             <button
               onClick={handleShowInstructions}
               className="flex items-center gap-2"
@@ -1095,7 +1181,7 @@ const ConfiguratorUnisex3D = () => {
                   assignRandomColors(selectedClothing, state);
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               title="Randomize colors"
             >
               <i className="pi pi-refresh text-sm"></i>
@@ -1119,7 +1205,6 @@ const ConfiguratorUnisex3D = () => {
                 <pointLight position={[10, 10, 10]} />
                 {selectedClothing &&
                   selectedClothing.name &&
-                  noSpinFor.includes(selectedClothing.name) &&
                   isLoadingModel === false && (
                     <>
                       <HtmlComponent

@@ -28,7 +28,10 @@ const HtmlImageComponent = ({
   onImageRightChange?: (file: File) => void;
   disableInteractions?: boolean;
   enableDragging?: boolean;
-  onPositionChange?: (side: 'left' | 'right', position: { x: number; y: number }) => void;
+  onPositionChange?: (
+    side: 'left' | 'right',
+    position: { x: number; y: number },
+  ) => void;
   customPositions?: {
     left?: { x: number; y: number };
     right?: { x: number; y: number };
@@ -93,7 +96,10 @@ const HtmlImageComponent = ({
     }
   };
 
-  const handleRightImageDragStop = (_e: DraggableEvent, data: DraggableData) => {
+  const handleRightImageDragStop = (
+    _e: DraggableEvent,
+    data: DraggableData,
+  ) => {
     const newPosition = { x: data.x, y: data.y };
     setRightImagePosition(newPosition);
     if (onPositionChange) {
@@ -125,14 +131,8 @@ const HtmlImageComponent = ({
                   fontSize: '0.5rem',
                   lineHeight: '0.7rem',
                   scale: isMobile ? 1 : 2,
-                  width:
-                    imageLeft !== null
-                      ? ImprintTextPosition?.left?.image?.width
-                      : '2rem',
-                  height:
-                    imageLeft !== null
-                      ? ImprintTextPosition?.left.image?.height
-                      : '2rem',
+                  width: ImprintTextPosition?.left?.image?.width || '3.5rem',
+                  height: ImprintTextPosition?.left?.image?.height || '3.5rem',
                   wordWrap: 'break-word',
                   overflow: 'hidden',
                   textTransform: 'uppercase',
@@ -144,99 +144,95 @@ const HtmlImageComponent = ({
                   visibility: disableInteractions ? 'hidden' : 'visible',
                   color: textColor,
                   borderRadius: '4px',
-                  border: imageLeft ? '2px solid transparent' : '2px dashed #ccc',
+                  border: imageLeft
+                    ? '2px solid transparent'
+                    : '2px dashed #ccc',
                   padding: '2px',
                 }}
                 onClick={handleLeftImageClick}
                 title="Click to upload image"
               >
-          {!imageLeft && (
-            <div
-              className="flex items-center justify-center h-full text-white text-xs"
-              style={{
-                fontSize: '0.5rem',
-                lineHeight: '0.8rem',
-              }}
-            >
-              <div className="text-center">
-                {/* <div className="mb-1">📷</div> */}
-                <div>TAP TO</div>
-                <div>UPLOAD</div>
-                <div>LOGO</div>
+                {!imageLeft && (
+                  <div
+                    className="flex items-center justify-center h-full text-white text-xs"
+                    style={{
+                      fontSize: '0.5rem',
+                      lineHeight: '0.8rem',
+                    }}
+                  >
+                    <div className="text-center">
+                      {/* <div className="mb-1">📷</div> */}
+                      <div>TAP TO</div>
+                      <div>UPLOAD</div>
+                      <div>LOGO</div>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={leftFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLeftFileChange}
+                  style={{ display: 'none' }}
+                />
               </div>
+            </Draggable>
+          ) : (
+            <div
+              className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              style={{
+                pointerEvents: disableInteractions ? 'none' : 'auto',
+                position: 'absolute',
+                transform: `translate(${ImprintTextPosition.left?.image?.left}, ${ImprintTextPosition.left?.image?.top})`,
+                fontSize: '0.5rem',
+                lineHeight: '0.7rem',
+                scale: isMobile ? 1 : 2,
+                width: ImprintTextPosition?.left?.image?.width || '3.5rem',
+                height: ImprintTextPosition?.left?.image?.height || '3.5rem',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textTransform: 'uppercase',
+                backgroundImage: `url(${imageLeft})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                opacity: disableInteractions ? 0 : imageLeft !== null ? 1 : 1,
+                visibility: disableInteractions ? 'hidden' : 'visible',
+                color: textColor,
+                borderRadius: '4px',
+                border: imageLeft ? '2px solid transparent' : '2px dashed #ccc',
+                padding: '2px',
+              }}
+              onClick={handleLeftImageClick}
+              title="Click to upload image"
+            >
+              {!imageLeft && (
+                <div
+                  className="flex items-center justify-center h-full text-white text-xs"
+                  style={{
+                    fontSize: '0.5rem',
+                    lineHeight: '0.8rem',
+                  }}
+                >
+                  <div className="text-center">
+                    <div>TAP TO</div>
+                    <div>UPLOAD</div>
+                    <div>LOGO</div>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={leftFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLeftFileChange}
+                style={{ display: 'none' }}
+              />
             </div>
           )}
-
-          <input
-            ref={leftFileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleLeftFileChange}
-            style={{ display: 'none' }}
-          />
-        </div>
-      </Draggable>
-    ) : (
-      <div
-        className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
-        style={{
-          pointerEvents: disableInteractions ? 'none' : 'auto',
-          position: 'absolute',
-          transform: `translate(${ImprintTextPosition.left?.image?.left}, ${ImprintTextPosition.left?.image?.top})`,
-          fontSize: '0.5rem',
-          lineHeight: '0.7rem',
-          scale: isMobile ? 1 : 2,
-          width:
-            imageLeft !== null
-              ? ImprintTextPosition?.left?.image?.width
-              : '2rem',
-          height:
-            imageLeft !== null
-              ? ImprintTextPosition?.left.image?.height
-              : '2rem',
-          wordWrap: 'break-word',
-          overflow: 'hidden',
-          textTransform: 'uppercase',
-          backgroundImage: `url(${imageLeft})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          opacity: disableInteractions ? 0 : imageLeft !== null ? 1 : 1,
-          visibility: disableInteractions ? 'hidden' : 'visible',
-          color: textColor,
-          borderRadius: '4px',
-          border: imageLeft ? '2px solid transparent' : '2px dashed #ccc',
-          padding: '2px',
-        }}
-        onClick={handleLeftImageClick}
-        title="Click to upload image"
-      >
-        {!imageLeft && (
-          <div
-            className="flex items-center justify-center h-full text-white text-xs"
-            style={{
-              fontSize: '0.5rem',
-              lineHeight: '0.8rem',
-            }}
-          >
-            <div className="text-center">
-              <div>TAP TO</div>
-              <div>UPLOAD</div>
-              <div>LOGO</div>
-            </div>
-          </div>
-        )}
-
-        <input
-          ref={leftFileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleLeftFileChange}
-          style={{ display: 'none' }}
-        />
-      </div>
-    )}
-    </>
+        </>
       )}
 
       {!hideRightText && (
@@ -270,103 +266,105 @@ const HtmlImageComponent = ({
                   backgroundSize: 'contain',
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center',
-                  opacity: disableInteractions ? 0 : imageRight !== null ? 1 : 1,
+                  opacity: disableInteractions
+                    ? 0
+                    : imageRight !== null
+                    ? 1
+                    : 1,
                   visibility: disableInteractions ? 'hidden' : 'visible',
                   color: textColor,
                   borderRadius: '4px',
-                  border: imageRight ? '2px solid transparent' : '2px dashed #ccc',
+                  border: imageRight
+                    ? '2px solid transparent'
+                    : '2px dashed #ccc',
                   padding: '2px',
                 }}
                 onClick={handleRightImageClick}
                 title="Click to upload image"
               >
-          {!imageRight && (
-            <div
-              className="flex items-center justify-center h-full text-white text-xs"
-              style={{
-                fontSize: '0.5rem',
-                lineHeight: '0.8rem',
-              }}
-            >
-              <div className="text-center">
-                {/* <div className="mb-1">📷</div> */}
-                <div>TAP TO</div>
-                <div>UPLOAD</div>
-                <div>LOGO</div>
+                {!imageRight && (
+                  <div
+                    className="flex items-center justify-center h-full text-white text-xs"
+                    style={{
+                      fontSize: '0.5rem',
+                      lineHeight: '0.8rem',
+                    }}
+                  >
+                    <div className="text-center">
+                      {/* <div className="mb-1">📷</div> */}
+                      <div>TAP TO</div>
+                      <div>UPLOAD</div>
+                      <div>LOGO</div>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  ref={rightFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleRightFileChange}
+                  style={{ display: 'none' }}
+                />
               </div>
+            </Draggable>
+          ) : (
+            <div
+              className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              style={{
+                pointerEvents: disableInteractions ? 'none' : 'auto',
+                position: 'absolute',
+                transform: `translate(${ImprintTextPosition.right?.image?.left}, ${ImprintTextPosition.right?.image?.top})`,
+                fontSize: '0.5rem',
+                lineHeight: '0.7rem',
+                scale: isMobile ? 1 : 5,
+                width: ImprintTextPosition?.right?.image?.width || '3.5rem',
+                height: ImprintTextPosition?.right?.image?.height || '3.5rem',
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textTransform: 'uppercase',
+                backgroundImage: `url(${imageRight})`,
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                opacity: disableInteractions ? 0 : imageRight !== null ? 1 : 1,
+                visibility: disableInteractions ? 'hidden' : 'visible',
+                color: textColor,
+                borderRadius: '4px',
+                border: imageRight
+                  ? '2px solid transparent'
+                  : '2px dashed #ccc',
+                padding: '2px',
+              }}
+              onClick={handleRightImageClick}
+              title="Click to upload image"
+            >
+              {!imageRight && (
+                <div
+                  className="flex items-center justify-center h-full text-white text-xs"
+                  style={{
+                    fontSize: '0.5rem',
+                    lineHeight: '0.8rem',
+                  }}
+                >
+                  <div className="text-center">
+                    <div>TAP TO</div>
+                    <div>UPLOAD</div>
+                    <div>LOGO</div>
+                  </div>
+                </div>
+              )}
+
+              <input
+                ref={rightFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleRightFileChange}
+                style={{ display: 'none' }}
+              />
             </div>
           )}
-
-          <input
-            ref={rightFileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleRightFileChange}
-            style={{ display: 'none' }}
-          />
-        </div>
-      </Draggable>
-    ) : (
-      <div
-        className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
-        style={{
-          pointerEvents: disableInteractions ? 'none' : 'auto',
-          position: 'absolute',
-          transform: `translate(${ImprintTextPosition.right?.image?.left}, ${ImprintTextPosition.right?.image?.top})`,
-          fontSize: '0.5rem',
-          lineHeight: '0.7rem',
-          scale: isMobile ? 1 : 5,
-          width:
-            imageRight !== null
-              ? ImprintTextPosition?.right?.image?.width
-              : '2rem',
-          height:
-            imageRight !== null
-              ? ImprintTextPosition?.right?.image?.height
-              : '2rem',
-          wordWrap: 'break-word',
-          overflow: 'hidden',
-          textTransform: 'uppercase',
-          backgroundImage: `url(${imageRight})`,
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          opacity: disableInteractions ? 0 : imageRight !== null ? 1 : 1,
-          visibility: disableInteractions ? 'hidden' : 'visible',
-          color: textColor,
-          borderRadius: '4px',
-          border: imageRight ? '2px solid transparent' : '2px dashed #ccc',
-          padding: '2px',
-        }}
-        onClick={handleRightImageClick}
-        title="Click to upload image"
-      >
-        {!imageRight && (
-          <div
-            className="flex items-center justify-center h-full text-white text-xs"
-            style={{
-              fontSize: '0.5rem',
-              lineHeight: '0.8rem',
-            }}
-          >
-            <div className="text-center">
-              <div>TAP TO</div>
-              <div>UPLOAD</div>
-              <div>LOGO</div>
-            </div>
-          </div>
-        )}
-
-        <input
-          ref={rightFileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleRightFileChange}
-          style={{ display: 'none' }}
-        />
-      </div>
-    )}
-    </>
+        </>
       )}
     </Html>
   );
