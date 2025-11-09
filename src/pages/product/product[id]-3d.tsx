@@ -41,7 +41,56 @@ interface ShirtProps {
   showGlow: boolean;
 }
 
-// Generate random hex color (utility function)
+// Assign default colors based on sash type constraints (utility function)
+const assignDefaultColors = (selectedClothing: any, state: any) => {
+  if (!selectedClothing?.myNode || !state.color) return;
+
+  const nodeCount = selectedClothing.myNode.length;
+
+  // Initialize color array if needed
+  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+    (state.color as any) = new Array(nodeCount).fill('#ffffff');
+  }
+
+  if (selectedClothing.name === 'Type 1') {
+    // Type 1: plain_sections and mid_stripes get black, Stripe_1 and Stripe_2 get yellow
+    const blackColor = '#000000'; // For plain_sections and mid_stripes
+    const yellowColor = '#FFFF00'; // For Stripe_1 and Stripe_2
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
+        (state.color as any)[index] = blackColor;
+      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
+        (state.color as any)[index] = yellowColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = '#ffffff';
+      }
+    });
+  } else if (selectedClothing.name === 'Type 2') {
+    // Type 2: mid_section gets black, stripe_1 and stripe_2 get yellow
+    const blackColor = '#000000'; // For mid_section
+    const yellowColor = '#FFFF00'; // For stripe_1 and stripe_2
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = yellowColor;
+      } else if (node.name === 'mid_section') {
+        (state.color as any)[index] = blackColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = '#ffffff';
+      }
+    });
+  } else {
+    // For other types, assign white to all nodes
+    selectedClothing.myNode.forEach((_node: any, index: number) => {
+      (state.color as any)[index] = '#ffffff';
+    });
+  }
+};
+
+// Generate random hex color (utility function) - for randomize button
 const generateRandomColor = () => {
   return (
     '#' +
@@ -51,7 +100,7 @@ const generateRandomColor = () => {
   );
 };
 
-// Assign random colors based on sash type constraints (utility function)
+// Assign random colors based on sash type constraints (utility function) - for randomize button
 const assignRandomColors = (selectedClothing: any, state: any) => {
   if (!selectedClothing?.myNode || !state.color) return;
 
@@ -172,9 +221,9 @@ const Shirt = ({
       }
     }
 
-    // Assign random colors on load
+    // Assign default colors on load
     if (selectedClothing?.myNode && state.color) {
-      assignRandomColors(selectedClothing, state);
+      assignDefaultColors(selectedClothing, state);
     }
 
     if (state.texture && Array.isArray(state.texture)) {
