@@ -41,6 +41,79 @@ interface ShirtProps {
   showGlow: boolean;
 }
 
+// Generate random hex color (utility function)
+const generateRandomColor = () => {
+  return (
+    '#' +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')
+  );
+};
+
+// Assign random colors based on sash type constraints (utility function)
+const assignRandomColors = (selectedClothing: any, state: any) => {
+  if (!selectedClothing?.myNode || !state.color) return;
+
+  const nodeCount = selectedClothing.myNode.length;
+
+  // Initialize color array if needed
+  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+    (state.color as any) = new Array(nodeCount).fill('#ffffff');
+  }
+
+  if (selectedClothing.name === 'Type 1') {
+    // Type 1: mid_stripes and plain_sections same, Stripe_1 and Stripe_2 same
+    const baseColor = generateRandomColor(); // For plain_sections and mid_stripes
+    let stripeColor = generateRandomColor(); // For Stripe_1 and Stripe_2
+
+    // Ensure the two color groups are different
+    let attempts = 0;
+    while (stripeColor === baseColor && attempts < 10) {
+      stripeColor = generateRandomColor();
+      attempts++;
+    }
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
+        (state.color as any)[index] = baseColor;
+      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
+        (state.color as any)[index] = stripeColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = generateRandomColor();
+      }
+    });
+  } else if (selectedClothing.name === 'Type 2') {
+    // Type 2: stripe_1 and stripe_2 same, mid_section different
+    const stripeColor = generateRandomColor();
+    let midColor = generateRandomColor();
+
+    // Ensure mid_section has different color
+    let attempts = 0;
+    while (midColor === stripeColor && attempts < 10) {
+      midColor = generateRandomColor();
+      attempts++;
+    }
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = stripeColor;
+      } else if (node.name === 'mid_section') {
+        (state.color as any)[index] = midColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = generateRandomColor();
+      }
+    });
+  } else {
+    // For other types, assign random colors to all nodes
+    selectedClothing.myNode.forEach((_node: any, index: number) => {
+      (state.color as any)[index] = generateRandomColor();
+    });
+  }
+};
+
 const Shirt = ({
   isRotating,
   selectedClothing,
@@ -76,14 +149,6 @@ const Shirt = ({
     }
   }, [isRotating]);
 
-  // const handlePartClick = (index: number) => {
-  //   if (index === selectedPart) {
-  //     setSelectedPart(null); // Deselect the part if it is clicked again
-  //   } else {
-  //     setSelectedPart(index);
-  //   }
-  // };
-
   const [isLoading, setIsLoading] = useState(true);
   const [highlightAllNodes, setHighlightAllNodes] = useState(true);
 
@@ -99,10 +164,17 @@ const Shirt = ({
       return () => clearTimeout(highlightTimeout);
     }, 2000);
 
+    // Initialize color array
     if (state.color && Array.isArray(state.color)) {
-      for (let i = 0; i < state.color.length; i++) {
-        (state.color as any)[i] = '#ffffff';
+      const nodeCount = selectedClothing?.myNode?.length || 0;
+      if (state.color.length < nodeCount) {
+        (state.color as any) = new Array(nodeCount).fill('#ffffff');
       }
+    }
+
+    // Assign random colors on load
+    if (selectedClothing?.myNode && state.color) {
+      assignRandomColors(selectedClothing, state);
     }
 
     if (state.texture && Array.isArray(state.texture)) {
@@ -115,7 +187,7 @@ const Shirt = ({
     setHighlightAllNodes(true);
 
     return () => clearTimeout(loadingTimeout);
-  }, [selectedClothing.name]);
+  }, [selectedClothing]);
 
   // Don't render if model or nodes are not available
   if (!selectedClothing?.model || !nodes) {
@@ -1017,6 +1089,18 @@ const ConfiguratorUnisex3D = () => {
               <i className="pi pi-question-circle text-sm text-primary"></i>
               <span className="font-bold text-primary">Help</span>
             </button>
+            <button
+              onClick={() => {
+                if (selectedClothing?.myNode && state.color) {
+                  assignRandomColors(selectedClothing, state);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-md hover:shadow-lg"
+              title="Randomize colors"
+            >
+              <i className="pi pi-refresh text-sm"></i>
+              <span className="font-medium text-sm">Randomize Colors</span>
+            </button>
           </div>
         </div>
 
@@ -1130,7 +1214,7 @@ const ConfiguratorUnisex3D = () => {
                 />
                 {selectedClothing?.name &&
                   !noSpinFor.includes(selectedClothing.name) && (
-                    <OrbitControls />
+                    <OrbitControls enableRotate={false} />
                   )}
               </Canvas>
             </div>
