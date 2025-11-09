@@ -46,7 +46,10 @@ interface DraggableHtmlComponentProps {
   customLineHeight?: number;
   // New props for dragging
   enableDragging?: boolean;
-  onPositionChange?: (side: 'left' | 'right', position: { x: number; y: number }) => void;
+  onPositionChange?: (
+    side: 'left' | 'right',
+    position: { x: number; y: number },
+  ) => void;
   customPositions?: {
     left?: { x: number; y: number };
     right?: { x: number; y: number };
@@ -90,9 +93,19 @@ const DraggableHtmlComponent = ({
   const [rightPosition, setRightPosition] = useState({ x: 0, y: 0 });
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
-  const leftPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const rightPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const PRESS_DURATION = 500;
+
+  // Double tap detection
+  const leftLastTapTime = useRef<number>(0);
+  const rightLastTapTime = useRef<number>(0);
+  const leftTapTimeout = useRef<NodeJS.Timeout | null>(null);
+  const rightTapTimeout = useRef<NodeJS.Timeout | null>(null);
+  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
+
+  // Drag detection
+  const leftDragStarted = useRef(false);
+  const rightDragStarted = useRef(false);
+  const leftDragStartPosition = useRef({ x: 0, y: 0 });
+  const rightDragStartPosition = useRef({ x: 0, y: 0 });
 
   // Initialize positions from customPositions or ImprintTextPosition
   useEffect(() => {
@@ -108,27 +121,204 @@ const DraggableHtmlComponent = ({
     if (customPositions?.right) {
       setRightPosition(customPositions.right);
     } else {
-      const left = parseInt(ImprintTextPosition.right.left) || 0;
-      const top = parseInt(ImprintTextPosition.right.top) || 0;
+      const left = parseInt(ImprintTextPosition.right?.left || '0') || 0;
+      const top = parseInt(ImprintTextPosition.right?.top || '0') || 0;
       setRightPosition({ x: left, y: top });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLeftDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const newPosition = { x: data.x, y: data.y };
-    setLeftPosition(newPosition);
-    if (onPositionChange) {
-      onPositionChange('left', newPosition);
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - leftDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - leftDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setLeftPosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('left', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      leftDragStarted.current = false;
     }
   };
 
   const handleRightDragStop = (_e: DraggableEvent, data: DraggableData) => {
     const newPosition = { x: data.x, y: data.y };
-    setRightPosition(newPosition);
-    if (onPositionChange) {
-      onPositionChange('right', newPosition);
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - rightDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - rightDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setRightPosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('right', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      rightDragStarted.current = false;
     }
   };
+
+  const handleLeftTextClick = () => {
+    // If drag started, don't handle click
+    if (leftDragStarted.current) {
+      leftDragStarted.current = false;
+      return;
+    }
+
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - leftLastTapTime.current;
+
+    // Clear any pending single tap timeout
+    if (leftTapTimeout.current) {
+      clearTimeout(leftTapTimeout.current);
+      leftTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected - show bottom sheet
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+      leftLastTapTime.current = 0; // Reset to prevent triple tap
+    } else {
+      // Single tap - set up timeout to handle if no second tap
+      leftLastTapTime.current = currentTime;
+      leftTapTimeout.current = setTimeout(() => {
+        // Single tap - enter inline edit mode
+        if (!editingLeft) {
+          setEditingLeft(true);
+          if (onTextLeftClick) {
+            onTextLeftClick();
+          }
+        }
+        leftTapTimeout.current = null;
+        leftLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  const handleRightTextClick = () => {
+    // If drag started, don't handle click
+    if (rightDragStarted.current) {
+      rightDragStarted.current = false;
+      return;
+    }
+
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - rightLastTapTime.current;
+
+    // Clear any pending single tap timeout
+    if (rightTapTimeout.current) {
+      clearTimeout(rightTapTimeout.current);
+      rightTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected - show bottom sheet
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+      rightLastTapTime.current = 0; // Reset to prevent triple tap
+    } else {
+      // Single tap - set up timeout to handle if no second tap
+      rightLastTapTime.current = currentTime;
+      rightTapTimeout.current = setTimeout(() => {
+        // Single tap - enter inline edit mode
+        if (!editingRight) {
+          setEditingRight(true);
+          if (onTextRightClick) {
+            onTextRightClick();
+          }
+        }
+        rightTapTimeout.current = null;
+        rightLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
+    // Use the same double tap logic for touch
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - leftLastTapTime.current;
+
+    if (leftTapTimeout.current) {
+      clearTimeout(leftTapTimeout.current);
+      leftTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      e.preventDefault();
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+      leftLastTapTime.current = 0;
+    } else {
+      // Single tap
+      leftLastTapTime.current = currentTime;
+      leftTapTimeout.current = setTimeout(() => {
+        if (!editingLeft) {
+          setEditingLeft(true);
+          if (onTextLeftClick) {
+            onTextLeftClick();
+          }
+        }
+        leftTapTimeout.current = null;
+        leftLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
+    // Use the same double tap logic for touch
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - rightLastTapTime.current;
+
+    if (rightTapTimeout.current) {
+      clearTimeout(rightTapTimeout.current);
+      rightTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      e.preventDefault();
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+      rightLastTapTime.current = 0;
+    } else {
+      // Single tap
+      rightLastTapTime.current = currentTime;
+      rightTapTimeout.current = setTimeout(() => {
+        if (!editingRight) {
+          setEditingRight(true);
+          if (onTextRightClick) {
+            onTextRightClick();
+          }
+        }
+        rightTapTimeout.current = null;
+        rightLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (leftTapTimeout.current) {
+        clearTimeout(leftTapTimeout.current);
+      }
+      if (rightTapTimeout.current) {
+        clearTimeout(rightTapTimeout.current);
+      }
+    };
+  }, []);
 
   // Helper to wrap text
   const wrapTextAt7Chars = (text: string): string => {
@@ -144,7 +334,7 @@ const DraggableHtmlComponent = ({
         }
         const first7Chars = remaining.substring(0, 7);
         const lastSpaceIndex = first7Chars.lastIndexOf(' ');
-        let breakPoint = lastSpaceIndex > 0 ? lastSpaceIndex + 1 : 7;
+        const breakPoint = lastSpaceIndex > 0 ? lastSpaceIndex + 1 : 7;
         lines.push(remaining.substring(0, breakPoint));
         remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
       }
@@ -164,7 +354,10 @@ const DraggableHtmlComponent = ({
     const newText = e.target.value;
     const lineCount = getLineCount(newText);
     if (lineCount > 3) {
-      toast.error('Maximum 3 lines allowed', { duration: 2000, position: 'top-center' });
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
       return;
     }
     setTempTextLeft(newText);
@@ -174,7 +367,10 @@ const DraggableHtmlComponent = ({
     const newText = e.target.value;
     const lineCount = getLineCount(newText);
     if (lineCount > 3) {
-      toast.error('Maximum 3 lines allowed', { duration: 2000, position: 'top-center' });
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
       return;
     }
     setTempTextRight(newText);
@@ -208,7 +404,17 @@ const DraggableHtmlComponent = ({
     const isSelected = selectedText === side;
     const baseStyle: React.CSSProperties = {
       position: 'absolute',
-      transform: `translate(${enableDragging && customPositions?.[side] ? `${customPositions[side].x}px, ${customPositions[side].y}px` : position ? `${position.x}px, ${position.y}px` : ImprintTextPosition[side].left + ', ' + ImprintTextPosition[side].top}) ${rotate ? `rotate(${rotate}deg)` : ''}`,
+      transform: `translate(${
+        enableDragging && customPositions?.[side]
+          ? `${customPositions[side]?.x || 0}px, ${
+              customPositions[side]?.y || 0
+            }px`
+          : position
+          ? `${position.x}px, ${position.y}px`
+          : `${ImprintTextPosition[side]?.left || '0'}, ${
+              ImprintTextPosition[side]?.top || '0'
+            }`
+      }) ${rotate ? `rotate(${rotate}deg)` : ''}`,
       color: textColor,
       fontSize,
       width: ImprintTextPosition[side].width,
@@ -216,7 +422,9 @@ const DraggableHtmlComponent = ({
       wordWrap: 'break-word',
       overflow: 'hidden',
       textTransform: 'uppercase',
-      lineHeight: customLineHeight ? `${customLineHeight}` : `${ImprintTextPosition[side].lineHeight || '2.8rem'}`,
+      lineHeight: customLineHeight
+        ? `${customLineHeight}`
+        : `${ImprintTextPosition[side].lineHeight || '2.8rem'}`,
       fontFamily,
       fontWeight: textBold ? 'bold' : 'normal',
       fontStyle: textItalic ? 'italic' : 'normal',
@@ -227,19 +435,30 @@ const DraggableHtmlComponent = ({
       visibility: disableInteractions ? 'hidden' : 'visible',
       borderRadius: '4px',
       padding: '2px',
-      border: isSelected ? '2px dashed #3B82F6' : text === '' ? '2px dashed #ccc' : '2px solid transparent',
+      border: isSelected
+        ? '2px dashed #3B82F6'
+        : text === ''
+        ? '2px dashed #ccc'
+        : '2px solid transparent',
       boxShadow: isSelected ? '0 0 10px rgba(59, 130, 246, 0.3)' : 'none',
       cursor: enableDragging && !disableInteractions ? 'move' : 'pointer',
       pointerEvents: disableInteractions ? 'none' : 'auto',
     };
 
+    const handleClick =
+      side === 'left' ? handleLeftTextClick : handleRightTextClick;
+    const handleTouchEnd =
+      side === 'left' ? handleLeftTextTouchEnd : handleRightTextTouchEnd;
+
     const textElement = (
-      <div style={baseStyle}>
+      <div style={baseStyle} onClick={handleClick} onTouchEnd={handleTouchEnd}>
         {isEditing ? (
           <textarea
             ref={inputRef as any}
             value={tempText}
-            onChange={side === 'left' ? handleLeftTextChange : handleRightTextChange}
+            onChange={
+              side === 'left' ? handleLeftTextChange : handleRightTextChange
+            }
             onBlur={side === 'left' ? handleLeftTextBlur : handleRightTextBlur}
             style={{
               background: 'transparent',
@@ -264,7 +483,9 @@ const DraggableHtmlComponent = ({
               width: '100%',
               height: '100%',
               textAlign: textAlignment,
-              lineHeight: customLineHeight ? `${customLineHeight}` : `${ImprintTextPosition[side].lineHeight || '2.8rem'}`,
+              lineHeight: customLineHeight
+                ? `${customLineHeight}`
+                : `${ImprintTextPosition[side].lineHeight || '2.8rem'}`,
               fontWeight: textBold ? 'bold' : 'normal',
               fontStyle: textItalic ? 'italic' : 'normal',
               textDecoration: textUnderline ? 'underline' : 'none',
@@ -282,7 +503,24 @@ const DraggableHtmlComponent = ({
       return (
         <Draggable
           position={position}
-          onStop={side === 'left' ? handleLeftDragStop : handleRightDragStop}
+          onStart={(_e, data) => {
+            if (side === 'left') {
+              leftDragStartPosition.current = { x: data.x, y: data.y };
+              leftDragStarted.current = true;
+            } else {
+              rightDragStartPosition.current = { x: data.x, y: data.y };
+              rightDragStarted.current = true;
+            }
+          }}
+          onStop={(e, data) => {
+            if (side === 'left') {
+              handleLeftDragStop(e, data);
+              leftDragStarted.current = false;
+            } else {
+              handleRightDragStop(e, data);
+              rightDragStarted.current = false;
+            }
+          }}
           disabled={isEditing}
         >
           {textElement}
@@ -311,7 +549,7 @@ const DraggableHtmlComponent = ({
         textSizeleft,
         textLeftRotate,
       )}
-      
+
       {!hideRightText &&
         createTextElement(
           'right',
@@ -328,5 +566,3 @@ const DraggableHtmlComponent = ({
 };
 
 export default DraggableHtmlComponent;
-
-
