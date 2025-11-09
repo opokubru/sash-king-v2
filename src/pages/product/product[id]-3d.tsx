@@ -259,7 +259,7 @@ const ConfiguratorUnisex3D = () => {
   const [positionX, setPositionX] = useState(0);
   const [positionY, setPositionY] = useState(0);
   const [rotationAngle, setRotationAngle] = useState(0);
-  
+
   // Dragging state
   const [enableDragging, setEnableDragging] = useState(true);
   const [textPositions, setTextPositions] = useState<{
@@ -914,7 +914,11 @@ const ConfiguratorUnisex3D = () => {
               }`}
               title={enableDragging ? 'Disable dragging' : 'Enable dragging'}
             >
-              <i className={`pi ${enableDragging ? 'pi-lock' : 'pi-unlock'} text-sm`}></i>
+              <i
+                className={`pi ${
+                  enableDragging ? 'pi-lock' : 'pi-unlock'
+                } text-sm`}
+              ></i>
               <span className="font-medium text-sm">
                 {enableDragging ? 'Lock Position' : 'Unlock Position'}
               </span>
