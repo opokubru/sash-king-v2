@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
 import { useState, useRef, useEffect } from 'react';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import toast from 'react-hot-toast';
 
 interface HtmlComponentProps {
@@ -51,6 +52,20 @@ interface HtmlComponentProps {
   onTextRightLongPress?: () => void;
   selectedText?: 'left' | 'right' | null;
   disableInteractions?: boolean;
+  // Advanced styling props
+  textBold?: boolean;
+  textItalic?: boolean;
+  textUnderline?: boolean;
+  textAlignment?: 'left' | 'center' | 'right' | 'justify';
+  letterSpacing?: number;
+  customLineHeight?: number;
+  // Dragging props
+  enableDragging?: boolean;
+  onPositionChange?: (side: 'left' | 'right', position: { x: number; y: number }) => void;
+  customPositions?: {
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  };
 }
 
 const HtmlComponent = ({
@@ -74,7 +89,18 @@ const HtmlComponent = ({
   onTextRightLongPress,
   selectedText,
   disableInteractions = false,
+  textBold = false,
+  textItalic = false,
+  textUnderline = false,
+  textAlignment = 'left',
+  letterSpacing = 0,
+  customLineHeight,
+  enableDragging = false,
+  onPositionChange,
+  customPositions,
 }: HtmlComponentProps) => {
+  const [leftDragPosition, setLeftDragPosition] = useState({ x: 0, y: 0 });
+  const [rightDragPosition, setRightDragPosition] = useState({ x: 0, y: 0 });
   const [editingLeft, setEditingLeft] = useState(false);
   const [editingRight, setEditingRight] = useState(false);
   const [tempTextLeft, setTempTextLeft] = useState(textLeft);
@@ -98,6 +124,41 @@ const HtmlComponent = ({
   useEffect(() => {
     setTempTextRight(textRight);
   }, [textRight]);
+
+  // Initialize drag positions
+  useEffect(() => {
+    if (customPositions?.left) {
+      setLeftDragPosition(customPositions.left);
+    } else {
+      const left = parseInt(ImprintTextPosition.left.left) || 0;
+      const top = parseInt(ImprintTextPosition.left.top) || 0;
+      setLeftDragPosition({ x: left, y: top });
+    }
+
+    if (customPositions?.right) {
+      setRightDragPosition(customPositions.right);
+    } else {
+      const left = parseInt(ImprintTextPosition.right.left) || 0;
+      const top = parseInt(ImprintTextPosition.right.top) || 0;
+      setRightDragPosition({ x: left, y: top });
+    }
+  }, [customPositions, ImprintTextPosition]);
+
+  const handleLeftDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    const newPosition = { x: data.x, y: data.y };
+    setLeftDragPosition(newPosition);
+    if (onPositionChange) {
+      onPositionChange('left', newPosition);
+    }
+  };
+
+  const handleRightDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    const newPosition = { x: data.x, y: data.y };
+    setRightDragPosition(newPosition);
+    if (onPositionChange) {
+      onPositionChange('right', newPosition);
+    }
+  };
 
   useEffect(() => {
     if (editingLeft && leftInputRef.current) {
@@ -474,27 +535,38 @@ const HtmlComponent = ({
       }}
     >
       {/* Left Text */}
-      <div
-        className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
-        style={{
-          pointerEvents: disableInteractions ? 'none' : 'auto',
-          position: 'absolute',
-          transform: `translate(${ImprintTextPosition?.left?.left}, ${
-            ImprintTextPosition.left?.top
-          }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
-          color: textColor,
-          fontSize: textSizeleft,
-          width: ImprintTextPosition?.left?.width,
-          height: ImprintTextPosition?.left?.height,
-          wordWrap: 'break-word',
-          overflow: 'hidden',
-          textTransform: 'uppercase',
-          lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-          fontFamily: fontFamily,
-          opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
-          visibility: disableInteractions ? 'hidden' : 'visible',
-          borderRadius: '4px',
-          padding: '2px',
+      {enableDragging && !disableInteractions ? (
+        <Draggable
+          position={leftDragPosition}
+          onStop={handleLeftDragStop}
+          disabled={editingLeft}
+        >
+          <div
+            className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              style={{
+                pointerEvents: disableInteractions ? 'none' : 'auto',
+                position: 'absolute',
+                transform: `${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
+                color: textColor,
+                fontSize: textSizeleft,
+                width: ImprintTextPosition?.left?.width,
+                height: ImprintTextPosition?.left?.height,
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textTransform: 'uppercase',
+                lineHeight: customLineHeight
+                  ? `${customLineHeight}`
+                  : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+                fontFamily: fontFamily,
+                fontWeight: textBold ? 'bold' : 'normal',
+                fontStyle: textItalic ? 'italic' : 'normal',
+                textDecoration: textUnderline ? 'underline' : 'none',
+                textAlign: textAlignment,
+                letterSpacing: `${letterSpacing}px`,
+                opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
+                visibility: disableInteractions ? 'hidden' : 'visible',
+                borderRadius: '4px',
+                padding: '2px',
           border:
             selectedText === 'left'
               ? '2px dashed #3B82F6'
@@ -512,8 +584,129 @@ const HtmlComponent = ({
         onMouseLeave={handleLeftTextMouseLeave}
         onTouchStart={handleLeftTextTouchStart}
         onTouchEnd={handleLeftTextTouchEnd}
-      >
-        {editingLeft ? (
+          >
+            {editingLeft ? (
+              <textarea
+                ref={leftInputRef as any}
+                value={tempTextLeft}
+                onChange={handleLeftTextChange}
+                onBlur={handleLeftTextBlur}
+                onKeyDown={handleLeftTextKeyDown}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  borderRadius: '4px',
+                  padding: '0',
+                  margin: '0',
+                  fontSize: textSizeleft,
+                  fontFamily: fontFamily,
+                  textTransform: 'uppercase',
+                  width: '100%',
+                  height: '100%',
+                  color: textColor,
+                  resize: 'none',
+                  overflow: 'hidden',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'normal',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${
+                        ImprintTextPosition?.left?.lineHeight || '2.8rem'
+                      }`,
+                  textAlign: textAlignment,
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  letterSpacing: `${letterSpacing}px`,
+                  display: 'block',
+                  boxSizing: 'border-box',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  textAlign: textAlignment,
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${
+                        ImprintTextPosition?.left?.lineHeight || '2.8rem'
+                      }`,
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'normal',
+                  whiteSpace: 'pre-wrap',
+                  display: 'block',
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  letterSpacing: `${letterSpacing}px`,
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: hideRightText
+                    ? textLeft !== ''
+                      ? wrapTextToHtml(textLeft)
+                      : 'TAP TO ADD TEXT'
+                    : textLeft !== ''
+                    ? wrapTextToHtml(textLeft)
+                    : 'TAP TO ADD TEXT',
+                }}
+              />
+            )}
+          </div>
+        </Draggable>
+      ) : (
+        <div
+          className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+          style={{
+            pointerEvents: disableInteractions ? 'none' : 'auto',
+            position: 'absolute',
+            transform: `translate(${ImprintTextPosition?.left?.left}, ${
+              ImprintTextPosition.left?.top
+            }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
+            color: textColor,
+            fontSize: textSizeleft,
+            width: ImprintTextPosition?.left?.width,
+            height: ImprintTextPosition?.left?.height,
+            wordWrap: 'break-word',
+            overflow: 'hidden',
+            textTransform: 'uppercase',
+            lineHeight: customLineHeight
+              ? `${customLineHeight}`
+              : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+            fontFamily: fontFamily,
+            fontWeight: textBold ? 'bold' : 'normal',
+            fontStyle: textItalic ? 'italic' : 'normal',
+            textDecoration: textUnderline ? 'underline' : 'none',
+            textAlign: textAlignment,
+            letterSpacing: `${letterSpacing}px`,
+            opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
+            visibility: disableInteractions ? 'hidden' : 'visible',
+            borderRadius: '4px',
+            padding: '2px',
+            border:
+              selectedText === 'left'
+                ? '2px dashed #3B82F6'
+                : textLeft === ''
+                ? '2px dashed #ccc'
+                : '2px solid transparent',
+            boxShadow:
+              selectedText === 'left'
+                ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                : 'none',
+          }}
+          onClick={handleLeftTextClick}
+          onMouseDown={handleLeftTextMouseDown}
+          onMouseUp={handleLeftTextMouseUp}
+          onMouseLeave={handleLeftTextMouseLeave}
+          onTouchStart={handleLeftTextTouchStart}
+          onTouchEnd={handleLeftTextTouchEnd}
+        >
+          {editingLeft ? (
           <textarea
             ref={leftInputRef as any}
             value={tempTextLeft}
@@ -539,10 +732,14 @@ const HtmlComponent = ({
               overflowWrap: 'break-word',
               wordBreak: 'normal',
               whiteSpace: 'pre-wrap',
-              lineHeight: `${
-                ImprintTextPosition?.left?.lineHeight || '2.8rem'
-              }`,
-              textAlign: textLeft === '' ? 'center' : 'left',
+              lineHeight: customLineHeight
+                ? `${customLineHeight}`
+                : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+              textAlign: textAlignment,
+              fontWeight: textBold ? 'bold' : 'normal',
+              fontStyle: textItalic ? 'italic' : 'normal',
+              textDecoration: textUnderline ? 'underline' : 'none',
+              letterSpacing: `${letterSpacing}px`,
               display: 'block',
               boxSizing: 'border-box',
             }}
@@ -552,15 +749,19 @@ const HtmlComponent = ({
             style={{
               width: '100%',
               height: '100%',
-              textAlign: textLeft === '' ? 'center' : 'left',
-              lineHeight: `${
-                ImprintTextPosition?.left?.lineHeight || '2.8rem'
-              }`,
+              textAlign: textAlignment,
+              lineHeight: customLineHeight
+                ? `${customLineHeight}`
+                : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
               wordWrap: 'break-word',
               overflowWrap: 'break-word',
               wordBreak: 'normal',
               whiteSpace: 'pre-wrap',
               display: 'block',
+              fontWeight: textBold ? 'bold' : 'normal',
+              fontStyle: textItalic ? 'italic' : 'normal',
+              textDecoration: textUnderline ? 'underline' : 'none',
+              letterSpacing: `${letterSpacing}px`,
             }}
             dangerouslySetInnerHTML={{
               __html: hideRightText
@@ -574,106 +775,251 @@ const HtmlComponent = ({
           />
         )}
       </div>
+      )}
 
       {/* Right Text */}
       {!hideRightText && (
-        <div
-          className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
-          style={{
-            pointerEvents: disableInteractions ? 'none' : 'auto',
-            position: 'absolute',
-            transform: `translate(${ImprintTextPosition.right.left}, ${
-              ImprintTextPosition.right?.top
-            }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
-            color: textColor,
-            fontSize: textSizeRight,
-            width: ImprintTextPosition?.right.width,
-            height: ImprintTextPosition?.right.height,
-            lineHeight: `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
-            wordWrap: 'break-word',
-            overflow: 'hidden',
-            textTransform: 'uppercase',
-            fontFamily: fontFamily,
-            opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
-            visibility: disableInteractions ? 'hidden' : 'visible',
-            borderRadius: '4px',
-            padding: '2px',
-            border:
-              selectedText === 'right'
-                ? '2px dashed #3B82F6'
-                : textRight === ''
-                ? '2px dashed #ccc'
-                : '2px solid transparent',
-            boxShadow:
-              selectedText === 'right'
-                ? '0 0 10px rgba(59, 130, 246, 0.3)'
-                : 'none',
-          }}
-          onClick={handleRightTextClick}
-          onMouseDown={handleRightTextMouseDown}
-          onMouseUp={handleRightTextMouseUp}
-          onMouseLeave={handleRightTextMouseLeave}
-          onTouchStart={handleRightTextTouchStart}
-          onTouchEnd={handleRightTextTouchEnd}
-        >
-          {editingRight ? (
-            <textarea
-              ref={rightInputRef as any}
-              value={tempTextRight}
-              onChange={handleRightTextChange}
-              onBlur={handleRightTextBlur}
-              onKeyDown={handleRightTextKeyDown}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                borderRadius: '4px',
-                padding: '0',
-                margin: '0',
-                fontSize: textSizeRight,
-                fontFamily: fontFamily,
-                textTransform: 'uppercase',
-                width: '100%',
-                height: '100%',
-                color: textColor,
-                resize: 'none',
-                overflow: 'hidden',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
-                lineHeight: `${
-                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
-                }`,
-                textAlign: textRight === '' ? 'center' : 'left',
-                display: 'block',
-                boxSizing: 'border-box',
-              }}
-            />
+        <>
+          {enableDragging && !disableInteractions ? (
+            <Draggable
+              position={rightDragPosition}
+              onStop={handleRightDragStop}
+              disabled={editingRight}
+            >
+              <div
+                className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+                style={{
+                  pointerEvents: disableInteractions ? 'none' : 'auto',
+                  position: 'absolute',
+                  transform: `${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
+                  color: textColor,
+                  fontSize: textSizeRight,
+                  width: ImprintTextPosition?.right.width,
+                  height: ImprintTextPosition?.right.height,
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+                  wordWrap: 'break-word',
+                  overflow: 'hidden',
+                  textTransform: 'uppercase',
+                  fontFamily: fontFamily,
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  textAlign: textAlignment,
+                  letterSpacing: `${letterSpacing}px`,
+                  opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+                  visibility: disableInteractions ? 'hidden' : 'visible',
+                  borderRadius: '4px',
+                  padding: '2px',
+                  border:
+                    selectedText === 'right'
+                      ? '2px dashed #3B82F6'
+                      : textRight === ''
+                      ? '2px dashed #ccc'
+                      : '2px solid transparent',
+                  boxShadow:
+                    selectedText === 'right'
+                      ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                      : 'none',
+                }}
+                onClick={handleRightTextClick}
+                onMouseDown={handleRightTextMouseDown}
+                onMouseUp={handleRightTextMouseUp}
+                onMouseLeave={handleRightTextMouseLeave}
+                onTouchStart={handleRightTextTouchStart}
+                onTouchEnd={handleRightTextTouchEnd}
+              >
+                {editingRight ? (
+                  <textarea
+                    ref={rightInputRef as any}
+                    value={tempTextRight}
+                    onChange={handleRightTextChange}
+                    onBlur={handleRightTextBlur}
+                    onKeyDown={handleRightTextKeyDown}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      borderRadius: '4px',
+                      padding: '0',
+                      margin: '0',
+                      fontSize: textSizeRight,
+                      fontFamily: fontFamily,
+                      textTransform: 'uppercase',
+                      width: '100%',
+                      height: '100%',
+                      color: textColor,
+                      resize: 'none',
+                      overflow: 'hidden',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'normal',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: customLineHeight
+                        ? `${customLineHeight}`
+                        : `${
+                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                          }`,
+                      textAlign: textAlignment,
+                      fontWeight: textBold ? 'bold' : 'normal',
+                      fontStyle: textItalic ? 'italic' : 'normal',
+                      textDecoration: textUnderline ? 'underline' : 'none',
+                      letterSpacing: `${letterSpacing}px`,
+                      display: 'block',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      textAlign: textAlignment,
+                      lineHeight: customLineHeight
+                        ? `${customLineHeight}`
+                        : `${
+                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                          }`,
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'normal',
+                      whiteSpace: 'pre-wrap',
+                      display: 'block',
+                      fontWeight: textBold ? 'bold' : 'normal',
+                      fontStyle: textItalic ? 'italic' : 'normal',
+                      textDecoration: textUnderline ? 'underline' : 'none',
+                      letterSpacing: `${letterSpacing}px`,
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        textRight !== ''
+                          ? wrapTextToHtml(textRight)
+                          : 'TAP TO ADD TEXT',
+                    }}
+                  />
+                )}
+              </div>
+            </Draggable>
           ) : (
             <div
+              className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
               style={{
-                width: '100%',
-                height: '100%',
-                textAlign: textRight === '' ? 'center' : 'left',
-                lineHeight: `${
-                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
-                }`,
+                pointerEvents: disableInteractions ? 'none' : 'auto',
+                position: 'absolute',
+                transform: `translate(${ImprintTextPosition.right.left}, ${
+                  ImprintTextPosition.right?.top
+                }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
+                color: textColor,
+                fontSize: textSizeRight,
+                width: ImprintTextPosition?.right.width,
+                height: ImprintTextPosition?.right.height,
+                lineHeight: customLineHeight
+                  ? `${customLineHeight}`
+                  : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
                 wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
-                display: 'block',
+                overflow: 'hidden',
+                textTransform: 'uppercase',
+                fontFamily: fontFamily,
+                fontWeight: textBold ? 'bold' : 'normal',
+                fontStyle: textItalic ? 'italic' : 'normal',
+                textDecoration: textUnderline ? 'underline' : 'none',
+                textAlign: textAlignment,
+                letterSpacing: `${letterSpacing}px`,
+                opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+                visibility: disableInteractions ? 'hidden' : 'visible',
+                borderRadius: '4px',
+                padding: '2px',
+                border:
+                  selectedText === 'right'
+                    ? '2px dashed #3B82F6'
+                    : textRight === ''
+                    ? '2px dashed #ccc'
+                    : '2px solid transparent',
+                boxShadow:
+                  selectedText === 'right'
+                    ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                    : 'none',
               }}
-              dangerouslySetInnerHTML={{
-                __html:
-                  textRight !== ''
-                    ? wrapTextToHtml(textRight)
-                    : 'TAP TO ADD TEXT',
-              }}
-            />
+              onClick={handleRightTextClick}
+              onMouseDown={handleRightTextMouseDown}
+              onMouseUp={handleRightTextMouseUp}
+              onMouseLeave={handleRightTextMouseLeave}
+              onTouchStart={handleRightTextTouchStart}
+              onTouchEnd={handleRightTextTouchEnd}
+            >
+              {editingRight ? (
+                <textarea
+                  ref={rightInputRef as any}
+                  value={tempTextRight}
+                  onChange={handleRightTextChange}
+                  onBlur={handleRightTextBlur}
+                  onKeyDown={handleRightTextKeyDown}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    borderRadius: '4px',
+                    padding: '0',
+                    margin: '0',
+                    fontSize: textSizeRight,
+                    fontFamily: fontFamily,
+                    textTransform: 'uppercase',
+                    width: '100%',
+                    height: '100%',
+                    color: textColor,
+                    resize: 'none',
+                    overflow: 'hidden',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: customLineHeight
+                      ? `${customLineHeight}`
+                      : `${
+                          ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                        }`,
+                    textAlign: textAlignment,
+                    fontWeight: textBold ? 'bold' : 'normal',
+                    fontStyle: textItalic ? 'italic' : 'normal',
+                    textDecoration: textUnderline ? 'underline' : 'none',
+                    letterSpacing: `${letterSpacing}px`,
+                    display: 'block',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    textAlign: textAlignment,
+                    lineHeight: customLineHeight
+                      ? `${customLineHeight}`
+                      : `${
+                          ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                        }`,
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre-wrap',
+                    display: 'block',
+                    fontWeight: textBold ? 'bold' : 'normal',
+                    fontStyle: textItalic ? 'italic' : 'normal',
+                    textDecoration: textUnderline ? 'underline' : 'none',
+                    letterSpacing: `${letterSpacing}px`,
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      textRight !== ''
+                        ? wrapTextToHtml(textRight)
+                        : 'TAP TO ADD TEXT',
+                  }}
+                />
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </Html>
   );

@@ -44,7 +44,7 @@ const Shirt = ({
   isRotating,
   selectedClothing,
   selectedPart,
-  // setSelectedPart,
+  setSelectedPart,
   showGlow,
 }: ShirtProps) => {
   const snap = useSnapshot(state);
@@ -115,7 +115,19 @@ const Shirt = ({
               key={uuid()}
               castShadow
               geometry={(nodes as any)[nodeName]?.geometry}
-              // onClick={() => handlePartClick(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (setSelectedPart) {
+                  setSelectedPart(index === selectedPart ? null : index);
+                }
+              }}
+              onPointerOver={() => {
+                // Optional: Change cursor on hover
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={() => {
+                document.body.style.cursor = 'default';
+              }}
             >
               <meshStandardMaterial
                 attach="material"
@@ -206,8 +218,62 @@ const ConfiguratorUnisex3D = () => {
     'Roboto',
     'Comic Sans MS',
     'Book Antiqua',
+    'Times New Roman',
+    'Georgia',
+    'Palatino',
+    'Garamond',
+    'Trebuchet MS',
+    'Impact',
+    'Lucida Console',
+    'Tahoma',
+    'Century Gothic',
+    'Futura',
+    'Helvetica',
+    'Brush Script MT',
+    'Baskerville',
+    'Copperplate',
+    'Papyrus',
+    'Optima',
+    'Franklin Gothic',
+    'Calibri',
+    'Candara',
+    'Constantia',
+    'Corbel',
+    'Segoe UI',
+    'Geneva',
+    'Monaco',
   ];
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
+
+  // Advanced text styling
+  const [textAlignment, setTextAlignment] = useState<
+    'left' | 'center' | 'right' | 'justify'
+  >('left');
+  const [textBold, setTextBold] = useState(false);
+  const [textItalic, setTextItalic] = useState(false);
+  const [textUnderline, setTextUnderline] = useState(false);
+  const [letterSpacing, setLetterSpacing] = useState(0);
+  const [lineHeight, setLineHeight] = useState(1.2);
+
+  // Position controls
+  const [positionX, setPositionX] = useState(0);
+  const [positionY, setPositionY] = useState(0);
+  const [rotationAngle, setRotationAngle] = useState(0);
+  
+  // Dragging state
+  const [enableDragging, setEnableDragging] = useState(true);
+  const [textPositions, setTextPositions] = useState<{
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  }>({});
+  const [imagePositions, setImagePositions] = useState<{
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  }>({});
+
+  // Text editing bottom sheet
+  const [showTextEditor, setShowTextEditor] = useState(false);
+  const [editingText, setEditingText] = useState<'left' | 'right' | null>(null);
 
   const textEditRef = useRef(null);
 
@@ -243,39 +309,75 @@ const ConfiguratorUnisex3D = () => {
   };
 
   const ImprintTextPosition = useMemo(() => {
-    return {
-      left: {
-        text: enteredTextLeft,
-        top: selectedClothing?.positioningLeft?.text.top,
-        left: selectedClothing?.positioningLeft?.text.left,
-        height: selectedClothing?.positioningLeft?.text.height,
-        width: selectedClothing?.positioningLeft?.text.width,
-        lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
-        image: {
-          top: selectedClothing?.positioningLeft?.image.top,
-          left: selectedClothing?.positioningLeft?.image.left,
-          height: selectedClothing?.positioningLeft?.image.height,
-          width: selectedClothing?.positioningLeft?.image.width,
-        },
-        size: selectedClothing?.positioningLeft?.text?.size || 12,
+    const baseLeft = {
+      text: enteredTextLeft,
+      top: selectedClothing?.positioningLeft?.text.top,
+      left: selectedClothing?.positioningLeft?.text.left,
+      height: selectedClothing?.positioningLeft?.text.height,
+      width: selectedClothing?.positioningLeft?.text.width,
+      lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
+      image: {
+        top: selectedClothing?.positioningLeft?.image.top,
+        left: selectedClothing?.positioningLeft?.image.left,
+        height: selectedClothing?.positioningLeft?.image.height,
+        width: selectedClothing?.positioningLeft?.image.width,
       },
-      right: {
-        text: enteredTextRight,
-        top: selectedClothing?.positioningRight?.text.top,
-        left: selectedClothing?.positioningRight?.text.left,
-        height: selectedClothing?.positioningRight?.text.height,
-        width: selectedClothing?.positioningRight?.text.width,
-        lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
-        image: {
-          top: selectedClothing?.positioningRight?.image.top,
-          left: selectedClothing?.positioningRight?.image.left,
-          height: selectedClothing?.positioningRight?.image.height,
-          width: selectedClothing?.positioningRight?.image.width,
-        },
-        size: selectedClothing?.positioningRight?.text.size || 12,
-      },
+      size: selectedClothing?.positioningLeft?.text?.size || 12,
     };
-  }, [selectedClothing?.name, enteredTextLeft, enteredTextRight]);
+
+    const baseRight = {
+      text: enteredTextRight,
+      top: selectedClothing?.positioningRight?.text.top,
+      left: selectedClothing?.positioningRight?.text.left,
+      height: selectedClothing?.positioningRight?.text.height,
+      width: selectedClothing?.positioningRight?.text.width,
+      lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
+      image: {
+        top: selectedClothing?.positioningRight?.image.top,
+        left: selectedClothing?.positioningRight?.image.left,
+        height: selectedClothing?.positioningRight?.image.height,
+        width: selectedClothing?.positioningRight?.image.width,
+      },
+      size: selectedClothing?.positioningRight?.text.size || 12,
+    };
+
+    // Apply custom positioning if editing
+    if (editingText === 'left') {
+      return {
+        left: {
+          ...baseLeft,
+          left: positionX !== 0 ? `${positionX}px` : baseLeft.left,
+          top: positionY !== 0 ? `${positionY}px` : baseLeft.top,
+          lineHeight: lineHeight || baseLeft.lineHeight,
+        },
+        right: baseRight,
+      };
+    } else if (editingText === 'right') {
+      return {
+        left: baseLeft,
+        right: {
+          ...baseRight,
+          left: positionX !== 0 ? `${positionX}px` : baseRight.left,
+          top: positionY !== 0 ? `${positionY}px` : baseRight.top,
+          lineHeight: lineHeight || baseRight.lineHeight,
+        },
+      };
+    }
+
+    return {
+      left: baseLeft,
+      right: baseRight,
+    };
+  }, [
+    selectedClothing?.positioningLeft,
+    selectedClothing?.positioningRight,
+    enteredTextLeft,
+    enteredTextRight,
+    editingText,
+    positionX,
+    positionY,
+    lineHeight,
+  ]);
 
   const [fontSizeLeft, setFontSizeLeft] = useState(
     ImprintTextPosition?.left?.size || 12,
@@ -459,10 +561,6 @@ const ConfiguratorUnisex3D = () => {
 
   // Direct editing instructions
   const [showInstructions, setShowInstructions] = useState(true);
-
-  // Text editing bottom sheet
-  const [showTextEditor, setShowTextEditor] = useState(false);
-  const [editingText, setEditingText] = useState<'left' | 'right' | null>(null);
 
   const handleTourStart = () => {
     setShowTour(true);
@@ -806,14 +904,30 @@ const ConfiguratorUnisex3D = () => {
               </OverlayPanel>
             </div>
           </div>
-          <button
-            onClick={handleShowInstructions}
-            className="flex items-center gap-2"
-            title="Show editing tips"
-          >
-            <i className="pi pi-question-circle text-sm text-primary"></i>
-            <span className="font-bold text-primary">Help</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setEnableDragging(!enableDragging)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                enableDragging
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              title={enableDragging ? 'Disable dragging' : 'Enable dragging'}
+            >
+              <i className={`pi ${enableDragging ? 'pi-lock' : 'pi-unlock'} text-sm`}></i>
+              <span className="font-medium text-sm">
+                {enableDragging ? 'Lock Position' : 'Unlock Position'}
+              </span>
+            </button>
+            <button
+              onClick={handleShowInstructions}
+              className="flex items-center gap-2"
+              title="Show editing tips"
+            >
+              <i className="pi pi-question-circle text-sm text-primary"></i>
+              <span className="font-bold text-primary">Help</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -837,15 +951,27 @@ const ConfiguratorUnisex3D = () => {
                       <HtmlComponent
                         textLeft={enteredTextLeft}
                         textRight={enteredTextRight}
-                        textColor={textColor}
+                        textColor={
+                          editingText &&
+                          !colorOptions.find((c) => c.label === textColor)
+                            ? textColor
+                            : colorOptions.find((c) => c.label === textColor)
+                                ?.color || textColor
+                        }
                         textSizeleft={fontSizeLeft}
                         textSizeRight={fontSizeRight}
                         fontFamily={fontFamily}
                         textLeftRotate={
-                          selectedClothing?.positioningLeft?.text?.rotate
+                          editingText === 'left' && rotationAngle !== 0
+                            ? rotationAngle
+                            : selectedClothing?.positioningLeft?.text?.rotate ||
+                              0
                         }
                         textRightRotate={
-                          selectedClothing?.positioningRight?.text?.rotate
+                          editingText === 'right' && rotationAngle !== 0
+                            ? rotationAngle
+                            : selectedClothing?.positioningRight?.text
+                                ?.rotate || 0
                         }
                         ImprintTextPosition={ImprintTextPosition as any}
                         hideRightText={
@@ -862,6 +988,20 @@ const ConfiguratorUnisex3D = () => {
                         }
                         selectedText={editingText}
                         disableInteractions={showTextEditor || showInstructions}
+                        textBold={textBold}
+                        textItalic={textItalic}
+                        textUnderline={textUnderline}
+                        textAlignment={textAlignment}
+                        letterSpacing={letterSpacing}
+                        customLineHeight={lineHeight}
+                        enableDragging={enableDragging}
+                        onPositionChange={(side, position) => {
+                          setTextPositions((prev) => ({
+                            ...prev,
+                            [side]: position,
+                          }));
+                        }}
+                        customPositions={textPositions}
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition as any}
@@ -879,6 +1019,14 @@ const ConfiguratorUnisex3D = () => {
                         onImageLeftChange={handleImageUploadLeft}
                         onImageRightChange={handleImageUploadRight}
                         disableInteractions={showTextEditor || showInstructions}
+                        enableDragging={enableDragging}
+                        onPositionChange={(side, position) => {
+                          setImagePositions((prev) => ({
+                            ...prev,
+                            [side]: position,
+                          }));
+                        }}
+                        customPositions={imagePositions}
                       />
                     </>
                   )}
@@ -950,11 +1098,45 @@ const ConfiguratorUnisex3D = () => {
                       </button>
                     </div>
 
-                    <section className="overflow-y-auto h-full max-h-[6rem]">
+                    <section className="overflow-y-auto h-full max-h-[calc(80vh-200px)]">
+                      {/* Text Effects Row */}
+                      <div className="mb-4 flex gap-2">
+                        <button
+                          onClick={() => setTextBold(!textBold)}
+                          className={`flex-1 py-2 px-3 rounded-lg border-2 transition-all ${
+                            textBold
+                              ? 'border-blue-500 bg-blue-50 font-bold'
+                              : 'border-gray-200 hover:border-gray-400'
+                          }`}
+                        >
+                          <i className="pi pi-bold mr-1"></i> Bold
+                        </button>
+                        <button
+                          onClick={() => setTextItalic(!textItalic)}
+                          className={`flex-1 py-2 px-3 rounded-lg border-2 transition-all ${
+                            textItalic
+                              ? 'border-blue-500 bg-blue-50 italic'
+                              : 'border-gray-200 hover:border-gray-400'
+                          }`}
+                        >
+                          <i className="pi pi-italic mr-1"></i> Italic
+                        </button>
+                        <button
+                          onClick={() => setTextUnderline(!textUnderline)}
+                          className={`flex-1 py-2 px-3 rounded-lg border-2 transition-all ${
+                            textUnderline
+                              ? 'border-blue-500 bg-blue-50 underline'
+                              : 'border-gray-200 hover:border-gray-400'
+                          }`}
+                        >
+                          <i className="pi pi-underline mr-1"></i> Underline
+                        </button>
+                      </div>
+
                       {/* Font Size Controls */}
-                      <div className="mb-4 ">
+                      <div className="mb-4">
                         <label className="block text-xs font-medium text-gray-700 mb-2">
-                          Size:{' '}
+                          Font Size:{' '}
                           {editingText === 'left'
                             ? Number(fontSizeLeft)
                             : Number(fontSizeRight)}
@@ -965,11 +1147,11 @@ const ConfiguratorUnisex3D = () => {
                             onClick={() => {
                               if (editingText === 'left') {
                                 setFontSizeLeft((prev: any) =>
-                                  Math.max(10, Number(prev) - 1),
+                                  Math.max(8, Number(prev) - 1),
                                 );
                               } else {
                                 setFontSizeRight((prev: any) =>
-                                  Math.max(10, Number(prev) - 1),
+                                  Math.max(8, Number(prev) - 1),
                                 );
                               }
                             }}
@@ -977,32 +1159,34 @@ const ConfiguratorUnisex3D = () => {
                           >
                             <i className="pi pi-minus text-sm"></i>
                           </button>
-                          <div className="flex-1 bg-gray-100 rounded-lg h-2 relative">
-                            <div
-                              className="bg-blue-600 h-full rounded-lg transition-all"
-                              style={{
-                                width: `${
-                                  ((Number(
-                                    editingText === 'left'
-                                      ? fontSizeLeft
-                                      : fontSizeRight,
-                                  ) -
-                                    10) /
-                                    50) *
-                                  100
-                                }%`,
-                              }}
-                            />
-                          </div>
+                          <input
+                            type="range"
+                            min="8"
+                            max="80"
+                            value={
+                              editingText === 'left'
+                                ? fontSizeLeft
+                                : fontSizeRight
+                            }
+                            onChange={(e) => {
+                              const value = Number(e.target.value);
+                              if (editingText === 'left') {
+                                setFontSizeLeft(value);
+                              } else {
+                                setFontSizeRight(value);
+                              }
+                            }}
+                            className="flex-1"
+                          />
                           <button
                             onClick={() => {
                               if (editingText === 'left') {
                                 setFontSizeLeft((prev: any) =>
-                                  Math.min(60, Number(prev) + 1),
+                                  Math.min(80, Number(prev) + 1),
                                 );
                               } else {
                                 setFontSizeRight((prev: any) =>
-                                  Math.min(60, Number(prev) + 1),
+                                  Math.min(80, Number(prev) + 1),
                                 );
                               }
                             }}
@@ -1013,36 +1197,57 @@ const ConfiguratorUnisex3D = () => {
                         </div>
                       </div>
 
-                      {/* Text Color */}
+                      {/* Text Color with Color Picker */}
                       <div className="mb-4">
                         <label className="block text-xs font-medium text-gray-700 mb-2">
                           Color
                         </label>
-                        <div className="grid grid-cols-6 gap-2">
-                          {colorOptions
-                            .slice(0, 6)
-                            .map((colorOption, index) => (
-                              <button
-                                key={index}
-                                className={`w-8 h-8 rounded-full border-3 transition-all transform hover:scale-110 ${
-                                  textColor === colorOption.label
-                                    ? 'border-gray-800 scale-110 shadow-lg'
-                                    : 'border-gray-300 hover:border-gray-500'
-                                }`}
-                                onClick={() => setTextColor(colorOption.label)}
-                                style={{ backgroundColor: colorOption.color }}
-                                title={colorOption.label}
-                              />
-                            ))}
+                        <div className="mb-2">
+                          <input
+                            type="color"
+                            value={
+                              colorOptions.find((c) => c.label === textColor)
+                                ?.color || '#ffd700'
+                            }
+                            onChange={(e) => {
+                              const hex = e.target.value;
+                              // Find matching color or create custom
+                              const existing = colorOptions.find(
+                                (c) =>
+                                  c.color.toLowerCase() === hex.toLowerCase(),
+                              );
+                              if (existing) {
+                                setTextColor(existing.label);
+                              } else {
+                                setTextColor(hex);
+                              }
+                            }}
+                            className="w-full h-10 rounded-lg border border-gray-300 cursor-pointer"
+                          />
+                        </div>
+                        <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto">
+                          {colorOptions.map((colorOption, index) => (
+                            <button
+                              key={index}
+                              className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 ${
+                                textColor === colorOption.label
+                                  ? 'border-gray-800 scale-110 shadow-lg ring-2 ring-blue-500'
+                                  : 'border-gray-300 hover:border-gray-500'
+                              }`}
+                              onClick={() => setTextColor(colorOption.label)}
+                              style={{ backgroundColor: colorOption.color }}
+                              title={colorOption.label}
+                            />
+                          ))}
                         </div>
                       </div>
 
-                      {/* Font Style */}
+                      {/* Font Selection with Search */}
                       <div className="mb-4">
                         <label className="block text-xs font-medium text-gray-700 mb-2">
-                          Font
+                          Font Family ({fonts.length} fonts)
                         </label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
                           {fonts.map((font, index) => (
                             <button
                               key={index}
@@ -1050,7 +1255,7 @@ const ConfiguratorUnisex3D = () => {
                                 setCurrentFontIndex(index);
                                 setFontFamily(font);
                               }}
-                              className={`px-1  py-2 rounded-lg border-2 transition-all text-sm ${
+                              className={`px-2 py-2 rounded-lg border-2 transition-all text-xs text-left ${
                                 fontFamily === font
                                   ? 'border-blue-500 bg-blue-50 font-semibold'
                                   : 'border-gray-200 hover:border-gray-400'
@@ -1061,6 +1266,197 @@ const ConfiguratorUnisex3D = () => {
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Text Alignment */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Alignment
+                        </label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[
+                            { value: 'left', icon: 'pi-align-left' },
+                            { value: 'center', icon: 'pi-align-center' },
+                            { value: 'right', icon: 'pi-align-right' },
+                            { value: 'justify', icon: 'pi-align-justify' },
+                          ].map((align) => (
+                            <button
+                              key={align.value}
+                              onClick={() =>
+                                setTextAlignment(
+                                  align.value as
+                                    | 'left'
+                                    | 'center'
+                                    | 'right'
+                                    | 'justify',
+                                )
+                              }
+                              className={`py-2 px-3 rounded-lg border-2 transition-all ${
+                                textAlignment === align.value
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-400'
+                              }`}
+                            >
+                              <i className={`pi ${align.icon}`}></i>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Letter Spacing */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Letter Spacing: {letterSpacing}px
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              setLetterSpacing(
+                                Math.max(-2, letterSpacing - 0.1),
+                              )
+                            }
+                            className="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-minus text-sm"></i>
+                          </button>
+                          <input
+                            type="range"
+                            min="-2"
+                            max="5"
+                            step="0.1"
+                            value={letterSpacing}
+                            onChange={(e) =>
+                              setLetterSpacing(Number(e.target.value))
+                            }
+                            className="flex-1"
+                          />
+                          <button
+                            onClick={() =>
+                              setLetterSpacing(Math.min(5, letterSpacing + 0.1))
+                            }
+                            className="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-plus text-sm"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Line Height */}
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
+                          Line Height: {lineHeight.toFixed(1)}
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() =>
+                              setLineHeight(Math.max(0.8, lineHeight - 0.1))
+                            }
+                            className="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-minus text-sm"></i>
+                          </button>
+                          <input
+                            type="range"
+                            min="0.8"
+                            max="3"
+                            step="0.1"
+                            value={lineHeight}
+                            onChange={(e) =>
+                              setLineHeight(Number(e.target.value))
+                            }
+                            className="flex-1"
+                          />
+                          <button
+                            onClick={() =>
+                              setLineHeight(Math.min(3, lineHeight + 0.1))
+                            }
+                            className="w-10 h-10 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center"
+                          >
+                            <i className="pi pi-plus text-sm"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Position Controls */}
+                      <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                        <label className="block text-xs font-medium text-gray-700 mb-3">
+                          Position & Rotation
+                        </label>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">
+                              X Position
+                            </label>
+                            <input
+                              type="number"
+                              value={positionX}
+                              onChange={(e) =>
+                                setPositionX(Number(e.target.value))
+                              }
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">
+                              Y Position
+                            </label>
+                            <input
+                              type="number"
+                              value={positionY}
+                              onChange={(e) =>
+                                setPositionY(Number(e.target.value))
+                              }
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 mb-2 block">
+                            Rotation: {rotationAngle}°
+                          </label>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() =>
+                                setRotationAngle(
+                                  (((rotationAngle - 15) % 360) + 360) % 360,
+                                )
+                              }
+                              className="w-10 h-10 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center"
+                            >
+                              <i className="pi pi-angle-left text-sm"></i>
+                            </button>
+                            <input
+                              type="range"
+                              min="0"
+                              max="360"
+                              value={rotationAngle}
+                              onChange={(e) =>
+                                setRotationAngle(Number(e.target.value))
+                              }
+                              className="flex-1"
+                            />
+                            <button
+                              onClick={() =>
+                                setRotationAngle((rotationAngle + 15) % 360)
+                              }
+                              className="w-10 h-10 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center"
+                            >
+                              <i className="pi pi-angle-right text-sm"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setPositionX(0);
+                            setPositionY(0);
+                            setRotationAngle(0);
+                          }}
+                          className="w-full mt-2 py-1 px-3 bg-gray-200 hover:bg-gray-300 rounded text-xs transition-colors"
+                        >
+                          Reset Position
+                        </button>
                       </div>
                     </section>
                   </div>
