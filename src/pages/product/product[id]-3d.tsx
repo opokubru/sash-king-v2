@@ -1049,10 +1049,10 @@ const ConfiguratorUnisex3D = () => {
                             sizes to fit space available
                           </span>
                         </div>
-                        {/* <div className="flex items-center gap-2">
-                          <i className="pi pi-text text-purple-500"></i>
-                          <span>Use space to wrap text to the next line</span>
-                        </div> */}
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-th-large text-blue-500"></i>
+                          <span>Tap on cut-out sections to change colors</span>
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200">
