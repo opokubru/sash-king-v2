@@ -30,6 +30,7 @@ import { CustomButton } from '@/components/shared/shared_customs';
 import { ThreeDSashes } from '@/lib/3d-sash';
 import TakeTour from '@/components/TakeTour';
 import LoadingAnimation from '@/components/LoadingAnimation';
+import { MeshPartColorPicker } from '@/components/MeshPartColorPicker';
 
 interface ShirtProps {
   isRotating: boolean;
@@ -37,19 +38,148 @@ interface ShirtProps {
   selectedPart: number | null;
   setSelectedPart: (value: number | null) => void;
   selectedTexture: any;
-  showGlow: boolean;
 }
+
+// Assign default colors based on sash type constraints (utility function)
+const assignDefaultColors = (selectedClothing: any, state: any) => {
+  if (!selectedClothing?.myNode || !state.color) return;
+
+  const nodeCount = selectedClothing.myNode.length;
+
+  // Initialize color array if needed
+  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+    (state.color as any) = new Array(nodeCount).fill('#ffffff');
+  }
+
+  if (selectedClothing.name === 'Type 1') {
+    // Type 1: plain_sections and mid_stripes get black, Stripe_1 and Stripe_2 get yellow
+    const blackColor = '#000000'; // For plain_sections and mid_stripes
+    const yellowColor = '#FFFF00'; // For Stripe_1 and Stripe_2
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
+        (state.color as any)[index] = blackColor;
+      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
+        (state.color as any)[index] = yellowColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = '#ffffff';
+      }
+    });
+  } else if (selectedClothing.name === 'Type 2') {
+    // Type 2: mid_section gets black, stripe_1 and stripe_2 get yellow
+    const blackColor = '#000000'; // For mid_section
+    const yellowColor = '#FFFF00'; // For stripe_1 and stripe_2
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = yellowColor;
+      } else if (node.name === 'mid_section') {
+        (state.color as any)[index] = blackColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = '#ffffff';
+      }
+    });
+  } else {
+    // For other types, assign white to all nodes
+    selectedClothing.myNode.forEach((_node: any, index: number) => {
+      (state.color as any)[index] = '#ffffff';
+    });
+  }
+};
+
+// Generate random hex color (utility function) - for randomize button
+const generateRandomColor = () => {
+  return (
+    '#' +
+    Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0')
+  );
+};
+
+// Assign random colors based on sash type constraints (utility function) - for randomize button
+const assignRandomColors = (selectedClothing: any, state: any) => {
+  if (!selectedClothing?.myNode || !state.color) return;
+
+  const nodeCount = selectedClothing.myNode.length;
+
+  // Initialize color array if needed
+  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+    (state.color as any) = new Array(nodeCount).fill('#ffffff');
+  }
+
+  if (selectedClothing.name === 'Type 1') {
+    // Type 1: mid_stripes and plain_sections same, Stripe_1 and Stripe_2 same
+    const baseColor = generateRandomColor(); // For plain_sections and mid_stripes
+    let stripeColor = generateRandomColor(); // For Stripe_1 and Stripe_2
+
+    // Ensure the two color groups are different
+    let attempts = 0;
+    while (stripeColor === baseColor && attempts < 10) {
+      stripeColor = generateRandomColor();
+      attempts++;
+    }
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
+        (state.color as any)[index] = baseColor;
+      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
+        (state.color as any)[index] = stripeColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = generateRandomColor();
+      }
+    });
+  } else if (selectedClothing.name === 'Type 2') {
+    // Type 2: stripe_1 and stripe_2 same, mid_section different
+    const stripeColor = generateRandomColor();
+    let midColor = generateRandomColor();
+
+    // Ensure mid_section has different color
+    let attempts = 0;
+    while (midColor === stripeColor && attempts < 10) {
+      midColor = generateRandomColor();
+      attempts++;
+    }
+
+    selectedClothing.myNode.forEach((node: any, index: number) => {
+      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = stripeColor;
+      } else if (node.name === 'mid_section') {
+        (state.color as any)[index] = midColor;
+      } else {
+        // Fallback for any other nodes
+        (state.color as any)[index] = generateRandomColor();
+      }
+    });
+  } else {
+    // For other types, assign random colors to all nodes
+    selectedClothing.myNode.forEach((_node: any, index: number) => {
+      (state.color as any)[index] = generateRandomColor();
+    });
+  }
+};
 
 const Shirt = ({
   isRotating,
   selectedClothing,
   selectedPart,
-  // setSelectedPart,
-  showGlow,
+  setSelectedPart,
 }: ShirtProps) => {
   const snap = useSnapshot(state);
-  const gltf = useGLTF(selectedClothing.model);
-  const nodes = Array.isArray(gltf) ? (gltf as any).nodes : gltf.nodes;
+
+  // Guard against undefined model path - use a fallback to ensure hook is always called
+  const modelPath = selectedClothing?.model || '/models/sash.glb';
+
+  // Always call the hook (React hooks rule)
+  const gltf = useGLTF(modelPath);
+  const nodes = gltf
+    ? Array.isArray(gltf)
+      ? (gltf as any).nodes
+      : gltf.nodes
+    : null;
 
   const groupRef = useRef<any>();
 
@@ -66,27 +196,32 @@ const Shirt = ({
     }
   }, [isRotating]);
 
-  // const handlePartClick = (index: number) => {
-  //   if (index === selectedPart) {
-  //     setSelectedPart(null); // Deselect the part if it is clicked again
-  //   } else {
-  //     setSelectedPart(index);
-  //   }
-  // };
-
   const [isLoading, setIsLoading] = useState(true);
+  const [highlightAllNodes, setHighlightAllNodes] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     const loadingTimeout = setTimeout(() => {
       setIsLoading(false);
+      // Keep highlighting for 3 seconds after load, then fade out
+      const highlightTimeout = setTimeout(() => {
+        setHighlightAllNodes(false);
+      }, 3000);
+      return () => clearTimeout(highlightTimeout);
     }, 2000);
 
+    // Initialize color array
     if (state.color && Array.isArray(state.color)) {
-      for (let i = 0; i < state.color.length; i++) {
-        (state.color as any)[i] = '#ffffff';
+      const nodeCount = selectedClothing?.myNode?.length || 0;
+      if (state.color.length < nodeCount) {
+        (state.color as any) = new Array(nodeCount).fill('#ffffff');
       }
+    }
+
+    // Assign default colors on load
+    if (selectedClothing?.myNode && state.color) {
+      assignDefaultColors(selectedClothing, state);
     }
 
     if (state.texture && Array.isArray(state.texture)) {
@@ -95,8 +230,20 @@ const Shirt = ({
       }
     }
 
+    // Reset highlighting when clothing changes
+    setHighlightAllNodes(true);
+
     return () => clearTimeout(loadingTimeout);
-  }, [selectedClothing.name]);
+  }, [selectedClothing]);
+
+  // Don't render if model or nodes are not available
+  if (!selectedClothing?.model || !nodes) {
+    return (
+      <group ref={groupRef}>
+        <LoadingAnimation />
+      </group>
+    );
+  }
 
   return (
     <group ref={groupRef}>
@@ -110,20 +257,50 @@ const Shirt = ({
           const color = snap.color[index] || '#ffffff';
           const texture = snap.texture[index] || null;
 
+          // Skip if node doesn't exist in the model
+          if (!nodes[nodeName]?.geometry) {
+            return null;
+          }
+
+          // Determine if this node should be highlighted (only on initial load)
+          const shouldHighlight = highlightAllNodes;
+
           return (
             <mesh
               key={uuid()}
               castShadow
               geometry={(nodes as any)[nodeName]?.geometry}
-              // onClick={() => handlePartClick(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (setSelectedPart) {
+                  setSelectedPart(index === selectedPart ? null : index);
+                }
+                // Stop highlighting all nodes when user clicks
+                setHighlightAllNodes(false);
+              }}
+              onPointerOver={() => {
+                // Optional: Change cursor on hover
+                document.body.style.cursor = 'pointer';
+              }}
+              onPointerOut={() => {
+                document.body.style.cursor = 'default';
+              }}
             >
               <meshStandardMaterial
                 attach="material"
                 color={color || '#ffffff'}
                 map={texture ? new TextureLoader().load(texture) : null}
                 roughness={1}
-                emissive={selectedPart === index ? '#FF8C00' : undefined}
-                emissiveIntensity={showGlow && selectedPart === index ? 5 : 0}
+                emissive={
+                  shouldHighlight
+                    ? '#3B82F6' // Blue for initial highlight
+                    : undefined
+                }
+                emissiveIntensity={
+                  shouldHighlight
+                    ? 1.5 // Subtle blue glow for all nodes on initial load
+                    : 0
+                }
               />
             </mesh>
           );
@@ -147,21 +324,31 @@ const ConfiguratorUnisex3D = () => {
   // const [selectedPrintOn, setSelectedPrintOn] = useState(null);
 
   const [selectedPart, setSelectedPart] = useState<number | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   const [isRotating] = useState(false);
-  const [showGlow] = useState(false);
 
   // const canvasRef = useRef(null);
   // toast
   const toastRef = useRef(null);
   const currencySymbol = getCurrencySymbol('GHS');
   const currencyFactor = 1;
+  const snap = useSnapshot(state);
 
   // const [partPrices, setPartPrices] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Show color picker when a part is selected
+  useEffect(() => {
+    if (selectedPart !== null) {
+      setShowColorPicker(true);
+    } else {
+      setShowColorPicker(false);
+    }
+  }, [selectedPart]);
 
   //total price
   // useEffect(() => {
@@ -206,8 +393,133 @@ const ConfiguratorUnisex3D = () => {
     'Roboto',
     'Comic Sans MS',
     'Book Antiqua',
+    'Times New Roman',
+    'Georgia',
+    'Palatino',
+    'Garamond',
+    'Trebuchet MS',
+    'Impact',
+    'Lucida Console',
+    'Tahoma',
+    'Century Gothic',
+    'Futura',
+    'Helvetica',
+    'Brush Script MT',
+    'Baskerville',
+    'Copperplate',
+    'Papyrus',
+    'Optima',
+    'Franklin Gothic',
+    'Calibri',
+    'Candara',
+    'Constantia',
+    'Corbel',
+    'Segoe UI',
+    'Geneva',
+    'Monaco',
   ];
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
+
+  // Advanced text styling (kept for HtmlComponent compatibility, but not used in simplified UI)
+  const [textAlignment] = useState<'left' | 'center' | 'right' | 'justify'>(
+    'left',
+  );
+  const [textBold] = useState(false);
+  const [textItalic] = useState(false);
+  const [textUnderline] = useState(false);
+  const [letterSpacing] = useState(0);
+  const [lineHeight] = useState(1.2);
+
+  // Position controls (kept for HtmlComponent compatibility, but not used in simplified UI)
+  const [positionX] = useState(0);
+  const [positionY] = useState(0);
+  const [rotationAngle] = useState(0);
+
+  // Dragging state
+  const [enableDragging] = useState(true);
+
+  // Helper function to convert rem/px string to number (for drag positions)
+  const parsePosition = (value: string | undefined): number => {
+    if (!value) return 0;
+    // Remove 'rem' or 'px' and convert to number
+    const numStr = value.replace(/rem|px/g, '').trim();
+    const num = parseFloat(numStr);
+    // Convert rem to px (assuming 1rem = 16px, adjust if needed)
+    if (value.includes('rem')) {
+      return num * 16;
+    }
+    return num || 0;
+  };
+
+  // Initialize positions from selectedClothing defaults
+  const getInitialTextPositions = () => {
+    if (!selectedClothing) return {};
+    return {
+      left: {
+        x: parsePosition(selectedClothing.positioningLeft?.text?.left),
+        y: parsePosition(selectedClothing.positioningLeft?.text?.top),
+      },
+      right: {
+        x: parsePosition(selectedClothing.positioningRight?.text?.left),
+        y: parsePosition(selectedClothing.positioningRight?.text?.top),
+      },
+    };
+  };
+
+  const getInitialImagePositions = () => {
+    if (!selectedClothing) return {};
+    return {
+      left: {
+        x: parsePosition(selectedClothing.positioningLeft?.image?.left),
+        y: parsePosition(selectedClothing.positioningLeft?.image?.top),
+      },
+      right: {
+        x: parsePosition(selectedClothing.positioningRight?.image?.left),
+        y: parsePosition(selectedClothing.positioningRight?.image?.top),
+      },
+    };
+  };
+
+  const [textPositions, setTextPositions] = useState<{
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  }>(getInitialTextPositions());
+
+  const [imagePositions, setImagePositions] = useState<{
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  }>(getInitialImagePositions());
+
+  // Reset positions when clothing changes
+  useEffect(() => {
+    if (selectedClothing) {
+      setTextPositions({
+        left: {
+          x: parsePosition(selectedClothing.positioningLeft?.text?.left),
+          y: parsePosition(selectedClothing.positioningLeft?.text?.top),
+        },
+        right: {
+          x: parsePosition(selectedClothing.positioningRight?.text?.left),
+          y: parsePosition(selectedClothing.positioningRight?.text?.top),
+        },
+      });
+      setImagePositions({
+        left: {
+          x: parsePosition(selectedClothing.positioningLeft?.image?.left),
+          y: parsePosition(selectedClothing.positioningLeft?.image?.top),
+        },
+        right: {
+          x: parsePosition(selectedClothing.positioningRight?.image?.left),
+          y: parsePosition(selectedClothing.positioningRight?.image?.top),
+        },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClothing?.name]);
+
+  // Text editing bottom sheet
+  const [showTextEditor, setShowTextEditor] = useState(false);
+  const [editingText, setEditingText] = useState<'left' | 'right' | null>(null);
 
   const textEditRef = useRef(null);
 
@@ -243,46 +555,97 @@ const ConfiguratorUnisex3D = () => {
   };
 
   const ImprintTextPosition = useMemo(() => {
-    return {
-      left: {
-        text: enteredTextLeft,
-        top: selectedClothing?.positioningLeft?.text.top,
-        left: selectedClothing?.positioningLeft?.text.left,
-        height: selectedClothing?.positioningLeft?.text.height,
-        width: selectedClothing?.positioningLeft?.text.width,
-        lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
-        image: {
-          top: selectedClothing?.positioningLeft?.image.top,
-          left: selectedClothing?.positioningLeft?.image.left,
-          height: selectedClothing?.positioningLeft?.image.height,
-          width: selectedClothing?.positioningLeft?.image.width,
-        },
-        size: selectedClothing?.positioningLeft?.text?.size || 12,
+    const baseLeft = {
+      text: enteredTextLeft,
+      top: selectedClothing?.positioningLeft?.text.top,
+      left: selectedClothing?.positioningLeft?.text.left,
+      height: selectedClothing?.positioningLeft?.text.height,
+      width: selectedClothing?.positioningLeft?.text.width,
+      lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
+      image: {
+        top: selectedClothing?.positioningLeft?.image.top,
+        left: selectedClothing?.positioningLeft?.image.left,
+        height: selectedClothing?.positioningLeft?.image.height,
+        width: selectedClothing?.positioningLeft?.image.width,
       },
-      right: {
-        text: enteredTextRight,
-        top: selectedClothing?.positioningRight?.text.top,
-        left: selectedClothing?.positioningRight?.text.left,
-        height: selectedClothing?.positioningRight?.text.height,
-        width: selectedClothing?.positioningRight?.text.width,
-        lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
-        image: {
-          top: selectedClothing?.positioningRight?.image.top,
-          left: selectedClothing?.positioningRight?.image.left,
-          height: selectedClothing?.positioningRight?.image.height,
-          width: selectedClothing?.positioningRight?.image.width,
-        },
-        size: selectedClothing?.positioningRight?.text.size || 12,
-      },
+      size: selectedClothing?.positioningLeft?.text?.size || 12,
     };
-  }, [selectedClothing?.name, enteredTextLeft, enteredTextRight]);
 
+    const baseRight = {
+      text: enteredTextRight,
+      top: selectedClothing?.positioningRight?.text.top,
+      left: selectedClothing?.positioningRight?.text.left,
+      height: selectedClothing?.positioningRight?.text.height,
+      width: selectedClothing?.positioningRight?.text.width,
+      lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
+      image: {
+        top: selectedClothing?.positioningRight?.image.top,
+        left: selectedClothing?.positioningRight?.image.left,
+        height: selectedClothing?.positioningRight?.image.height,
+        width: selectedClothing?.positioningRight?.image.width,
+      },
+      size: selectedClothing?.positioningRight?.text.size || 12,
+    };
+
+    // Apply custom positioning if editing
+    if (editingText === 'left') {
+      return {
+        left: {
+          ...baseLeft,
+          left: positionX !== 0 ? `${positionX}px` : baseLeft.left,
+          top: positionY !== 0 ? `${positionY}px` : baseLeft.top,
+          lineHeight: lineHeight || baseLeft.lineHeight,
+        },
+        right: baseRight,
+      };
+    } else if (editingText === 'right') {
+      return {
+        left: baseLeft,
+        right: {
+          ...baseRight,
+          left: positionX !== 0 ? `${positionX}px` : baseRight.left,
+          top: positionY !== 0 ? `${positionY}px` : baseRight.top,
+          lineHeight: lineHeight || baseRight.lineHeight,
+        },
+      };
+    }
+
+    return {
+      left: baseLeft,
+      right: baseRight,
+    };
+  }, [
+    selectedClothing?.positioningLeft,
+    selectedClothing?.positioningRight,
+    enteredTextLeft,
+    enteredTextRight,
+    editingText,
+    positionX,
+    positionY,
+    lineHeight,
+  ]);
+
+  // Initialize font sizes from selectedClothing defaults
   const [fontSizeLeft, setFontSizeLeft] = useState(
-    ImprintTextPosition?.left?.size || 12,
+    selectedClothing?.positioningLeft?.text?.size || 12,
   );
   const [fontSizeRight, setFontSizeRight] = useState(
-    ImprintTextPosition?.right?.size || 12,
+    selectedClothing?.positioningRight?.text?.size || 12,
   );
+
+  // Update font sizes when clothing changes
+  useEffect(() => {
+    if (selectedClothing?.positioningLeft?.text?.size) {
+      setFontSizeLeft(selectedClothing.positioningLeft.text.size);
+    }
+    if (selectedClothing?.positioningRight?.text?.size) {
+      setFontSizeRight(selectedClothing.positioningRight.text.size);
+    }
+  }, [
+    selectedClothing?.name,
+    selectedClothing?.positioningLeft?.text?.size,
+    selectedClothing?.positioningRight?.text?.size,
+  ]);
 
   const [isLoadingModel, setIsLoadingModel] = useState(true);
 
@@ -460,10 +823,6 @@ const ConfiguratorUnisex3D = () => {
   // Direct editing instructions
   const [showInstructions, setShowInstructions] = useState(true);
 
-  // Text editing bottom sheet
-  const [showTextEditor, setShowTextEditor] = useState(false);
-  const [editingText, setEditingText] = useState<'left' | 'right' | null>(null);
-
   const handleTourStart = () => {
     setShowTour(true);
     setShowTourPopup(false);
@@ -560,6 +919,28 @@ const ConfiguratorUnisex3D = () => {
       return 'sash';
     }
   }, [selectedClothing?.name]);
+
+  // Handle case where product is not found
+  if (!selectedClothing) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            The requested product could not be found.
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go Home
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -664,14 +1045,14 @@ const ConfiguratorUnisex3D = () => {
                         <div className="flex items-center gap-2">
                           <i className="pi pi-palette text-purple-500"></i>
                           <span>
-                            Long press on text to change colors, fonts, and
+                            Double tap on text to change colors, fonts, and
                             sizes to fit space available
                           </span>
                         </div>
-                        {/* <div className="flex items-center gap-2">
-                          <i className="pi pi-text text-purple-500"></i>
-                          <span>Use space to wrap text to the next line</span>
-                        </div> */}
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-th-large text-blue-500"></i>
+                          <span>Tap on cut-out sections to change colors</span>
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200">
@@ -806,14 +1187,46 @@ const ConfiguratorUnisex3D = () => {
               </OverlayPanel>
             </div>
           </div>
-          <button
-            onClick={handleShowInstructions}
-            className="flex items-center gap-2"
-            title="Show editing tips"
-          >
-            <i className="pi pi-question-circle text-sm text-primary"></i>
-            <span className="font-bold text-primary">Help</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {/* <button
+              onClick={() => setEnableDragging(!enableDragging)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                enableDragging
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+              title={enableDragging ? 'Disable dragging' : 'Enable dragging'}
+            >
+              <i
+                className={`pi ${
+                  enableDragging ? 'pi-lock' : 'pi-unlock'
+                } text-sm`}
+              ></i>
+              <span className="font-medium text-sm">
+                {enableDragging ? 'Lock Position' : 'Unlock Position'}
+              </span>
+            </button> */}
+            <button
+              onClick={handleShowInstructions}
+              className="flex items-center gap-2"
+              title="Show editing tips"
+            >
+              <i className="pi pi-question-circle text-sm text-primary"></i>
+              <span className="font-bold text-primary">Help</span>
+            </button>
+            <button
+              onClick={() => {
+                if (selectedClothing?.myNode && state.color) {
+                  assignRandomColors(selectedClothing, state);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              title="Randomize colors"
+            >
+              <i className="pi pi-refresh text-sm"></i>
+              <span className="font-medium text-sm">Randomize Colors</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -831,21 +1244,32 @@ const ConfiguratorUnisex3D = () => {
                 <pointLight position={[10, 10, 10]} />
                 {selectedClothing &&
                   selectedClothing.name &&
-                  noSpinFor.includes(selectedClothing.name) &&
                   isLoadingModel === false && (
                     <>
                       <HtmlComponent
                         textLeft={enteredTextLeft}
                         textRight={enteredTextRight}
-                        textColor={textColor}
+                        textColor={
+                          editingText &&
+                          !colorOptions.find((c) => c.label === textColor)
+                            ? textColor
+                            : colorOptions.find((c) => c.label === textColor)
+                                ?.color || textColor
+                        }
                         textSizeleft={fontSizeLeft}
                         textSizeRight={fontSizeRight}
                         fontFamily={fontFamily}
                         textLeftRotate={
-                          selectedClothing?.positioningLeft?.text?.rotate
+                          editingText === 'left' && rotationAngle !== 0
+                            ? rotationAngle
+                            : selectedClothing?.positioningLeft?.text?.rotate ||
+                              0
                         }
                         textRightRotate={
-                          selectedClothing?.positioningRight?.text?.rotate
+                          editingText === 'right' && rotationAngle !== 0
+                            ? rotationAngle
+                            : selectedClothing?.positioningRight?.text
+                                ?.rotate || 0
                         }
                         ImprintTextPosition={ImprintTextPosition as any}
                         hideRightText={
@@ -862,6 +1286,20 @@ const ConfiguratorUnisex3D = () => {
                         }
                         selectedText={editingText}
                         disableInteractions={showTextEditor || showInstructions}
+                        textBold={textBold}
+                        textItalic={textItalic}
+                        textUnderline={textUnderline}
+                        textAlignment={textAlignment}
+                        letterSpacing={letterSpacing}
+                        customLineHeight={lineHeight}
+                        enableDragging={enableDragging}
+                        onPositionChange={(side, position) => {
+                          setTextPositions((prev) => ({
+                            ...prev,
+                            [side]: position,
+                          }));
+                        }}
+                        customPositions={textPositions}
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition as any}
@@ -879,6 +1317,14 @@ const ConfiguratorUnisex3D = () => {
                         onImageLeftChange={handleImageUploadLeft}
                         onImageRightChange={handleImageUploadRight}
                         disableInteractions={showTextEditor || showInstructions}
+                        enableDragging={enableDragging}
+                        onPositionChange={(side, position) => {
+                          setImagePositions((prev) => ({
+                            ...prev,
+                            [side]: position,
+                          }));
+                        }}
+                        customPositions={imagePositions}
                       />
                     </>
                   )}
@@ -888,11 +1334,10 @@ const ConfiguratorUnisex3D = () => {
                   selectedPart={selectedPart}
                   setSelectedPart={setSelectedPart}
                   selectedTexture={state.texture[selectedPart || 0]}
-                  showGlow={showGlow}
                 />
                 {selectedClothing?.name &&
                   !noSpinFor.includes(selectedClothing.name) && (
-                    <OrbitControls />
+                    <OrbitControls enableRotate={false} />
                   )}
               </Canvas>
             </div>
@@ -950,7 +1395,7 @@ const ConfiguratorUnisex3D = () => {
                       </button>
                     </div>
 
-                    <section className="overflow-y-auto h-full max-h-[6rem]">
+                    <section className="overflow-y-auto h-full max-h-[10rem]">
                       {/* Font Size Controls */}
                       <div className="mb-4 ">
                         <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -1115,6 +1560,91 @@ const ConfiguratorUnisex3D = () => {
           </div>
         </div>
       </div>
+
+      {/* Mesh Part Color Picker Bottom Sheet */}
+      {typeof window !== 'undefined' &&
+        createPortal(
+          <AnimatePresence>
+            {selectedPart !== null && showColorPicker && (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="fixed inset-0 bg-black bg-opacity-50 bottom-sheet-backdrop"
+                  onClick={() => {
+                    setShowColorPicker(false);
+                    setSelectedPart(null);
+                  }}
+                  style={{ zIndex: 999998 }}
+                />
+
+                {/* Bottom Sheet */}
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{
+                    type: 'spring',
+                    damping: 25,
+                    stiffness: 200,
+                  }}
+                  className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ zIndex: 999999 }}
+                >
+                  {/* Drag Handle */}
+                  <div className="flex justify-center pt-3 pb-2">
+                    <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+                  </div>
+
+                  <div className="px-6 pb-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Color Part
+                        </h3>
+                        {selectedClothing?.myNode?.[selectedPart] && (
+                          <p className="text-sm text-gray-500 mt-1">
+                            {selectedClothing.myNode[selectedPart].name}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowColorPicker(false);
+                          setSelectedPart(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <i className="pi pi-times text-xl"></i>
+                      </button>
+                    </div>
+
+                    {/* Color Picker */}
+                    <div>
+                      <MeshPartColorPicker
+                        selectedPartIndex={selectedPart}
+                        partName={
+                          selectedClothing?.myNode?.[selectedPart]?.name
+                        }
+                        onClose={() => {
+                          setShowColorPicker(false);
+                          setSelectedPart(null);
+                        }}
+                        currentColor={snap.color[selectedPart] || '#ffffff'}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
+        )}
     </>
   );
 };

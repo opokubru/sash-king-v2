@@ -114,3 +114,13 @@ input[type='number']::-webkit-outer-spin-button {
 [data-three-html].html-disabled {
   z-index: -1 !important;
 }
+
+/* Hide scrollbar but keep scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
