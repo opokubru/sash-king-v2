@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Html } from '@react-three/drei';
 import { useState, useRef, useEffect } from 'react';
+import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 import toast from 'react-hot-toast';
 
 interface HtmlComponentProps {
@@ -51,6 +52,23 @@ interface HtmlComponentProps {
   onTextRightLongPress?: () => void;
   selectedText?: 'left' | 'right' | null;
   disableInteractions?: boolean;
+  // Advanced styling props
+  textBold?: boolean;
+  textItalic?: boolean;
+  textUnderline?: boolean;
+  textAlignment?: 'left' | 'center' | 'right' | 'justify';
+  letterSpacing?: number;
+  customLineHeight?: number;
+  // Dragging props
+  enableDragging?: boolean;
+  onPositionChange?: (
+    side: 'left' | 'right',
+    position: { x: number; y: number },
+  ) => void;
+  customPositions?: {
+    left?: { x: number; y: number };
+    right?: { x: number; y: number };
+  };
 }
 
 const HtmlComponent = ({
@@ -74,7 +92,22 @@ const HtmlComponent = ({
   onTextRightLongPress,
   selectedText,
   disableInteractions = false,
+  textBold = false,
+  textItalic = false,
+  textUnderline = false,
+  textAlignment = 'left',
+  letterSpacing = 0,
+  customLineHeight,
+  enableDragging = false,
+  onPositionChange,
+  customPositions,
 }: HtmlComponentProps) => {
+  const [leftDragPosition, setLeftDragPosition] = useState({ x: 0, y: 0 });
+  const [rightDragPosition, setRightDragPosition] = useState({ x: 0, y: 0 });
+  const leftDragStarted = useRef(false);
+  const rightDragStarted = useRef(false);
+  const leftDragStartPosition = useRef({ x: 0, y: 0 });
+  const rightDragStartPosition = useRef({ x: 0, y: 0 });
   const [editingLeft, setEditingLeft] = useState(false);
   const [editingRight, setEditingRight] = useState(false);
   const [tempTextLeft, setTempTextLeft] = useState(textLeft);
@@ -82,14 +115,12 @@ const HtmlComponent = ({
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
 
-  // Long press detection
-  const leftPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const rightPressTimer = useRef<NodeJS.Timeout | null>(null);
-  const leftTouchStartTime = useRef<number | null>(null);
-  const rightTouchStartTime = useRef<number | null>(null);
-  const leftTouchHandled = useRef<boolean>(false);
-  const rightTouchHandled = useRef<boolean>(false);
-  const PRESS_DURATION = 500; // 500ms for long press
+  // Double tap detection
+  const leftLastTapTime = useRef<number>(0);
+  const rightLastTapTime = useRef<number>(0);
+  const leftTapTimeout = useRef<NodeJS.Timeout | null>(null);
+  const rightTapTimeout = useRef<NodeJS.Timeout | null>(null);
+  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
 
   useEffect(() => {
     setTempTextLeft(textLeft);
@@ -98,6 +129,61 @@ const HtmlComponent = ({
   useEffect(() => {
     setTempTextRight(textRight);
   }, [textRight]);
+
+  // Initialize drag positions
+  useEffect(() => {
+    if (customPositions?.left) {
+      setLeftDragPosition(customPositions.left);
+    } else {
+      const left = parseInt(ImprintTextPosition.left.left) || 0;
+      const top = parseInt(ImprintTextPosition.left.top) || 0;
+      setLeftDragPosition({ x: left, y: top });
+    }
+
+    if (customPositions?.right) {
+      setRightDragPosition(customPositions.right);
+    } else {
+      const left = parseInt(ImprintTextPosition.right.left) || 0;
+      const top = parseInt(ImprintTextPosition.right.top) || 0;
+      setRightDragPosition({ x: left, y: top });
+    }
+  }, [customPositions, ImprintTextPosition]);
+
+  const handleLeftDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    const newPosition = { x: data.x, y: data.y };
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - leftDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - leftDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setLeftDragPosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('left', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      leftDragStarted.current = false;
+    }
+  };
+
+  const handleRightDragStop = (_e: DraggableEvent, data: DraggableData) => {
+    const newPosition = { x: data.x, y: data.y };
+    // Check if there was actual movement (more than 5px)
+    const moved =
+      Math.abs(data.x - rightDragStartPosition.current.x) > 5 ||
+      Math.abs(data.y - rightDragStartPosition.current.y) > 5;
+
+    if (moved) {
+      setRightDragPosition(newPosition);
+      if (onPositionChange) {
+        onPositionChange('right', newPosition);
+      }
+    } else {
+      // It was just a click, not a drag
+      rightDragStarted.current = false;
+    }
+  };
 
   useEffect(() => {
     if (editingLeft && leftInputRef.current) {
@@ -123,190 +209,198 @@ const HtmlComponent = ({
     }
   }, [editingRight]);
 
-  const handleLeftTextMouseDown = () => {
-    // Start timer for long press
-    leftPressTimer.current = setTimeout(() => {
+  const handleLeftTextClick = () => {
+    // If drag started, don't handle click
+    if (leftDragStarted.current) {
+      leftDragStarted.current = false;
+      return;
+    }
+
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - leftLastTapTime.current;
+
+    // Clear any pending single tap timeout
+    if (leftTapTimeout.current) {
+      clearTimeout(leftTapTimeout.current);
+      leftTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected - show bottom sheet
       if (onTextLeftLongPress) {
         onTextLeftLongPress();
       }
-      leftPressTimer.current = null;
-    }, PRESS_DURATION);
+      leftLastTapTime.current = 0; // Reset to prevent triple tap
+    } else {
+      // Single tap - set up timeout to handle if no second tap
+      leftLastTapTime.current = currentTime;
+      leftTapTimeout.current = setTimeout(() => {
+        // Single tap - enter inline edit mode
+        if (!editingLeft) {
+          setEditingLeft(true);
+          if (onTextLeftClick) {
+            onTextLeftClick();
+          }
+        }
+        leftTapTimeout.current = null;
+        leftLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
+    }
   };
 
-  const handleLeftTextClick = () => {
-    // Prevent click from firing if touch was already handled
-    if (leftTouchHandled.current) {
-      leftTouchHandled.current = false;
-      return;
-    }
-    // Immediate click handler - go straight to edit
-    // This ensures keyboard appears on first click
-    if (!editingLeft) {
-      setEditingLeft(true);
-      if (onTextLeftClick) {
-        onTextLeftClick();
-      }
-    }
-    // Cancel any pending long press
-    if (leftPressTimer.current) {
-      clearTimeout(leftPressTimer.current);
-      leftPressTimer.current = null;
-    }
+  const handleLeftTextMouseDown = () => {
+    // No-op for double tap (handled in click)
   };
 
   const handleLeftTextMouseUp = () => {
-    // Cancel long press timer
-    if (leftPressTimer.current) {
-      clearTimeout(leftPressTimer.current);
-      leftPressTimer.current = null;
-    }
+    // No-op for double tap
   };
 
   const handleLeftTextMouseLeave = () => {
-    // Cancel timer if mouse leaves
-    if (leftPressTimer.current) {
-      clearTimeout(leftPressTimer.current);
-      leftPressTimer.current = null;
+    // Cancel single tap timeout if mouse leaves
+    if (leftTapTimeout.current) {
+      clearTimeout(leftTapTimeout.current);
+      leftTapTimeout.current = null;
     }
   };
 
-  const handleLeftTextTouchStart = (e: React.TouchEvent) => {
-    leftTouchStartTime.current = Date.now();
-    leftTouchHandled.current = false;
-    // Start timer for long press on touch
-    leftPressTimer.current = setTimeout(() => {
-      if (onTextLeftLongPress) {
-        e.preventDefault(); // Prevent click event
-        onTextLeftLongPress();
-        leftTouchHandled.current = true;
-      }
-      leftPressTimer.current = null;
-    }, PRESS_DURATION);
+  const handleLeftTextTouchStart = () => {
+    // No-op for double tap
   };
 
   const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
-    const touchDuration = leftTouchStartTime.current
-      ? Date.now() - leftTouchStartTime.current
-      : 0;
+    // Use the same double tap logic for touch
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - leftLastTapTime.current;
 
-    // Cancel long press timer
-    if (leftPressTimer.current) {
-      clearTimeout(leftPressTimer.current);
-      leftPressTimer.current = null;
+    if (leftTapTimeout.current) {
+      clearTimeout(leftTapTimeout.current);
+      leftTapTimeout.current = null;
     }
 
-    // If it was a short tap (not long press), enter edit mode immediately
-    if (touchDuration < PRESS_DURATION && !leftTouchHandled.current) {
-      if (!editingLeft) {
-        leftTouchHandled.current = true;
-        setEditingLeft(true);
-        if (onTextLeftClick) {
-          onTextLeftClick();
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      e.preventDefault();
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+      leftLastTapTime.current = 0;
+    } else {
+      // Single tap
+      leftLastTapTime.current = currentTime;
+      leftTapTimeout.current = setTimeout(() => {
+        if (!editingLeft) {
+          setEditingLeft(true);
+          if (onTextLeftClick) {
+            onTextLeftClick();
+          }
         }
-        // Prevent click event from firing
-        e.preventDefault();
-      }
+        leftTapTimeout.current = null;
+        leftLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
     }
-
-    leftTouchStartTime.current = null;
-  };
-
-  const handleRightTextMouseDown = () => {
-    // Start timer for long press
-    rightPressTimer.current = setTimeout(() => {
-      if (onTextRightLongPress) {
-        onTextRightLongPress();
-      }
-      rightPressTimer.current = null;
-    }, PRESS_DURATION);
   };
 
   const handleRightTextClick = () => {
-    // Prevent click from firing if touch was already handled
-    if (rightTouchHandled.current) {
-      rightTouchHandled.current = false;
+    // If drag started, don't handle click
+    if (rightDragStarted.current) {
+      rightDragStarted.current = false;
       return;
     }
-    // Immediate click handler - go straight to edit
-    // This ensures keyboard appears on first click
-    if (!editingRight) {
-      setEditingRight(true);
-      if (onTextRightClick) {
-        onTextRightClick();
+
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - rightLastTapTime.current;
+
+    // Clear any pending single tap timeout
+    if (rightTapTimeout.current) {
+      clearTimeout(rightTapTimeout.current);
+      rightTapTimeout.current = null;
+    }
+
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected - show bottom sheet
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
       }
+      rightLastTapTime.current = 0; // Reset to prevent triple tap
+    } else {
+      // Single tap - set up timeout to handle if no second tap
+      rightLastTapTime.current = currentTime;
+      rightTapTimeout.current = setTimeout(() => {
+        // Single tap - enter inline edit mode
+        if (!editingRight) {
+          setEditingRight(true);
+          if (onTextRightClick) {
+            onTextRightClick();
+          }
+        }
+        rightTapTimeout.current = null;
+        rightLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
     }
-    // Cancel any pending long press
-    if (rightPressTimer.current) {
-      clearTimeout(rightPressTimer.current);
-      rightPressTimer.current = null;
-    }
+  };
+
+  const handleRightTextMouseDown = () => {
+    // No-op for double tap (handled in click)
   };
 
   const handleRightTextMouseUp = () => {
-    // Cancel long press timer
-    if (rightPressTimer.current) {
-      clearTimeout(rightPressTimer.current);
-      rightPressTimer.current = null;
-    }
+    // No-op for double tap
   };
 
   const handleRightTextMouseLeave = () => {
-    // Cancel timer if mouse leaves
-    if (rightPressTimer.current) {
-      clearTimeout(rightPressTimer.current);
-      rightPressTimer.current = null;
+    // Cancel single tap timeout if mouse leaves
+    if (rightTapTimeout.current) {
+      clearTimeout(rightTapTimeout.current);
+      rightTapTimeout.current = null;
     }
   };
 
-  const handleRightTextTouchStart = (e: React.TouchEvent) => {
-    rightTouchStartTime.current = Date.now();
-    rightTouchHandled.current = false;
-    // Start timer for long press on touch
-    rightPressTimer.current = setTimeout(() => {
-      if (onTextRightLongPress) {
-        e.preventDefault(); // Prevent click event
-        onTextRightLongPress();
-        rightTouchHandled.current = true;
-      }
-      rightPressTimer.current = null;
-    }, PRESS_DURATION);
+  const handleRightTextTouchStart = () => {
+    // No-op for double tap
   };
 
   const handleRightTextTouchEnd = (e: React.TouchEvent) => {
-    const touchDuration = rightTouchStartTime.current
-      ? Date.now() - rightTouchStartTime.current
-      : 0;
+    // Use the same double tap logic for touch
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - rightLastTapTime.current;
 
-    // Cancel long press timer
-    if (rightPressTimer.current) {
-      clearTimeout(rightPressTimer.current);
-      rightPressTimer.current = null;
+    if (rightTapTimeout.current) {
+      clearTimeout(rightTapTimeout.current);
+      rightTapTimeout.current = null;
     }
 
-    // If it was a short tap (not long press), enter edit mode immediately
-    if (touchDuration < PRESS_DURATION && !rightTouchHandled.current) {
-      if (!editingRight) {
-        rightTouchHandled.current = true;
-        setEditingRight(true);
-        if (onTextRightClick) {
-          onTextRightClick();
-        }
-        // Prevent click event from firing
-        e.preventDefault();
+    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
+      // Double tap detected
+      e.preventDefault();
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
       }
+      rightLastTapTime.current = 0;
+    } else {
+      // Single tap
+      rightLastTapTime.current = currentTime;
+      rightTapTimeout.current = setTimeout(() => {
+        if (!editingRight) {
+          setEditingRight(true);
+          if (onTextRightClick) {
+            onTextRightClick();
+          }
+        }
+        rightTapTimeout.current = null;
+        rightLastTapTime.current = 0;
+      }, DOUBLE_TAP_DELAY);
     }
-
-    rightTouchStartTime.current = null;
   };
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (leftPressTimer.current) {
-        clearTimeout(leftPressTimer.current);
+      if (leftTapTimeout.current) {
+        clearTimeout(leftTapTimeout.current);
       }
-      if (rightPressTimer.current) {
-        clearTimeout(rightPressTimer.current);
+      if (rightTapTimeout.current) {
+        clearTimeout(rightTapTimeout.current);
       }
     };
   }, []);
@@ -474,155 +568,189 @@ const HtmlComponent = ({
       }}
     >
       {/* Left Text */}
-      <div
-        className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
-        style={{
-          pointerEvents: disableInteractions ? 'none' : 'auto',
-          position: 'absolute',
-          transform: `translate(${ImprintTextPosition?.left?.left}, ${
-            ImprintTextPosition.left?.top
-          }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
-          color: textColor,
-          fontSize: textSizeleft,
-          width: ImprintTextPosition?.left?.width,
-          height: ImprintTextPosition?.left?.height,
-          wordWrap: 'break-word',
-          overflow: 'hidden',
-          textTransform: 'uppercase',
-          lineHeight: `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-          fontFamily: fontFamily,
-          opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
-          visibility: disableInteractions ? 'hidden' : 'visible',
-          borderRadius: '4px',
-          padding: '2px',
-          border:
-            selectedText === 'left'
-              ? '2px dashed #3B82F6'
-              : textLeft === ''
-              ? '2px dashed #ccc'
-              : '2px solid transparent',
-          boxShadow:
-            selectedText === 'left'
-              ? '0 0 10px rgba(59, 130, 246, 0.3)'
-              : 'none',
-        }}
-        onClick={handleLeftTextClick}
-        onMouseDown={handleLeftTextMouseDown}
-        onMouseUp={handleLeftTextMouseUp}
-        onMouseLeave={handleLeftTextMouseLeave}
-        onTouchStart={handleLeftTextTouchStart}
-        onTouchEnd={handleLeftTextTouchEnd}
-      >
-        {editingLeft ? (
-          <textarea
-            ref={leftInputRef as any}
-            value={tempTextLeft}
-            onChange={handleLeftTextChange}
-            onBlur={handleLeftTextBlur}
-            onKeyDown={handleLeftTextKeyDown}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              borderRadius: '4px',
-              padding: '0',
-              margin: '0',
-              fontSize: textSizeleft,
-              fontFamily: fontFamily,
-              textTransform: 'uppercase',
-              width: '100%',
-              height: '100%',
-              color: textColor,
-              resize: 'none',
-              overflow: 'hidden',
-              wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              wordBreak: 'normal',
-              whiteSpace: 'pre-wrap',
-              lineHeight: `${
-                ImprintTextPosition?.left?.lineHeight || '2.8rem'
-              }`,
-              textAlign: textLeft === '' ? 'center' : 'left',
-              display: 'block',
-              boxSizing: 'border-box',
-            }}
-          />
-        ) : (
+      {enableDragging && !disableInteractions ? (
+        <Draggable
+          position={leftDragPosition}
+          onStart={(_e, data) => {
+            leftDragStartPosition.current = { x: data.x, y: data.y };
+            leftDragStarted.current = true;
+          }}
+          onStop={(e, data) => {
+            handleLeftDragStop(e, data);
+            leftDragStarted.current = false;
+          }}
+          disabled={editingLeft}
+        >
           <div
+            className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
             style={{
-              width: '100%',
-              height: '100%',
-              textAlign: textLeft === '' ? 'center' : 'left',
-              lineHeight: `${
-                ImprintTextPosition?.left?.lineHeight || '2.8rem'
+              pointerEvents: disableInteractions ? 'none' : 'auto',
+              position: 'absolute',
+              transform: `${
+                textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''
               }`,
+              color: textColor,
+              fontSize: textSizeleft,
+              width: ImprintTextPosition?.left?.width,
+              height: ImprintTextPosition?.left?.height,
               wordWrap: 'break-word',
-              overflowWrap: 'break-word',
-              wordBreak: 'normal',
-              whiteSpace: 'pre-wrap',
-              display: 'block',
+              overflow: 'hidden',
+              textTransform: 'uppercase',
+              lineHeight: customLineHeight
+                ? `${customLineHeight}`
+                : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+              fontFamily: fontFamily,
+              fontWeight: textBold ? 'bold' : 'normal',
+              fontStyle: textItalic ? 'italic' : 'normal',
+              textDecoration: textUnderline ? 'underline' : 'none',
+              textAlign: textAlignment,
+              letterSpacing: `${letterSpacing}px`,
+              opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
+              visibility: disableInteractions ? 'hidden' : 'visible',
+              borderRadius: '4px',
+              padding: '2px',
+              border:
+                selectedText === 'left'
+                  ? '2px dashed #3B82F6'
+                  : textLeft === ''
+                  ? '2px dashed #ccc'
+                  : '2px solid transparent',
+              boxShadow:
+                selectedText === 'left'
+                  ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                  : 'none',
             }}
-            dangerouslySetInnerHTML={{
-              __html: hideRightText
-                ? textLeft !== ''
-                  ? wrapTextToHtml(textLeft)
-                  : 'TAP TO ADD TEXT'
-                : textLeft !== ''
-                ? wrapTextToHtml(textLeft)
-                : 'TAP TO ADD TEXT',
-            }}
-          />
-        )}
-      </div>
-
-      {/* Right Text */}
-      {!hideRightText && (
+            onClick={handleLeftTextClick}
+            onMouseDown={handleLeftTextMouseDown}
+            onMouseUp={handleLeftTextMouseUp}
+            onMouseLeave={handleLeftTextMouseLeave}
+            onTouchStart={handleLeftTextTouchStart}
+            onTouchEnd={handleLeftTextTouchEnd}
+          >
+            {editingLeft ? (
+              <textarea
+                ref={leftInputRef as any}
+                value={tempTextLeft}
+                onChange={handleLeftTextChange}
+                onBlur={handleLeftTextBlur}
+                onKeyDown={handleLeftTextKeyDown}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  borderRadius: '4px',
+                  padding: '0',
+                  margin: '0',
+                  fontSize: textSizeleft,
+                  fontFamily: fontFamily,
+                  textTransform: 'uppercase',
+                  width: '100%',
+                  height: '100%',
+                  color: textColor,
+                  resize: 'none',
+                  overflow: 'hidden',
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'normal',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+                  textAlign: textAlignment,
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  letterSpacing: `${letterSpacing}px`,
+                  display: 'block',
+                  boxSizing: 'border-box',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  textAlign: textAlignment,
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+                  wordWrap: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'normal',
+                  whiteSpace: 'pre-wrap',
+                  display: 'block',
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  letterSpacing: `${letterSpacing}px`,
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: hideRightText
+                    ? textLeft !== ''
+                      ? wrapTextToHtml(textLeft)
+                      : 'TAP TO ADD TEXT'
+                    : textLeft !== ''
+                    ? wrapTextToHtml(textLeft)
+                    : 'TAP TO ADD TEXT',
+                }}
+              />
+            )}
+          </div>
+        </Draggable>
+      ) : (
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
           style={{
             pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
-            transform: `translate(${ImprintTextPosition.right.left}, ${
-              ImprintTextPosition.right?.top
-            }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
+            transform: `translate(${ImprintTextPosition?.left?.left}, ${
+              ImprintTextPosition.left?.top
+            }) ${textLeftRotate ? `rotate(${textLeftRotate}deg)` : ''}`,
             color: textColor,
-            fontSize: textSizeRight,
-            width: ImprintTextPosition?.right.width,
-            height: ImprintTextPosition?.right.height,
-            lineHeight: `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+            fontSize: textSizeleft,
+            width: ImprintTextPosition?.left?.width,
+            height: ImprintTextPosition?.left?.height,
             wordWrap: 'break-word',
             overflow: 'hidden',
             textTransform: 'uppercase',
+            lineHeight: customLineHeight
+              ? `${customLineHeight}`
+              : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
             fontFamily: fontFamily,
-            opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+            fontWeight: textBold ? 'bold' : 'normal',
+            fontStyle: textItalic ? 'italic' : 'normal',
+            textDecoration: textUnderline ? 'underline' : 'none',
+            textAlign: textAlignment,
+            letterSpacing: `${letterSpacing}px`,
+            opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
             visibility: disableInteractions ? 'hidden' : 'visible',
             borderRadius: '4px',
             padding: '2px',
             border:
-              selectedText === 'right'
+              selectedText === 'left'
                 ? '2px dashed #3B82F6'
-                : textRight === ''
+                : textLeft === ''
                 ? '2px dashed #ccc'
                 : '2px solid transparent',
             boxShadow:
-              selectedText === 'right'
+              selectedText === 'left'
                 ? '0 0 10px rgba(59, 130, 246, 0.3)'
                 : 'none',
           }}
-          onClick={handleRightTextClick}
-          onMouseDown={handleRightTextMouseDown}
-          onMouseUp={handleRightTextMouseUp}
-          onMouseLeave={handleRightTextMouseLeave}
-          onTouchStart={handleRightTextTouchStart}
-          onTouchEnd={handleRightTextTouchEnd}
+          onClick={handleLeftTextClick}
+          onMouseDown={handleLeftTextMouseDown}
+          onMouseUp={handleLeftTextMouseUp}
+          onMouseLeave={handleLeftTextMouseLeave}
+          onTouchStart={handleLeftTextTouchStart}
+          onTouchEnd={handleLeftTextTouchEnd}
         >
-          {editingRight ? (
+          {editingLeft ? (
             <textarea
-              ref={rightInputRef as any}
-              value={tempTextRight}
-              onChange={handleRightTextChange}
-              onBlur={handleRightTextBlur}
-              onKeyDown={handleRightTextKeyDown}
+              ref={leftInputRef as any}
+              value={tempTextLeft}
+              onChange={handleLeftTextChange}
+              onBlur={handleLeftTextBlur}
+              onKeyDown={handleLeftTextKeyDown}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -630,7 +758,7 @@ const HtmlComponent = ({
                 borderRadius: '4px',
                 padding: '0',
                 margin: '0',
-                fontSize: textSizeRight,
+                fontSize: textSizeleft,
                 fontFamily: fontFamily,
                 textTransform: 'uppercase',
                 width: '100%',
@@ -642,10 +770,14 @@ const HtmlComponent = ({
                 overflowWrap: 'break-word',
                 wordBreak: 'normal',
                 whiteSpace: 'pre-wrap',
-                lineHeight: `${
-                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
-                }`,
-                textAlign: textRight === '' ? 'center' : 'left',
+                lineHeight: customLineHeight
+                  ? `${customLineHeight}`
+                  : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+                textAlign: textAlignment,
+                fontWeight: textBold ? 'bold' : 'normal',
+                fontStyle: textItalic ? 'italic' : 'normal',
+                textDecoration: textUnderline ? 'underline' : 'none',
+                letterSpacing: `${letterSpacing}px`,
                 display: 'block',
                 boxSizing: 'border-box',
               }}
@@ -655,25 +787,282 @@ const HtmlComponent = ({
               style={{
                 width: '100%',
                 height: '100%',
-                textAlign: textRight === '' ? 'center' : 'left',
-                lineHeight: `${
-                  ImprintTextPosition?.right?.lineHeight || '2.8rem'
-                }`,
+                textAlign: textAlignment,
+                lineHeight: customLineHeight
+                  ? `${customLineHeight}`
+                  : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
                 wordWrap: 'break-word',
                 overflowWrap: 'break-word',
                 wordBreak: 'normal',
                 whiteSpace: 'pre-wrap',
                 display: 'block',
+                fontWeight: textBold ? 'bold' : 'normal',
+                fontStyle: textItalic ? 'italic' : 'normal',
+                textDecoration: textUnderline ? 'underline' : 'none',
+                letterSpacing: `${letterSpacing}px`,
               }}
               dangerouslySetInnerHTML={{
-                __html:
-                  textRight !== ''
-                    ? wrapTextToHtml(textRight)
-                    : 'TAP TO ADD TEXT',
+                __html: hideRightText
+                  ? textLeft !== ''
+                    ? wrapTextToHtml(textLeft)
+                    : 'TAP TO ADD TEXT'
+                  : textLeft !== ''
+                  ? wrapTextToHtml(textLeft)
+                  : 'TAP TO ADD TEXT',
               }}
             />
           )}
         </div>
+      )}
+
+      {/* Right Text */}
+      {!hideRightText && (
+        <>
+          {enableDragging && !disableInteractions ? (
+            <Draggable
+              position={rightDragPosition}
+              onStart={(_e, data) => {
+                rightDragStartPosition.current = { x: data.x, y: data.y };
+                rightDragStarted.current = true;
+              }}
+              onStop={(e, data) => {
+                handleRightDragStop(e, data);
+                rightDragStarted.current = false;
+              }}
+              disabled={editingRight}
+            >
+              <div
+                className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+                style={{
+                  pointerEvents: disableInteractions ? 'none' : 'auto',
+                  position: 'absolute',
+                  transform: `${
+                    textRightRotate ? `rotate(${textRightRotate}deg)` : ''
+                  }`,
+                  color: textColor,
+                  fontSize: textSizeRight,
+                  width: ImprintTextPosition?.right.width,
+                  height: ImprintTextPosition?.right.height,
+                  lineHeight: customLineHeight
+                    ? `${customLineHeight}`
+                    : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+                  wordWrap: 'break-word',
+                  overflow: 'hidden',
+                  textTransform: 'uppercase',
+                  fontFamily: fontFamily,
+                  fontWeight: textBold ? 'bold' : 'normal',
+                  fontStyle: textItalic ? 'italic' : 'normal',
+                  textDecoration: textUnderline ? 'underline' : 'none',
+                  textAlign: textAlignment,
+                  letterSpacing: `${letterSpacing}px`,
+                  opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+                  visibility: disableInteractions ? 'hidden' : 'visible',
+                  borderRadius: '4px',
+                  padding: '2px',
+                  border:
+                    selectedText === 'right'
+                      ? '2px dashed #3B82F6'
+                      : textRight === ''
+                      ? '2px dashed #ccc'
+                      : '2px solid transparent',
+                  boxShadow:
+                    selectedText === 'right'
+                      ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                      : 'none',
+                }}
+                onClick={handleRightTextClick}
+                onMouseDown={handleRightTextMouseDown}
+                onMouseUp={handleRightTextMouseUp}
+                onMouseLeave={handleRightTextMouseLeave}
+                onTouchStart={handleRightTextTouchStart}
+                onTouchEnd={handleRightTextTouchEnd}
+              >
+                {editingRight ? (
+                  <textarea
+                    ref={rightInputRef as any}
+                    value={tempTextRight}
+                    onChange={handleRightTextChange}
+                    onBlur={handleRightTextBlur}
+                    onKeyDown={handleRightTextKeyDown}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      borderRadius: '4px',
+                      padding: '0',
+                      margin: '0',
+                      fontSize: textSizeRight,
+                      fontFamily: fontFamily,
+                      textTransform: 'uppercase',
+                      width: '100%',
+                      height: '100%',
+                      color: textColor,
+                      resize: 'none',
+                      overflow: 'hidden',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'normal',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: customLineHeight
+                        ? `${customLineHeight}`
+                        : `${
+                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                          }`,
+                      textAlign: textAlignment,
+                      fontWeight: textBold ? 'bold' : 'normal',
+                      fontStyle: textItalic ? 'italic' : 'normal',
+                      textDecoration: textUnderline ? 'underline' : 'none',
+                      letterSpacing: `${letterSpacing}px`,
+                      display: 'block',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      textAlign: textAlignment,
+                      lineHeight: customLineHeight
+                        ? `${customLineHeight}`
+                        : `${
+                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                          }`,
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'normal',
+                      whiteSpace: 'pre-wrap',
+                      display: 'block',
+                      fontWeight: textBold ? 'bold' : 'normal',
+                      fontStyle: textItalic ? 'italic' : 'normal',
+                      textDecoration: textUnderline ? 'underline' : 'none',
+                      letterSpacing: `${letterSpacing}px`,
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        textRight !== ''
+                          ? wrapTextToHtml(textRight)
+                          : 'TAP TO ADD TEXT',
+                    }}
+                  />
+                )}
+              </div>
+            </Draggable>
+          ) : (
+            <div
+              className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              style={{
+                pointerEvents: disableInteractions ? 'none' : 'auto',
+                position: 'absolute',
+                transform: `translate(${ImprintTextPosition.right.left}, ${
+                  ImprintTextPosition.right?.top
+                }) ${textRightRotate ? `rotate(${textRightRotate}deg)` : ''}`,
+                color: textColor,
+                fontSize: textSizeRight,
+                width: ImprintTextPosition?.right.width,
+                height: ImprintTextPosition?.right.height,
+                lineHeight: customLineHeight
+                  ? `${customLineHeight}`
+                  : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+                wordWrap: 'break-word',
+                overflow: 'hidden',
+                textTransform: 'uppercase',
+                fontFamily: fontFamily,
+                fontWeight: textBold ? 'bold' : 'normal',
+                fontStyle: textItalic ? 'italic' : 'normal',
+                textDecoration: textUnderline ? 'underline' : 'none',
+                textAlign: textAlignment,
+                letterSpacing: `${letterSpacing}px`,
+                opacity: disableInteractions ? 0 : textRight !== '' ? 1 : 1,
+                visibility: disableInteractions ? 'hidden' : 'visible',
+                borderRadius: '4px',
+                padding: '2px',
+                border:
+                  selectedText === 'right'
+                    ? '2px dashed #3B82F6'
+                    : textRight === ''
+                    ? '2px dashed #ccc'
+                    : '2px solid transparent',
+                boxShadow:
+                  selectedText === 'right'
+                    ? '0 0 10px rgba(59, 130, 246, 0.3)'
+                    : 'none',
+              }}
+              onClick={handleRightTextClick}
+              onMouseDown={handleRightTextMouseDown}
+              onMouseUp={handleRightTextMouseUp}
+              onMouseLeave={handleRightTextMouseLeave}
+              onTouchStart={handleRightTextTouchStart}
+              onTouchEnd={handleRightTextTouchEnd}
+            >
+              {editingRight ? (
+                <textarea
+                  ref={rightInputRef as any}
+                  value={tempTextRight}
+                  onChange={handleRightTextChange}
+                  onBlur={handleRightTextBlur}
+                  onKeyDown={handleRightTextKeyDown}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    borderRadius: '4px',
+                    padding: '0',
+                    margin: '0',
+                    fontSize: textSizeRight,
+                    fontFamily: fontFamily,
+                    textTransform: 'uppercase',
+                    width: '100%',
+                    height: '100%',
+                    color: textColor,
+                    resize: 'none',
+                    overflow: 'hidden',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: customLineHeight
+                      ? `${customLineHeight}`
+                      : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+                    textAlign: textAlignment,
+                    fontWeight: textBold ? 'bold' : 'normal',
+                    fontStyle: textItalic ? 'italic' : 'normal',
+                    textDecoration: textUnderline ? 'underline' : 'none',
+                    letterSpacing: `${letterSpacing}px`,
+                    display: 'block',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    textAlign: textAlignment,
+                    lineHeight: customLineHeight
+                      ? `${customLineHeight}`
+                      : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre-wrap',
+                    display: 'block',
+                    fontWeight: textBold ? 'bold' : 'normal',
+                    fontStyle: textItalic ? 'italic' : 'normal',
+                    textDecoration: textUnderline ? 'underline' : 'none',
+                    letterSpacing: `${letterSpacing}px`,
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      textRight !== ''
+                        ? wrapTextToHtml(textRight)
+                        : 'TAP TO ADD TEXT',
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </>
       )}
     </Html>
   );
