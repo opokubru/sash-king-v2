@@ -97,16 +97,12 @@ const generateRandomColor = () => {
   );
 };
 
-// Assign random colors based on sash type constraints (utility function) - for randomize button
-const assignRandomColors = (selectedClothing: any, state: any) => {
-  if (!selectedClothing?.myNode || !state.color) return;
-
-  const nodeCount = selectedClothing.myNode.length;
-
-  // Initialize color array if needed
-  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
-    (state.color as any) = new Array(nodeCount).fill('#ffffff');
-  }
+// Generate random color array based on sash type constraints (utility function) - returns color array
+const generateRandomColorArray = (
+  selectedClothing: any,
+  nodeCount: number,
+): string[] => {
+  const colors = new Array(nodeCount).fill('#ffffff');
 
   if (selectedClothing.name === 'Type 1') {
     // Type 1: mid_stripes and plain_sections same, Stripe_1 and Stripe_2 same
@@ -122,12 +118,12 @@ const assignRandomColors = (selectedClothing: any, state: any) => {
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
       if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
-        (state.color as any)[index] = baseColor;
+        colors[index] = baseColor;
       } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
-        (state.color as any)[index] = stripeColor;
+        colors[index] = stripeColor;
       } else {
         // Fallback for any other nodes
-        (state.color as any)[index] = generateRandomColor();
+        colors[index] = generateRandomColor();
       }
     });
   } else if (selectedClothing.name === 'Type 2') {
@@ -144,20 +140,22 @@ const assignRandomColors = (selectedClothing: any, state: any) => {
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
       if (node.name === 'stripe_1' || node.name === 'stripe_2') {
-        (state.color as any)[index] = stripeColor;
+        colors[index] = stripeColor;
       } else if (node.name === 'mid_section') {
-        (state.color as any)[index] = midColor;
+        colors[index] = midColor;
       } else {
         // Fallback for any other nodes
-        (state.color as any)[index] = generateRandomColor();
+        colors[index] = generateRandomColor();
       }
     });
   } else {
     // For other types, assign random colors to all nodes
     selectedClothing.myNode.forEach((_node: any, index: number) => {
-      (state.color as any)[index] = generateRandomColor();
+      colors[index] = generateRandomColor();
     });
   }
+
+  return colors;
 };
 
 const Shirt = ({
@@ -326,6 +324,10 @@ const ConfiguratorUnisex3D = () => {
 
   const [isRotating] = useState(false);
 
+  // Color history for randomize navigation
+  const [colorHistory, setColorHistory] = useState<string[][]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+
   // const canvasRef = useRef(null);
   // toast
   const toastRef = useRef(null);
@@ -347,6 +349,73 @@ const ConfiguratorUnisex3D = () => {
       setShowColorPicker(false);
     }
   }, [selectedPart]);
+
+  // Reset color history when clothing changes
+  useEffect(() => {
+    setColorHistory([]);
+    setCurrentHistoryIndex(-1);
+  }, [selectedClothing?.name]);
+
+  // Handle randomize colors with history
+  const handleRandomizeColors = () => {
+    if (!selectedClothing?.myNode || !state.color) return;
+
+    const nodeCount = selectedClothing.myNode.length;
+
+    // Initialize color array if needed
+    if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+      (state.color as any) = new Array(nodeCount).fill('#ffffff');
+    }
+
+    // Generate new random colors
+    const newColors = generateRandomColorArray(selectedClothing, nodeCount);
+
+    // Save current colors to history before changing (if not already at the end)
+    const currentColors = [...(state.color as string[])];
+
+    // If we're not at the end of history, remove everything after current index
+    const newHistory = colorHistory.slice(0, currentHistoryIndex + 1);
+
+    // Add current colors to history if they're different from the last entry
+    if (
+      newHistory.length === 0 ||
+      JSON.stringify(newHistory[newHistory.length - 1]) !==
+        JSON.stringify(currentColors)
+    ) {
+      newHistory.push(currentColors);
+    }
+
+    // Add new colors to history
+    newHistory.push(newColors);
+
+    // Update history and index
+    setColorHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+
+    // Apply new colors
+    (state.color as any) = newColors;
+  };
+
+  // Handle previous colors
+  const handlePreviousColors = () => {
+    if (currentHistoryIndex > 0 && colorHistory.length > 0) {
+      const newIndex = currentHistoryIndex - 1;
+      setCurrentHistoryIndex(newIndex);
+      (state.color as any) = [...colorHistory[newIndex]];
+    }
+  };
+
+  // Handle next colors
+  const handleNextColors = () => {
+    if (
+      currentHistoryIndex < colorHistory.length - 1 &&
+      colorHistory.length > 0
+    ) {
+      const newIndex = currentHistoryIndex + 1;
+      setCurrentHistoryIndex(newIndex);
+      (state.color as any) = [...colorHistory[newIndex]];
+    }
+  };
 
   //total price
   // useEffect(() => {
@@ -1117,18 +1186,35 @@ const ConfiguratorUnisex3D = () => {
               <i className="pi pi-question-circle text-sm text-primary"></i>
               <span className="font-bold text-primary">Help</span>
             </button>
-            <button
-              onClick={() => {
-                if (selectedClothing?.myNode && state.color) {
-                  assignRandomColors(selectedClothing, state);
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousColors}
+                disabled={currentHistoryIndex <= 0 || colorHistory.length === 0}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Previous colors"
+              >
+                <i className="pi pi-chevron-left text-sm"></i>
+              </button>
+              <button
+                onClick={handleRandomizeColors}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                title="Randomize colors"
+              >
+                <i className="pi pi-refresh text-sm"></i>
+                <span className="font-medium text-sm">Randomize</span>
+              </button>
+              <button
+                onClick={handleNextColors}
+                disabled={
+                  currentHistoryIndex >= colorHistory.length - 1 ||
+                  colorHistory.length === 0
                 }
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-              title="Randomize colors"
-            >
-              <i className="pi pi-refresh text-sm"></i>
-              <span className="font-medium text-sm">Randomize Colors</span>
-            </button>
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Next colors"
+              >
+                <i className="pi pi-chevron-right text-sm"></i>
+              </button>
+            </div>
           </div>
         </div>
 
