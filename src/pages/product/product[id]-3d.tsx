@@ -105,22 +105,37 @@ const generateRandomColorArray = (
   const colors = new Array(nodeCount).fill('#ffffff');
 
   if (selectedClothing.name === 'Type 1') {
-    // Type 1: mid_stripes and plain_sections same, Stripe_1 and Stripe_2 same
-    const baseColor = generateRandomColor(); // For plain_sections and mid_stripes
-    let stripeColor = generateRandomColor(); // For Stripe_1 and Stripe_2
+    // Type 1: Each stripe gets a different random color (like default colors)
+    const generateUniqueColor = (existingColors: string[]): string => {
+      let newColor = generateRandomColor();
+      let attempts = 0;
+      // Ensure the new color is different from existing ones
+      while (existingColors.includes(newColor) && attempts < 20) {
+        newColor = generateRandomColor();
+        attempts++;
+      }
+      return newColor;
+    };
 
-    // Ensure the two color groups are different
-    let attempts = 0;
-    while (stripeColor === baseColor && attempts < 10) {
-      stripeColor = generateRandomColor();
-      attempts++;
-    }
+    const usedColors: string[] = [];
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
-        colors[index] = baseColor;
-      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
-        colors[index] = stripeColor;
+      if (node.name === 'plain_sections') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'Stripe_1') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'Stripe_2') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'mid_stripes') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
       } else {
         // Fallback for any other nodes
         colors[index] = generateRandomColor();
