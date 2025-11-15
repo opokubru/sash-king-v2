@@ -290,13 +290,13 @@ const HtmlComponent = ({
     leftLongPressStarted.current = false;
   };
 
-  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
+  const handleLeftTextTouchEnd = () => {
     // Clear long press timer on touch end
     if (leftLongPressTimer.current) {
       clearTimeout(leftLongPressTimer.current);
       leftLongPressTimer.current = null;
     }
-    
+
     // If long press was not triggered, handle as tap
     if (!leftLongPressStarted.current) {
       // Single tap - immediately start inline editing
@@ -393,13 +393,13 @@ const HtmlComponent = ({
     rightLongPressStarted.current = false;
   };
 
-  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
+  const handleRightTextTouchEnd = () => {
     // Clear long press timer on touch end
     if (rightLongPressTimer.current) {
       clearTimeout(rightLongPressTimer.current);
       rightLongPressTimer.current = null;
     }
-    
+
     // If long press was not triggered, handle as tap
     if (!rightLongPressStarted.current) {
       // Single tap - immediately start inline editing
@@ -473,17 +473,40 @@ const HtmlComponent = ({
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextLeft;
+    const newLineCount = getLineCount(newText);
+    const currentLineCount = getLineCount(currentText);
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (newLineCount <= currentLineCount) {
+      setTempTextLeft(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed 3 lines
+    if (newLineCount > 3) {
       // Prevent typing and show toast notification
       toast.error('Maximum 3 lines allowed', {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+      // Restore previous value and cursor position after React's update cycle
+      setTimeout(() => {
+        if (leftInputRef.current) {
+          const textarea = leftInputRef.current;
+          const currentCursorPos = textarea.selectionStart ?? 0;
+          const cursorPos =
+            currentCursorPos - (newText.length - currentText.length);
+          textarea.value = currentText;
+          // Restore cursor position (clamp to valid range)
+          const safeCursorPos = Math.max(
+            0,
+            Math.min(cursorPos, currentText.length),
+          );
+          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
+        }
+      }, 0);
+      return;
     }
 
     setTempTextLeft(newText);
@@ -491,17 +514,40 @@ const HtmlComponent = ({
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextRight;
+    const newLineCount = getLineCount(newText);
+    const currentLineCount = getLineCount(currentText);
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (newLineCount <= currentLineCount) {
+      setTempTextRight(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed 3 lines
+    if (newLineCount > 3) {
       // Prevent typing and show toast notification
       toast.error('Maximum 3 lines allowed', {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+      // Restore previous value and cursor position after React's update cycle
+      setTimeout(() => {
+        if (rightInputRef.current) {
+          const textarea = rightInputRef.current;
+          const currentCursorPos = textarea.selectionStart ?? 0;
+          const cursorPos =
+            currentCursorPos - (newText.length - currentText.length);
+          textarea.value = currentText;
+          // Restore cursor position (clamp to valid range)
+          const safeCursorPos = Math.max(
+            0,
+            Math.min(cursorPos, currentText.length),
+          );
+          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
+        }
+      }, 0);
+      return;
     }
 
     setTempTextRight(newText);
@@ -525,6 +571,31 @@ const HtmlComponent = ({
     }
   };
 
+  const handleLeftTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+    const newLineCount = getLineCount(newText);
+
+    // If pasted text would exceed 3 lines, prevent it
+    if (newLineCount > 3) {
+      e.preventDefault();
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
+    }
+  };
+
   const handleLeftTextKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
@@ -535,7 +606,7 @@ const HtmlComponent = ({
       const currentValue = textarea.value;
       const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if it would exceed 3 lines
+      // Prevent Enter if already at 3 lines (would create 4th line)
       if (currentLineCount >= 3) {
         e.preventDefault();
         toast.error('Maximum 3 lines allowed', {
@@ -546,10 +617,49 @@ const HtmlComponent = ({
       }
       // Otherwise, let Enter work naturally - it will insert \n
     }
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      // Allow these keys to work normally
+      return;
+    }
     // Escape to cancel editing
     if (e.key === 'Escape') {
       setTempTextLeft(textLeft);
       setEditingLeft(false);
+    }
+  };
+
+  const handleRightTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+    const newLineCount = getLineCount(newText);
+
+    // If pasted text would exceed 3 lines, prevent it
+    if (newLineCount > 3) {
+      e.preventDefault();
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
     }
   };
 
@@ -563,7 +673,7 @@ const HtmlComponent = ({
       const currentValue = textarea.value;
       const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if it would exceed 3 lines
+      // Prevent Enter if already at 3 lines (would create 4th line)
       if (currentLineCount >= 3) {
         e.preventDefault();
         toast.error('Maximum 3 lines allowed', {
@@ -573,6 +683,20 @@ const HtmlComponent = ({
         return;
       }
       // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      // Allow these keys to work normally
+      return;
     }
     // Escape to cancel editing
     if (e.key === 'Escape') {
@@ -657,6 +781,7 @@ const HtmlComponent = ({
                 onChange={handleLeftTextChange}
                 onBlur={handleLeftTextBlur}
                 onKeyDown={handleLeftTextKeyDown}
+                onPaste={handleLeftTextPaste}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -908,6 +1033,7 @@ const HtmlComponent = ({
                     onChange={handleRightTextChange}
                     onBlur={handleRightTextBlur}
                     onKeyDown={handleRightTextKeyDown}
+                    onPaste={handleRightTextPaste}
                     style={{
                       background: 'transparent',
                       border: 'none',
