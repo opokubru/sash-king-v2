@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, OrbitControls } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSnapshot } from 'valtio';
 import uuid from 'react-uuid';
@@ -1188,24 +1188,6 @@ const ConfiguratorUnisex3D = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* <button
-              onClick={() => setEnableDragging(!enableDragging)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                enableDragging
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              title={enableDragging ? 'Disable dragging' : 'Enable dragging'}
-            >
-              <i
-                className={`pi ${
-                  enableDragging ? 'pi-lock' : 'pi-unlock'
-                } text-sm`}
-              ></i>
-              <span className="font-medium text-sm">
-                {enableDragging ? 'Lock Position' : 'Unlock Position'}
-              </span>
-            </button> */}
             <button
               onClick={handleShowInstructions}
               className="flex items-center gap-2"
@@ -1335,10 +1317,10 @@ const ConfiguratorUnisex3D = () => {
                   setSelectedPart={setSelectedPart}
                   selectedTexture={state.texture[selectedPart || 0]}
                 />
-                {selectedClothing?.name &&
+                {/* {selectedClothing?.name &&
                   !noSpinFor.includes(selectedClothing.name) && (
                     <OrbitControls enableRotate={false} />
-                  )}
+                  )} */}
               </Canvas>
             </div>
           </div>
