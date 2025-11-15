@@ -52,30 +52,28 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
   }
 
   if (selectedClothing.name === 'Type 1') {
-    // Type 1: plain_sections and mid_stripes get black, Stripe_1 and Stripe_2 get yellow
-    const blackColor = '#000000'; // For plain_sections and mid_stripes
-    const yellowColor = '#FFFF00'; // For Stripe_1 and Stripe_2
-
+    // Type 1: Arranged to match image pattern - black background with green, yellow, red stripes
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
-        (state.color as any)[index] = blackColor;
-      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
-        (state.color as any)[index] = yellowColor;
+      if (node.name === 'plain_sections') {
+        (state.color as any)[index] = '#000000'; // Black (background/outer section)
+      } else if (node.name === 'Stripe_1') {
+        (state.color as any)[index] = '#228B22'; // Forest Green (first stripe)
+      } else if (node.name === 'Stripe_2') {
+        (state.color as any)[index] = '#FFD700'; // Gold/Yellow (second stripe)
+      } else if (node.name === 'mid_stripes') {
+        (state.color as any)[index] = '#DC143C'; // Crimson Red (third stripe/edge)
       } else {
         // Fallback for any other nodes
         (state.color as any)[index] = '#ffffff';
       }
     });
   } else if (selectedClothing.name === 'Type 2') {
-    // Type 2: mid_section gets black, stripe_1 and stripe_2 get yellow
-    const blackColor = '#000000'; // For mid_section
-    const yellowColor = '#FFFF00'; // For stripe_1 and stripe_2
-
+    // Type 2: Both stripes get the same golden color, mid_section is black
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
-        (state.color as any)[index] = yellowColor;
-      } else if (node.name === 'mid_section') {
-        (state.color as any)[index] = blackColor;
+      if (node.name === 'mid_section') {
+        (state.color as any)[index] = '#000000'; // Black
+      } else if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = '#FFD700'; // Gold (same for both stripes)
       } else {
         // Fallback for any other nodes
         (state.color as any)[index] = '#ffffff';
