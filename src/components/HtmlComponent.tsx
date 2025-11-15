@@ -115,12 +115,12 @@ const HtmlComponent = ({
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
 
-  // Double tap detection
-  const leftLastTapTime = useRef<number>(0);
-  const rightLastTapTime = useRef<number>(0);
-  const leftTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const rightTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
+  // Long press detection
+  const leftLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const rightLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const LONG_PRESS_DURATION = 500; // 500ms for long press
+  const leftLongPressStarted = useRef(false);
+  const rightLongPressStarted = useRef(false);
 
   useEffect(() => {
     setTempTextLeft(textLeft);
@@ -216,88 +216,99 @@ const HtmlComponent = ({
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (leftLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        leftLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextLeftLongPress) {
-        onTextLeftLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingLeft) {
+      setEditingLeft(true);
+      if (onTextLeftClick) {
+        onTextLeftClick();
       }
-      leftLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
-        }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleLeftTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleLeftTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // Start long press timer
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
     }
-  };
-
-  const handleLeftTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
       if (onTextLeftLongPress) {
         onTextLeftLongPress();
       }
-      leftLastTapTime.current = 0;
-    } else {
-      // Single tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+  };
+
+  const handleLeftTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchStart = () => {
+    // Start long press timer for touch
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+    }
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchEnd = () => {
+    // Clear long press timer on touch end
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+
+    // If long press was not triggered, handle as tap
+    if (!leftLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingLeft) {
+        setEditingLeft(true);
+        if (onTextLeftClick) {
+          onTextLeftClick();
         }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+      }
+    } else {
+      // Long press was triggered, reset flag
+      leftLongPressStarted.current = false;
     }
   };
 
@@ -308,140 +319,118 @@ const HtmlComponent = ({
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (rightLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        rightLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextRightLongPress) {
-        onTextRightLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingRight) {
+      setEditingRight(true);
+      if (onTextRightClick) {
+        onTextRightClick();
       }
-      rightLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
-        }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleRightTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleRightTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // Start long press timer
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
     }
-  };
-
-  const handleRightTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
       if (onTextRightLongPress) {
         onTextRightLongPress();
       }
-      rightLastTapTime.current = 0;
-    } else {
-      // Single tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchStart = () => {
+    // Start long press timer for touch
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+    }
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchEnd = () => {
+    // Clear long press timer on touch end
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+
+    // If long press was not triggered, handle as tap
+    if (!rightLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingRight) {
+        setEditingRight(true);
+        if (onTextRightClick) {
+          onTextRightClick();
         }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+      }
+    } else {
+      // Long press was triggered, reset flag
+      rightLongPressStarted.current = false;
     }
   };
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (leftTapTimeout.current) {
-        clearTimeout(leftTapTimeout.current);
+      if (leftLongPressTimer.current) {
+        clearTimeout(leftLongPressTimer.current);
       }
-      if (rightTapTimeout.current) {
-        clearTimeout(rightTapTimeout.current);
+      if (rightLongPressTimer.current) {
+        clearTimeout(rightLongPressTimer.current);
       }
     };
   }, []);
 
-  // Helper function to wrap text at 7 characters per line
-  const wrapTextAt7Chars = (text: string): string => {
-    const lines: string[] = [];
-    const currentLines = text.split('\n');
-
-    for (const line of currentLines) {
-      let remaining = line;
-
-      while (remaining.length > 0) {
-        if (remaining.length <= 7) {
-          lines.push(remaining);
-          break;
-        }
-
-        // Try to break at word boundary first (space within first 7 chars)
-        const first7Chars = remaining.substring(0, 7);
-        const lastSpaceIndex = first7Chars.lastIndexOf(' ');
-
-        let breakPoint = 7;
-        if (lastSpaceIndex > 0) {
-          // Break after the space
-          breakPoint = lastSpaceIndex + 1;
-        }
-
-        lines.push(remaining.substring(0, breakPoint));
-        // Trim leading spaces from next line
-        remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
-      }
-    }
-
-    return lines.join('\n');
-  };
-
-  // Helper function to convert wrapped text (with \n) to HTML (with <br>)
-  const wrapTextToHtml = (text: string): string => {
-    const wrappedText = wrapTextAt7Chars(text);
-    return wrappedText.split('\n').join('<br>');
+  // Helper function to convert text (with \n) to HTML (with <br>)
+  // No automatic wrapping - only breaks on user-entered line breaks (Enter)
+  const textToHtml = (text: string): string => {
+    return text.split('\n').join('<br>');
   };
 
   // Helper function to get current line count
@@ -451,17 +440,40 @@ const HtmlComponent = ({
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextLeft;
+    const newLineCount = getLineCount(newText);
+    const currentLineCount = getLineCount(currentText);
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (newLineCount <= currentLineCount) {
+      setTempTextLeft(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed 3 lines
+    if (newLineCount > 3) {
       // Prevent typing and show toast notification
       toast.error('Maximum 3 lines allowed', {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+      // Restore previous value and cursor position after React's update cycle
+      setTimeout(() => {
+        if (leftInputRef.current) {
+          const textarea = leftInputRef.current;
+          const currentCursorPos = textarea.selectionStart ?? 0;
+          const cursorPos =
+            currentCursorPos - (newText.length - currentText.length);
+          textarea.value = currentText;
+          // Restore cursor position (clamp to valid range)
+          const safeCursorPos = Math.max(
+            0,
+            Math.min(cursorPos, currentText.length),
+          );
+          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
+        }
+      }, 0);
+      return;
     }
 
     setTempTextLeft(newText);
@@ -469,17 +481,40 @@ const HtmlComponent = ({
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextRight;
+    const newLineCount = getLineCount(newText);
+    const currentLineCount = getLineCount(currentText);
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (newLineCount <= currentLineCount) {
+      setTempTextRight(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed 3 lines
+    if (newLineCount > 3) {
       // Prevent typing and show toast notification
       toast.error('Maximum 3 lines allowed', {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+      // Restore previous value and cursor position after React's update cycle
+      setTimeout(() => {
+        if (rightInputRef.current) {
+          const textarea = rightInputRef.current;
+          const currentCursorPos = textarea.selectionStart ?? 0;
+          const cursorPos =
+            currentCursorPos - (newText.length - currentText.length);
+          textarea.value = currentText;
+          // Restore cursor position (clamp to valid range)
+          const safeCursorPos = Math.max(
+            0,
+            Math.min(cursorPos, currentText.length),
+          );
+          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
+        }
+      }, 0);
+      return;
     }
 
     setTempTextRight(newText);
@@ -488,18 +523,41 @@ const HtmlComponent = ({
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
     if (onTextLeftChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextLeft);
-      onTextLeftChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextLeftChange(tempTextLeft);
     }
   };
 
   const handleRightTextBlur = () => {
     setEditingRight(false);
     if (onTextRightChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextRight);
-      onTextRightChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextRightChange(tempTextRight);
+    }
+  };
+
+  const handleLeftTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+    const newLineCount = getLineCount(newText);
+
+    // If pasted text would exceed 3 lines, prevent it
+    if (newLineCount > 3) {
+      e.preventDefault();
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
     }
   };
 
@@ -513,7 +571,7 @@ const HtmlComponent = ({
       const currentValue = textarea.value;
       const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if it would exceed 3 lines
+      // Prevent Enter if already at 3 lines (would create 4th line)
       if (currentLineCount >= 3) {
         e.preventDefault();
         toast.error('Maximum 3 lines allowed', {
@@ -524,10 +582,49 @@ const HtmlComponent = ({
       }
       // Otherwise, let Enter work naturally - it will insert \n
     }
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      // Allow these keys to work normally
+      return;
+    }
     // Escape to cancel editing
     if (e.key === 'Escape') {
       setTempTextLeft(textLeft);
       setEditingLeft(false);
+    }
+  };
+
+  const handleRightTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+    const newLineCount = getLineCount(newText);
+
+    // If pasted text would exceed 3 lines, prevent it
+    if (newLineCount > 3) {
+      e.preventDefault();
+      toast.error('Maximum 3 lines allowed', {
+        duration: 2000,
+        position: 'top-center',
+      });
     }
   };
 
@@ -541,7 +638,7 @@ const HtmlComponent = ({
       const currentValue = textarea.value;
       const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if it would exceed 3 lines
+      // Prevent Enter if already at 3 lines (would create 4th line)
       if (currentLineCount >= 3) {
         e.preventDefault();
         toast.error('Maximum 3 lines allowed', {
@@ -551,6 +648,20 @@ const HtmlComponent = ({
         return;
       }
       // Otherwise, let Enter work naturally - it will insert \n
+    }
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      // Allow these keys to work normally
+      return;
     }
     // Escape to cancel editing
     if (e.key === 'Escape') {
@@ -563,8 +674,9 @@ const HtmlComponent = ({
     <Html
       className={disableInteractions ? 'html-disabled' : ''}
       style={{
-        zIndex: disableInteractions ? -1 : 0,
+        zIndex: disableInteractions ? -1 : 1,
         pointerEvents: disableInteractions ? 'none' : 'auto',
+        position: 'relative',
       }}
     >
       {/* Left Text */}
@@ -593,7 +705,7 @@ const HtmlComponent = ({
               fontSize: textSizeleft,
               width: ImprintTextPosition?.left?.width,
               height: ImprintTextPosition?.left?.height,
-              wordWrap: 'break-word',
+              wordWrap: 'normal',
               overflow: 'hidden',
               textTransform: 'uppercase',
               lineHeight: customLineHeight
@@ -625,6 +737,7 @@ const HtmlComponent = ({
             onMouseUp={handleLeftTextMouseUp}
             onMouseLeave={handleLeftTextMouseLeave}
             onTouchStart={handleLeftTextTouchStart}
+            onTouchMove={handleLeftTextTouchMove}
             onTouchEnd={handleLeftTextTouchEnd}
           >
             {editingLeft ? (
@@ -634,6 +747,7 @@ const HtmlComponent = ({
                 onChange={handleLeftTextChange}
                 onBlur={handleLeftTextBlur}
                 onKeyDown={handleLeftTextKeyDown}
+                onPaste={handleLeftTextPaste}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -649,10 +763,10 @@ const HtmlComponent = ({
                   color: textColor,
                   resize: 'none',
                   overflow: 'hidden',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: 'pre',
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
@@ -674,10 +788,10 @@ const HtmlComponent = ({
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: textLeft !== '' ? 'pre' : 'normal',
                   display: 'block',
                   fontWeight: textBold ? 'bold' : 'normal',
                   fontStyle: textItalic ? 'italic' : 'normal',
@@ -687,10 +801,10 @@ const HtmlComponent = ({
                 dangerouslySetInnerHTML={{
                   __html: hideRightText
                     ? textLeft !== ''
-                      ? wrapTextToHtml(textLeft)
+                      ? textToHtml(textLeft)
                       : 'TAP TO ADD TEXT'
                     : textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT',
                 }}
               />
@@ -791,10 +905,10 @@ const HtmlComponent = ({
                 lineHeight: customLineHeight
                   ? `${customLineHeight}`
                   : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
+                wordWrap: 'normal',
+                overflowWrap: 'normal',
                 wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
+                whiteSpace: textLeft !== '' ? 'pre' : 'normal',
                 display: 'block',
                 fontWeight: textBold ? 'bold' : 'normal',
                 fontStyle: textItalic ? 'italic' : 'normal',
@@ -804,10 +918,10 @@ const HtmlComponent = ({
               dangerouslySetInnerHTML={{
                 __html: hideRightText
                   ? textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT'
                   : textLeft !== ''
-                  ? wrapTextToHtml(textLeft)
+                  ? textToHtml(textLeft)
                   : 'TAP TO ADD TEXT',
               }}
             />
@@ -875,6 +989,7 @@ const HtmlComponent = ({
                 onMouseUp={handleRightTextMouseUp}
                 onMouseLeave={handleRightTextMouseLeave}
                 onTouchStart={handleRightTextTouchStart}
+                onTouchMove={handleRightTextTouchMove}
                 onTouchEnd={handleRightTextTouchEnd}
               >
                 {editingRight ? (
@@ -884,6 +999,7 @@ const HtmlComponent = ({
                     onChange={handleRightTextChange}
                     onBlur={handleRightTextBlur}
                     onKeyDown={handleRightTextKeyDown}
+                    onPaste={handleRightTextPaste}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -928,10 +1044,10 @@ const HtmlComponent = ({
                         : `${
                             ImprintTextPosition?.right?.lineHeight || '2.8rem'
                           }`,
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
+                      wordWrap: 'normal',
+                      overflowWrap: 'normal',
                       wordBreak: 'normal',
-                      whiteSpace: 'pre-wrap',
+                      whiteSpace: textRight !== '' ? 'pre' : 'normal',
                       display: 'block',
                       fontWeight: textBold ? 'bold' : 'normal',
                       fontStyle: textItalic ? 'italic' : 'normal',
@@ -941,7 +1057,7 @@ const HtmlComponent = ({
                     dangerouslySetInnerHTML={{
                       __html:
                         textRight !== ''
-                          ? wrapTextToHtml(textRight)
+                          ? textToHtml(textRight)
                           : 'TAP TO ADD TEXT',
                     }}
                   />
@@ -1042,10 +1158,10 @@ const HtmlComponent = ({
                     lineHeight: customLineHeight
                       ? `${customLineHeight}`
                       : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
+                    wordWrap: 'normal',
+                    overflowWrap: 'normal',
                     wordBreak: 'normal',
-                    whiteSpace: 'pre-wrap',
+                    whiteSpace: textRight !== '' ? 'pre' : 'normal',
                     display: 'block',
                     fontWeight: textBold ? 'bold' : 'normal',
                     fontStyle: textItalic ? 'italic' : 'normal',
@@ -1055,7 +1171,7 @@ const HtmlComponent = ({
                   dangerouslySetInnerHTML={{
                     __html:
                       textRight !== ''
-                        ? wrapTextToHtml(textRight)
+                        ? textToHtml(textRight)
                         : 'TAP TO ADD TEXT',
                   }}
                 />

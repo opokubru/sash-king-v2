@@ -62,7 +62,7 @@ export const ThreeDSashesPage = () => {
                       className="w-full text-sm font-medium bg-black text-white py-2 px-4 rounded hover:bg-gray-800 transition-colors"
                       onPress={() => navigate(`/product/3d/${stole.id}`)}
                     >
-                      Use
+                      Start Design
                     </CustomButton>
                   </div>
                 </motion.div>

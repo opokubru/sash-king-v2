@@ -752,77 +752,89 @@ const ConfiguratorUnisexSpecial = () => {
           <div className="flex-1 relative">
             <div
               ref={canvasContainerRef}
-              className="right-panel h-[40rem] lg:h-[80vh]"
+              className="right-panel h-[40rem] lg:h-[80vh] relative overflow-hidden"
+              style={{
+                isolation: 'isolate',
+                contain: 'layout style paint',
+                clipPath: 'inset(0)',
+              }}
             >
-              <Canvas
-                camera={{
-                  position: [0, 0, selectedClothing?.myZoom || 5],
-                }}
-                ref={canvasRef}
-                gl={{ preserveDrawingBuffer: true }}
-                className="h-full w-full"
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ zIndex: 1 }}
               >
-                {displayImage && (
-                  <Image
-                    scale={
-                      selectedClothing?.aspect
-                        ? [
-                            selectedClothing?.scale || 1,
-                            (selectedClothing?.scale || 1) /
-                              selectedClothing.aspect,
-                          ]
-                        : selectedClothing?.scale || 1
-                    }
-                    url={displayImage}
-                  />
-                )}
-                {isLoading === false && (
-                  <>
-                    <HtmlComponent
-                      textLeft={enteredTextLeft}
-                      textRight={enteredTextRight}
-                      textColor={textColor}
-                      textSizeleft={fontSizeLeft as number}
-                      textSizeRight={fontSizeRight as number}
-                      fontFamily={fontFamily}
-                      textLeftRotate={
-                        selectedClothing?.positioningLeft?.text?.rotate
+                <Canvas
+                  camera={{
+                    position: [0, 0, selectedClothing?.myZoom || 5],
+                  }}
+                  ref={canvasRef}
+                  gl={{ preserveDrawingBuffer: true }}
+                  className="h-full w-full"
+                >
+                  {displayImage && (
+                    <Image
+                      scale={
+                        selectedClothing?.aspect
+                          ? [
+                              selectedClothing?.scale || 1,
+                              (selectedClothing?.scale || 1) /
+                                selectedClothing.aspect,
+                            ]
+                          : selectedClothing?.scale || 1
                       }
-                      textRightRotate={
-                        selectedClothing?.positioningRight?.text?.rotate
-                      }
-                      // textLeftOrientation={textLeftOrientation}
-                      // textRightOrientation={textRightOrientation}
+                      url={displayImage}
+                    />
+                  )}
+                  {isLoading === false && (
+                    <>
+                      <HtmlComponent
+                        textLeft={enteredTextLeft}
+                        textRight={enteredTextRight}
+                        textColor={textColor}
+                        textSizeleft={fontSizeLeft as number}
+                        textSizeRight={fontSizeRight as number}
+                        fontFamily={fontFamily}
+                        textLeftRotate={
+                          selectedClothing?.positioningLeft?.text?.rotate
+                        }
+                        textRightRotate={
+                          selectedClothing?.positioningRight?.text?.rotate
+                        }
+                        // textLeftOrientation={textLeftOrientation}
+                        // textRightOrientation={textRightOrientation}
 
-                      ImprintTextPosition={ImprintTextPosition as any}
-                      hideRightText={
-                        selectedClothing?.name === 'Beads Bracelet'
-                      }
-                      onTextLeftChange={setEnteredTextLeft}
-                      onTextRightChange={setEnteredTextRight}
-                      onTextLeftClick={() => handleTextClick('left')}
-                      onTextRightClick={() => handleTextClick('right')}
-                      onTextLeftLongPress={() => handleTextLongPress('left')}
-                      onTextRightLongPress={() => handleTextLongPress('right')}
-                      selectedText={editingText}
-                      disableInteractions={showTextEditor || showInstructions}
-                    />
-                    <HtmlImageComponent
-                      ImprintTextPosition={ImprintTextPosition}
-                      imageLeft={uploadedImageLeft || ''}
-                      imageRight={uploadedImageRight || ''}
-                      hideLogo={selectedClothing?.name === 'Beads Bracelet'}
-                      hideRightText={
-                        selectedClothing?.name === 'Beads Bracelet'
-                      }
-                      disableInteractions={showTextEditor || showInstructions}
-                      textColor={textColor}
-                      onImageLeftChange={handleImageUploadLeft}
-                      onImageRightChange={handleImageUploadRight}
-                    />
-                  </>
-                )}
-              </Canvas>
+                        ImprintTextPosition={ImprintTextPosition as any}
+                        hideRightText={
+                          selectedClothing?.name === 'Beads Bracelet'
+                        }
+                        onTextLeftChange={setEnteredTextLeft}
+                        onTextRightChange={setEnteredTextRight}
+                        onTextLeftClick={() => handleTextClick('left')}
+                        onTextRightClick={() => handleTextClick('right')}
+                        onTextLeftLongPress={() => handleTextLongPress('left')}
+                        onTextRightLongPress={() =>
+                          handleTextLongPress('right')
+                        }
+                        selectedText={editingText}
+                        disableInteractions={showTextEditor || showInstructions}
+                      />
+                      <HtmlImageComponent
+                        ImprintTextPosition={ImprintTextPosition}
+                        imageLeft={uploadedImageLeft || ''}
+                        imageRight={uploadedImageRight || ''}
+                        hideLogo={selectedClothing?.name === 'Beads Bracelet'}
+                        hideRightText={
+                          selectedClothing?.name === 'Beads Bracelet'
+                        }
+                        disableInteractions={showTextEditor || showInstructions}
+                        textColor={textColor}
+                        onImageLeftChange={handleImageUploadLeft}
+                        onImageRightChange={handleImageUploadRight}
+                      />
+                    </>
+                  )}
+                </Canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -999,7 +1011,7 @@ const ConfiguratorUnisexSpecial = () => {
           document.body,
         )}
 
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl relative z-50">
         <div className="container mx-auto px-6 py-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Order Details */}
