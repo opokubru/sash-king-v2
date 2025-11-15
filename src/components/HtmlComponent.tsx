@@ -115,12 +115,12 @@ const HtmlComponent = ({
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
 
-  // Double tap detection
-  const leftLastTapTime = useRef<number>(0);
-  const rightLastTapTime = useRef<number>(0);
-  const leftTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const rightTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
+  // Long press detection
+  const leftLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const rightLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const LONG_PRESS_DURATION = 500; // 500ms for long press
+  const leftLongPressStarted = useRef(false);
+  const rightLongPressStarted = useRef(false);
 
   useEffect(() => {
     setTempTextLeft(textLeft);
@@ -216,88 +216,99 @@ const HtmlComponent = ({
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (leftLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        leftLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextLeftLongPress) {
-        onTextLeftLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingLeft) {
+      setEditingLeft(true);
+      if (onTextLeftClick) {
+        onTextLeftClick();
       }
-      leftLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
-        }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleLeftTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleLeftTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // Start long press timer
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
     }
-  };
-
-  const handleLeftTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
       if (onTextLeftLongPress) {
         onTextLeftLongPress();
       }
-      leftLastTapTime.current = 0;
-    } else {
-      // Single tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+  };
+
+  const handleLeftTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchStart = () => {
+    // Start long press timer for touch
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+    }
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
+    // Clear long press timer on touch end
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    
+    // If long press was not triggered, handle as tap
+    if (!leftLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingLeft) {
+        setEditingLeft(true);
+        if (onTextLeftClick) {
+          onTextLeftClick();
         }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+      }
+    } else {
+      // Long press was triggered, reset flag
+      leftLongPressStarted.current = false;
     }
   };
 
@@ -308,99 +319,110 @@ const HtmlComponent = ({
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (rightLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        rightLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextRightLongPress) {
-        onTextRightLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingRight) {
+      setEditingRight(true);
+      if (onTextRightClick) {
+        onTextRightClick();
       }
-      rightLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
-        }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleRightTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleRightTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // Start long press timer
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
     }
-  };
-
-  const handleRightTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
       if (onTextRightLongPress) {
         onTextRightLongPress();
       }
-      rightLastTapTime.current = 0;
-    } else {
-      // Single tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchStart = () => {
+    // Start long press timer for touch
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+    }
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
+    // Clear long press timer on touch end
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    
+    // If long press was not triggered, handle as tap
+    if (!rightLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingRight) {
+        setEditingRight(true);
+        if (onTextRightClick) {
+          onTextRightClick();
         }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+      }
+    } else {
+      // Long press was triggered, reset flag
+      rightLongPressStarted.current = false;
     }
   };
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (leftTapTimeout.current) {
-        clearTimeout(leftTapTimeout.current);
+      if (leftLongPressTimer.current) {
+        clearTimeout(leftLongPressTimer.current);
       }
-      if (rightTapTimeout.current) {
-        clearTimeout(rightTapTimeout.current);
+      if (rightLongPressTimer.current) {
+        clearTimeout(rightLongPressTimer.current);
       }
     };
   }, []);
@@ -625,6 +647,7 @@ const HtmlComponent = ({
             onMouseUp={handleLeftTextMouseUp}
             onMouseLeave={handleLeftTextMouseLeave}
             onTouchStart={handleLeftTextTouchStart}
+            onTouchMove={handleLeftTextTouchMove}
             onTouchEnd={handleLeftTextTouchEnd}
           >
             {editingLeft ? (
@@ -875,6 +898,7 @@ const HtmlComponent = ({
                 onMouseUp={handleRightTextMouseUp}
                 onMouseLeave={handleRightTextMouseLeave}
                 onTouchStart={handleRightTextTouchStart}
+                onTouchMove={handleRightTextTouchMove}
                 onTouchEnd={handleRightTextTouchEnd}
               >
                 {editingRight ? (
