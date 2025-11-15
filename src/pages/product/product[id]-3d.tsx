@@ -436,86 +436,9 @@ const ConfiguratorUnisex3D = () => {
   const [rotationAngle] = useState(0);
 
   // Dragging state
-  const [enableDragging] = useState(true);
+  const [enableDragging] = useState(false);
 
-  // Helper function to convert rem/px string to number (for drag positions)
-  const parsePosition = (value: string | undefined): number => {
-    if (!value) return 0;
-    // Remove 'rem' or 'px' and convert to number
-    const numStr = value.replace(/rem|px/g, '').trim();
-    const num = parseFloat(numStr);
-    // Convert rem to px (assuming 1rem = 16px, adjust if needed)
-    if (value.includes('rem')) {
-      return num * 16;
-    }
-    return num || 0;
-  };
-
-  // Initialize positions from selectedClothing defaults
-  const getInitialTextPositions = () => {
-    if (!selectedClothing) return {};
-    return {
-      left: {
-        x: parsePosition(selectedClothing.positioningLeft?.text?.left),
-        y: parsePosition(selectedClothing.positioningLeft?.text?.top),
-      },
-      right: {
-        x: parsePosition(selectedClothing.positioningRight?.text?.left),
-        y: parsePosition(selectedClothing.positioningRight?.text?.top),
-      },
-    };
-  };
-
-  const getInitialImagePositions = () => {
-    if (!selectedClothing) return {};
-    return {
-      left: {
-        x: parsePosition(selectedClothing.positioningLeft?.image?.left),
-        y: parsePosition(selectedClothing.positioningLeft?.image?.top),
-      },
-      right: {
-        x: parsePosition(selectedClothing.positioningRight?.image?.left),
-        y: parsePosition(selectedClothing.positioningRight?.image?.top),
-      },
-    };
-  };
-
-  const [textPositions, setTextPositions] = useState<{
-    left?: { x: number; y: number };
-    right?: { x: number; y: number };
-  }>(getInitialTextPositions());
-
-  const [imagePositions, setImagePositions] = useState<{
-    left?: { x: number; y: number };
-    right?: { x: number; y: number };
-  }>(getInitialImagePositions());
-
-  // Reset positions when clothing changes
-  useEffect(() => {
-    if (selectedClothing) {
-      setTextPositions({
-        left: {
-          x: parsePosition(selectedClothing.positioningLeft?.text?.left),
-          y: parsePosition(selectedClothing.positioningLeft?.text?.top),
-        },
-        right: {
-          x: parsePosition(selectedClothing.positioningRight?.text?.left),
-          y: parsePosition(selectedClothing.positioningRight?.text?.top),
-        },
-      });
-      setImagePositions({
-        left: {
-          x: parsePosition(selectedClothing.positioningLeft?.image?.left),
-          y: parsePosition(selectedClothing.positioningLeft?.image?.top),
-        },
-        right: {
-          x: parsePosition(selectedClothing.positioningRight?.image?.left),
-          y: parsePosition(selectedClothing.positioningRight?.image?.top),
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClothing?.name]);
+  // Dragging and position helpers removed - dragging is disabled
 
   // Text editing bottom sheet
   const [showTextEditor, setShowTextEditor] = useState(false);
@@ -1202,7 +1125,7 @@ const ConfiguratorUnisex3D = () => {
                   assignRandomColors(selectedClothing, state);
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
               title="Randomize colors"
             >
               <i className="pi pi-refresh text-sm"></i>
@@ -1275,13 +1198,6 @@ const ConfiguratorUnisex3D = () => {
                         letterSpacing={letterSpacing}
                         customLineHeight={lineHeight}
                         enableDragging={enableDragging}
-                        onPositionChange={(side, position) => {
-                          setTextPositions((prev) => ({
-                            ...prev,
-                            [side]: position,
-                          }));
-                        }}
-                        customPositions={textPositions}
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition as any}
@@ -1300,13 +1216,6 @@ const ConfiguratorUnisex3D = () => {
                         onImageRightChange={handleImageUploadRight}
                         disableInteractions={showTextEditor || showInstructions}
                         enableDragging={enableDragging}
-                        onPositionChange={(side, position) => {
-                          setImagePositions((prev) => ({
-                            ...prev,
-                            [side]: position,
-                          }));
-                        }}
-                        customPositions={imagePositions}
                       />
                     </>
                   )}

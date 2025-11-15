@@ -91,7 +91,7 @@ export const ThreeDSashes: Product[] = [
           height: '9.5rem',
           width: '4.5rem',
           lineHeight: '2.4rem',
-          rotate: -4,
+          rotate: 0,
           size: 12,
         },
         image: {
