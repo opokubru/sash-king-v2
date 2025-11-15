@@ -427,43 +427,10 @@ const HtmlComponent = ({
     };
   }, []);
 
-  // Helper function to wrap text at 7 characters per line
-  const wrapTextAt7Chars = (text: string): string => {
-    const lines: string[] = [];
-    const currentLines = text.split('\n');
-
-    for (const line of currentLines) {
-      let remaining = line;
-
-      while (remaining.length > 0) {
-        if (remaining.length <= 7) {
-          lines.push(remaining);
-          break;
-        }
-
-        // Try to break at word boundary first (space within first 7 chars)
-        const first7Chars = remaining.substring(0, 7);
-        const lastSpaceIndex = first7Chars.lastIndexOf(' ');
-
-        let breakPoint = 7;
-        if (lastSpaceIndex > 0) {
-          // Break after the space
-          breakPoint = lastSpaceIndex + 1;
-        }
-
-        lines.push(remaining.substring(0, breakPoint));
-        // Trim leading spaces from next line
-        remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
-      }
-    }
-
-    return lines.join('\n');
-  };
-
-  // Helper function to convert wrapped text (with \n) to HTML (with <br>)
-  const wrapTextToHtml = (text: string): string => {
-    const wrappedText = wrapTextAt7Chars(text);
-    return wrappedText.split('\n').join('<br>');
+  // Helper function to convert text (with \n) to HTML (with <br>)
+  // No automatic wrapping - only breaks on user-entered line breaks (Enter)
+  const textToHtml = (text: string): string => {
+    return text.split('\n').join('<br>');
   };
 
   // Helper function to get current line count
@@ -556,18 +523,16 @@ const HtmlComponent = ({
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
     if (onTextLeftChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextLeft);
-      onTextLeftChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextLeftChange(tempTextLeft);
     }
   };
 
   const handleRightTextBlur = () => {
     setEditingRight(false);
     if (onTextRightChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextRight);
-      onTextRightChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextRightChange(tempTextRight);
     }
   };
 
@@ -739,7 +704,7 @@ const HtmlComponent = ({
               fontSize: textSizeleft,
               width: ImprintTextPosition?.left?.width,
               height: ImprintTextPosition?.left?.height,
-              wordWrap: 'break-word',
+              wordWrap: 'normal',
               overflow: 'hidden',
               textTransform: 'uppercase',
               lineHeight: customLineHeight
@@ -797,10 +762,10 @@ const HtmlComponent = ({
                   color: textColor,
                   resize: 'none',
                   overflow: 'hidden',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: 'pre',
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
@@ -822,10 +787,10 @@ const HtmlComponent = ({
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: 'pre',
                   display: 'block',
                   fontWeight: textBold ? 'bold' : 'normal',
                   fontStyle: textItalic ? 'italic' : 'normal',
@@ -835,10 +800,10 @@ const HtmlComponent = ({
                 dangerouslySetInnerHTML={{
                   __html: hideRightText
                     ? textLeft !== ''
-                      ? wrapTextToHtml(textLeft)
+                      ? textToHtml(textLeft)
                       : 'TAP TO ADD TEXT'
                     : textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT',
                 }}
               />
@@ -939,10 +904,10 @@ const HtmlComponent = ({
                 lineHeight: customLineHeight
                   ? `${customLineHeight}`
                   : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
+                wordWrap: 'normal',
+                overflowWrap: 'normal',
                 wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
+                whiteSpace: 'pre',
                 display: 'block',
                 fontWeight: textBold ? 'bold' : 'normal',
                 fontStyle: textItalic ? 'italic' : 'normal',
@@ -952,10 +917,10 @@ const HtmlComponent = ({
               dangerouslySetInnerHTML={{
                 __html: hideRightText
                   ? textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT'
                   : textLeft !== ''
-                  ? wrapTextToHtml(textLeft)
+                  ? textToHtml(textLeft)
                   : 'TAP TO ADD TEXT',
               }}
             />
@@ -1078,10 +1043,10 @@ const HtmlComponent = ({
                         : `${
                             ImprintTextPosition?.right?.lineHeight || '2.8rem'
                           }`,
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
+                      wordWrap: 'normal',
+                      overflowWrap: 'normal',
                       wordBreak: 'normal',
-                      whiteSpace: 'pre-wrap',
+                      whiteSpace: 'pre',
                       display: 'block',
                       fontWeight: textBold ? 'bold' : 'normal',
                       fontStyle: textItalic ? 'italic' : 'normal',
@@ -1091,7 +1056,7 @@ const HtmlComponent = ({
                     dangerouslySetInnerHTML={{
                       __html:
                         textRight !== ''
-                          ? wrapTextToHtml(textRight)
+                          ? textToHtml(textRight)
                           : 'TAP TO ADD TEXT',
                     }}
                   />
@@ -1205,7 +1170,7 @@ const HtmlComponent = ({
                   dangerouslySetInnerHTML={{
                     __html:
                       textRight !== ''
-                        ? wrapTextToHtml(textRight)
+                        ? textToHtml(textRight)
                         : 'TAP TO ADD TEXT',
                   }}
                 />
