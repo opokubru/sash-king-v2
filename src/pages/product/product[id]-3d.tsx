@@ -1237,99 +1237,118 @@ const ConfiguratorUnisex3D = () => {
           <div className="flex-1 relative">
             <div
               ref={canvasContainerRef}
-              className="right-panel h-[40rem] lg:h-[80vh]"
+              className="right-panel h-[40rem] lg:h-[80vh] relative overflow-hidden"
+              style={{
+                isolation: 'isolate',
+                contain: 'layout style paint',
+                clipPath: 'inset(0)',
+              }}
             >
-              <Canvas
-                camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
-                gl={{ preserveDrawingBuffer: true }}
-                className="main-canvas h-full "
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ zIndex: 1 }}
               >
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
-                {selectedClothing &&
-                  selectedClothing.name &&
-                  isLoadingModel === false && (
-                    <>
-                      <HtmlComponent
-                        textLeft={enteredTextLeft}
-                        textRight={enteredTextRight}
-                        textColor={
-                          editingText &&
-                          !colorOptions.find((c) => c.label === textColor)
-                            ? textColor
-                            : colorOptions.find((c) => c.label === textColor)
-                                ?.color || textColor
-                        }
-                        textSizeleft={fontSizeLeft}
-                        textSizeRight={fontSizeRight}
-                        fontFamily={fontFamily}
-                        textLeftRotate={
-                          editingText === 'left' && rotationAngle !== 0
-                            ? rotationAngle
-                            : selectedClothing?.positioningLeft?.text?.rotate ||
-                              0
-                        }
-                        textRightRotate={
-                          editingText === 'right' && rotationAngle !== 0
-                            ? rotationAngle
-                            : selectedClothing?.positioningRight?.text
-                                ?.rotate || 0
-                        }
-                        ImprintTextPosition={ImprintTextPosition as any}
-                        hideRightText={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        onTextLeftChange={setEnteredTextLeft}
-                        onTextRightChange={setEnteredTextRight}
-                        onTextLeftClick={() => handleTextClick('left')}
-                        onTextRightClick={() => handleTextClick('right')}
-                        onTextLeftLongPress={() => handleTextLongPress('left')}
-                        onTextRightLongPress={() =>
-                          handleTextLongPress('right')
-                        }
-                        selectedText={editingText}
-                        disableInteractions={showTextEditor || showInstructions}
-                        textBold={textBold}
-                        textItalic={textItalic}
-                        textUnderline={textUnderline}
-                        textAlignment={textAlignment}
-                        letterSpacing={letterSpacing}
-                        customLineHeight={lineHeight}
-                        enableDragging={enableDragging}
-                      />
-                      <HtmlImageComponent
-                        ImprintTextPosition={ImprintTextPosition as any}
-                        imageLeft={uploadedImageLeft}
-                        imageRight={uploadedImageRight || ''}
-                        hideLogo={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        hideRightText={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        textColor={textColor}
-                        onImageLeftChange={handleImageUploadLeft}
-                        onImageRightChange={handleImageUploadRight}
-                        disableInteractions={showTextEditor || showInstructions}
-                        enableDragging={enableDragging}
-                      />
-                    </>
-                  )}
-                <Shirt
-                  isRotating={isRotating}
-                  selectedClothing={selectedClothing}
-                  selectedPart={selectedPart}
-                  setSelectedPart={setSelectedPart}
-                  selectedTexture={state.texture[selectedPart || 0]}
-                />
-                {/* {selectedClothing?.name &&
+                <Canvas
+                  camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
+                  gl={{ preserveDrawingBuffer: true }}
+                  className="main-canvas h-full w-full"
+                >
+                  <ambientLight intensity={0.5} />
+                  <pointLight position={[10, 10, 10]} />
+                  {selectedClothing &&
+                    selectedClothing.name &&
+                    isLoadingModel === false && (
+                      <>
+                        <HtmlComponent
+                          textLeft={enteredTextLeft}
+                          textRight={enteredTextRight}
+                          textColor={
+                            editingText &&
+                            !colorOptions.find((c) => c.label === textColor)
+                              ? textColor
+                              : colorOptions.find((c) => c.label === textColor)
+                                  ?.color || textColor
+                          }
+                          textSizeleft={fontSizeLeft}
+                          textSizeRight={fontSizeRight}
+                          fontFamily={fontFamily}
+                          textLeftRotate={
+                            editingText === 'left' && rotationAngle !== 0
+                              ? rotationAngle
+                              : selectedClothing?.positioningLeft?.text
+                                  ?.rotate || 0
+                          }
+                          textRightRotate={
+                            editingText === 'right' && rotationAngle !== 0
+                              ? rotationAngle
+                              : selectedClothing?.positioningRight?.text
+                                  ?.rotate || 0
+                          }
+                          ImprintTextPosition={ImprintTextPosition as any}
+                          hideRightText={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          onTextLeftChange={setEnteredTextLeft}
+                          onTextRightChange={setEnteredTextRight}
+                          onTextLeftClick={() => handleTextClick('left')}
+                          onTextRightClick={() => handleTextClick('right')}
+                          onTextLeftLongPress={() =>
+                            handleTextLongPress('left')
+                          }
+                          onTextRightLongPress={() =>
+                            handleTextLongPress('right')
+                          }
+                          selectedText={editingText}
+                          disableInteractions={
+                            showTextEditor || showInstructions
+                          }
+                          textBold={textBold}
+                          textItalic={textItalic}
+                          textUnderline={textUnderline}
+                          textAlignment={textAlignment}
+                          letterSpacing={letterSpacing}
+                          customLineHeight={lineHeight}
+                          enableDragging={enableDragging}
+                        />
+                        <HtmlImageComponent
+                          ImprintTextPosition={ImprintTextPosition as any}
+                          imageLeft={uploadedImageLeft}
+                          imageRight={uploadedImageRight || ''}
+                          hideLogo={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          hideRightText={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          textColor={textColor}
+                          onImageLeftChange={handleImageUploadLeft}
+                          onImageRightChange={handleImageUploadRight}
+                          disableInteractions={
+                            showTextEditor || showInstructions
+                          }
+                          enableDragging={enableDragging}
+                        />
+                      </>
+                    )}
+                  <Shirt
+                    isRotating={isRotating}
+                    selectedClothing={selectedClothing}
+                    selectedPart={selectedPart}
+                    setSelectedPart={setSelectedPart}
+                    selectedTexture={state.texture[selectedPart || 0]}
+                  />
+                  {/* {selectedClothing?.name &&
                   !noSpinFor.includes(selectedClothing.name) && (
                     <OrbitControls enableRotate={false} />
                   )} */}
-              </Canvas>
+                </Canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -1506,7 +1525,7 @@ const ConfiguratorUnisex3D = () => {
           document.body,
         )}
 
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl relative z-50">
         <div className="container mx-auto px-6 py-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Order Details */}

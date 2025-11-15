@@ -674,8 +674,9 @@ const HtmlComponent = ({
     <Html
       className={disableInteractions ? 'html-disabled' : ''}
       style={{
-        zIndex: disableInteractions ? -1 : 0,
+        zIndex: disableInteractions ? -1 : 1,
         pointerEvents: disableInteractions ? 'none' : 'auto',
+        position: 'relative',
       }}
     >
       {/* Left Text */}
