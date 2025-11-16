@@ -1087,12 +1087,18 @@ const ConfiguratorUnisex3D = () => {
                           <i className="pi pi-th-large text-blue-500"></i>
                           <span>Tap on cut-out sections to change colors</span>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-info-circle text-blue-500"></i>
+                          <span>
+                            Cant' t decide on colors? Use "Randomize" button
+                          </span>
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={handleInstructionsDismiss}
-                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
                         >
                           Got it!
                         </button>
