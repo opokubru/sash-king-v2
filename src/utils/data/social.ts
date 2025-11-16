@@ -4,8 +4,8 @@ export const socials = [
     href: 'https://instagram.com/sashkinggh',
   },
   {
-    icon: 'fa-brands:snapchat',
-    href: 'https://snapchat.com/add/sashkinggh',
+    icon: 'fa-brands:tiktok',
+    href: 'https://tiktok.com/@sashkinggh',
   },
   {
     icon: 'bi:whatsapp', // You can use any WhatsApp icon from iconify
