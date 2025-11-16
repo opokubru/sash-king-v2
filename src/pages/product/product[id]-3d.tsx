@@ -31,6 +31,7 @@ import { ThreeDSashes } from '@/lib/3d-sash';
 import TakeTour from '@/components/TakeTour';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import { MeshPartColorPicker } from '@/components/MeshPartColorPicker';
+import toast from 'react-hot-toast';
 
 interface ShirtProps {
   isRotating: boolean;
@@ -504,7 +505,7 @@ const ConfiguratorUnisex3D = () => {
 
   // Advanced text styling (kept for HtmlComponent compatibility, but not used in simplified UI)
   const [textAlignment] = useState<'left' | 'center' | 'right' | 'justify'>(
-    'left',
+    'center',
   );
   const [textBold] = useState(false);
   const [textItalic] = useState(false);
@@ -541,22 +542,16 @@ const ConfiguratorUnisex3D = () => {
 
   const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
   };
 
   const handleImageUploadRight = async (file: File) => {
     setUploadedImageRight(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
   };
 
   const ImprintTextPosition = useMemo(() => {

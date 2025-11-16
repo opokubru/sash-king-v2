@@ -32,6 +32,7 @@ import { TemplatedSash } from '@/lib/templated-sash';
 import TakeTour from '@/components/TakeTour';
 // import ImageUpload from '@/components/ImageUpload';
 import { CustomButton } from '@/components/shared/shared_customs';
+import { toast } from 'react-hot-toast';
 
 const ConfiguratorUnisexSpecial = () => {
   const { id } = useParams();
@@ -123,12 +124,9 @@ const ConfiguratorUnisexSpecial = () => {
 
   const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
 
     // try {
     //   const dataURL = await readFileAsDataURL(file);
@@ -142,12 +140,9 @@ const ConfiguratorUnisexSpecial = () => {
   const handleImageUploadRight = async (file: File) => {
     setUploadedImageRight(URL.createObjectURL(file));
 
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
 
     // try {
     //   const dataURL = await readFileAsDataURL(file);
@@ -817,6 +812,7 @@ const ConfiguratorUnisexSpecial = () => {
                         }
                         selectedText={editingText}
                         disableInteractions={showTextEditor || showInstructions}
+                        textAlignment="center"
                       />
                       <HtmlImageComponent
                         ImprintTextPosition={ImprintTextPosition}
