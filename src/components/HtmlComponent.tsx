@@ -211,7 +211,12 @@ const HtmlComponent = ({
     }
   }, [editingRight]);
 
-  const handleLeftTextClick = () => {
+  const handleLeftTextClick = (e?: React.MouseEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // If drag started, don't handle click
     if (leftDragStarted.current) {
       leftDragStarted.current = false;
@@ -292,7 +297,12 @@ const HtmlComponent = ({
     leftLongPressStarted.current = false;
   };
 
-  const handleLeftTextTouchEnd = () => {
+  const handleLeftTextTouchEnd = (e?: React.TouchEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // Clear long press timer on touch end
     if (leftLongPressTimer.current) {
       clearTimeout(leftLongPressTimer.current);
@@ -314,7 +324,12 @@ const HtmlComponent = ({
     }
   };
 
-  const handleRightTextClick = () => {
+  const handleRightTextClick = (e?: React.MouseEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // If drag started, don't handle click
     if (rightDragStarted.current) {
       rightDragStarted.current = false;
@@ -395,7 +410,12 @@ const HtmlComponent = ({
     rightLongPressStarted.current = false;
   };
 
-  const handleRightTextTouchEnd = () => {
+  const handleRightTextTouchEnd = (e?: React.TouchEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // Clear long press timer on touch end
     if (rightLongPressTimer.current) {
       clearTimeout(rightLongPressTimer.current);
@@ -428,6 +448,86 @@ const HtmlComponent = ({
       }
     };
   }, []);
+
+  // Handle clicks outside to exit editing mode
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+
+      // Don't exit if clicking on textarea or its container
+      if (
+        target.tagName === 'TEXTAREA' ||
+        target.closest('[data-text-container]') ||
+        target.closest('.overlay') ||
+        target.closest('[data-three-html]')
+      ) {
+        return;
+      }
+
+      // Exit editing mode
+      if (editingLeft) {
+        setEditingLeft(false);
+        if (onTextLeftChange) {
+          onTextLeftChange(tempTextLeft);
+        }
+      }
+      if (editingRight) {
+        setEditingRight(false);
+        if (onTextRightChange) {
+          onTextRightChange(tempTextRight);
+        }
+      }
+    };
+
+    // Only add listener when in editing mode
+    if (editingLeft || editingRight) {
+      // Use capture phase and a small delay to ensure it runs after other handlers
+      document.addEventListener('click', handleDocumentClick, true);
+      document.addEventListener('touchstart', handleDocumentClick, true);
+
+      return () => {
+        document.removeEventListener('click', handleDocumentClick, true);
+        document.removeEventListener('touchstart', handleDocumentClick, true);
+      };
+    }
+  }, [
+    editingLeft,
+    editingRight,
+    tempTextLeft,
+    tempTextRight,
+    onTextLeftChange,
+    onTextRightChange,
+  ]);
+
+  // Handle clicking outside to exit editing mode
+  const handleOutsideClick = (e: any) => {
+    // Only exit if clicking outside the text areas
+    const target = (e.target || e.nativeEvent?.target) as HTMLElement;
+    if (!target) return;
+
+    // Don't exit if clicking on textarea or its container
+    if (
+      target.tagName === 'TEXTAREA' ||
+      target.closest('[data-text-container]') ||
+      target.closest('.overlay')
+    ) {
+      return;
+    }
+
+    // Exit editing mode
+    if (editingLeft) {
+      setEditingLeft(false);
+      if (onTextLeftChange) {
+        onTextLeftChange(tempTextLeft);
+      }
+    }
+    if (editingRight) {
+      setEditingRight(false);
+      if (onTextRightChange) {
+        onTextRightChange(tempTextRight);
+      }
+    }
+  };
 
   // Helper function to convert text (with \n) to HTML (with <br>)
   // No automatic wrapping - only breaks on user-entered line breaks (Enter)
@@ -947,6 +1047,8 @@ const HtmlComponent = ({
         pointerEvents: disableInteractions ? 'none' : 'auto',
         position: 'relative',
       }}
+      onClick={(e: any) => handleOutsideClick(e)}
+      onTouchStart={(e: any) => handleOutsideClick(e)}
     >
       {/* Left Text */}
       {enableDragging && !disableInteractions ? (
@@ -964,6 +1066,7 @@ const HtmlComponent = ({
         >
           <div
             className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+            data-text-container="left"
             style={{
               pointerEvents: disableInteractions ? 'none' : 'auto',
               position: 'absolute',
@@ -1001,13 +1104,13 @@ const HtmlComponent = ({
                   ? '0 0 10px rgba(59, 130, 246, 0.3)'
                   : 'none',
             }}
-            onClick={handleLeftTextClick}
+            onClick={(e) => handleLeftTextClick(e)}
             onMouseDown={handleLeftTextMouseDown}
             onMouseUp={handleLeftTextMouseUp}
             onMouseLeave={handleLeftTextMouseLeave}
             onTouchStart={handleLeftTextTouchStart}
             onTouchMove={handleLeftTextTouchMove}
-            onTouchEnd={handleLeftTextTouchEnd}
+            onTouchEnd={(e) => handleLeftTextTouchEnd(e)}
           >
             {editingLeft ? (
               <textarea
@@ -1017,6 +1120,8 @@ const HtmlComponent = ({
                 onBlur={handleLeftTextBlur}
                 onKeyDown={handleLeftTextKeyDown}
                 onPaste={handleLeftTextPaste}
+                onClick={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -1085,6 +1190,7 @@ const HtmlComponent = ({
       ) : (
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+          data-text-container="left"
           style={{
             pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
@@ -1122,12 +1228,12 @@ const HtmlComponent = ({
                 ? '0 0 10px rgba(59, 130, 246, 0.3)'
                 : 'none',
           }}
-          onClick={handleLeftTextClick}
+          onClick={(e) => handleLeftTextClick(e)}
           onMouseDown={handleLeftTextMouseDown}
           onMouseUp={handleLeftTextMouseUp}
           onMouseLeave={handleLeftTextMouseLeave}
           onTouchStart={handleLeftTextTouchStart}
-          onTouchEnd={handleLeftTextTouchEnd}
+          onTouchEnd={(e) => handleLeftTextTouchEnd(e)}
         >
           {editingLeft ? (
             <textarea
@@ -1136,6 +1242,8 @@ const HtmlComponent = ({
               onChange={handleLeftTextChange}
               onBlur={handleLeftTextBlur}
               onKeyDown={handleLeftTextKeyDown}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -1220,6 +1328,7 @@ const HtmlComponent = ({
             >
               <div
                 className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+                data-text-container="right"
                 style={{
                   pointerEvents: disableInteractions ? 'none' : 'auto',
                   position: 'absolute',
@@ -1257,13 +1366,13 @@ const HtmlComponent = ({
                       ? '0 0 10px rgba(59, 130, 246, 0.3)'
                       : 'none',
                 }}
-                onClick={handleRightTextClick}
+                onClick={(e) => handleRightTextClick(e)}
                 onMouseDown={handleRightTextMouseDown}
                 onMouseUp={handleRightTextMouseUp}
                 onMouseLeave={handleRightTextMouseLeave}
                 onTouchStart={handleRightTextTouchStart}
                 onTouchMove={handleRightTextTouchMove}
-                onTouchEnd={handleRightTextTouchEnd}
+                onTouchEnd={(e) => handleRightTextTouchEnd(e)}
               >
                 {editingRight ? (
                   <textarea
@@ -1273,6 +1382,8 @@ const HtmlComponent = ({
                     onBlur={handleRightTextBlur}
                     onKeyDown={handleRightTextKeyDown}
                     onPaste={handleRightTextPaste}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -1342,6 +1453,7 @@ const HtmlComponent = ({
           ) : (
             <div
               className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              data-text-container="right"
               style={{
                 pointerEvents: disableInteractions ? 'none' : 'auto',
                 position: 'absolute',
@@ -1379,12 +1491,12 @@ const HtmlComponent = ({
                     ? '0 0 10px rgba(59, 130, 246, 0.3)'
                     : 'none',
               }}
-              onClick={handleRightTextClick}
+              onClick={(e) => handleRightTextClick(e)}
               onMouseDown={handleRightTextMouseDown}
               onMouseUp={handleRightTextMouseUp}
               onMouseLeave={handleRightTextMouseLeave}
               onTouchStart={handleRightTextTouchStart}
-              onTouchEnd={handleRightTextTouchEnd}
+              onTouchEnd={(e) => handleRightTextTouchEnd(e)}
             >
               {editingRight ? (
                 <textarea
@@ -1393,6 +1505,8 @@ const HtmlComponent = ({
                   onChange={handleRightTextChange}
                   onBlur={handleRightTextBlur}
                   onKeyDown={handleRightTextKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   style={{
                     background: 'transparent',
                     border: 'none',
