@@ -305,33 +305,26 @@ const Home = () => {
 
           <div className="relative ">
             {/* <Slider {...greekSettings} className="greek-carousel"> */}
-            {ThreeDSashes.slice(0, 1).map((stole, index) => (
-              <div key={index} className="px-2">
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="group"
-                >
-                  <div className="relative overflow-hidden bg-gray-100">
-                    <img
-                      src={stole.image}
-                      alt={stole.name}
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="mt-3">
-                    <CustomButton
-                      variant_type="primary"
-                      onPress={() => navigate('/design-your-own')}
-                      className="w-full text-sm font-medium bg-black text-white "
-                    >
-                      Design Now
-                    </CustomButton>
-                  </div>
-                </motion.div>
+            <div className="px-2">
+              <div className="group">
+                <div className="relative overflow-hidden bg-gray-100">
+                  <img
+                    src={'/images/3d-sash/1.jpeg'}
+                    alt={'sash from scratch'}
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="mt-3">
+                  <CustomButton
+                    variant_type="primary"
+                    onPress={() => navigate('/design-your-own')}
+                    className="w-full text-sm font-medium bg-black text-white "
+                  >
+                    Design Now
+                  </CustomButton>
+                </div>
               </div>
-            ))}
+            </div>
             {/* </Slider> */}
           </div>
         </div>
