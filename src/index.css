@@ -174,3 +174,22 @@ input[type='number']::-webkit-outer-spin-button {
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+/* Reduce caret size on mobile for textareas in HtmlComponent */
+@media (hover: none) and (pointer: coarse) {
+  [data-three-html] textarea {
+    /* Use a smaller font-size for caret calculation, then scale up the text */
+    caret-color: currentColor;
+    /* Make caret less prominent on mobile */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS Safari specific - caret size workaround */
+  @supports (-webkit-touch-callout: none) {
+    [data-three-html] textarea {
+      /* Force smaller caret by using text-size-adjust */
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+  }
+}
