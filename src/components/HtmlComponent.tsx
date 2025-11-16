@@ -435,27 +435,108 @@ const HtmlComponent = ({
     return text.split('\n').join('<br>');
   };
 
-  // Helper function to get current line count
+  // Helper function to get current line count (explicit line breaks only)
   const getLineCount = (text: string): number => {
     return text.split('\n').length;
+  };
+
+  // Helper function to measure actual rendered lines including word wrapping
+  const getActualLineCount = (
+    text: string,
+    width: number,
+    fontSize: number,
+    fontFamily: string,
+    lineHeight: number,
+    textTransform: string,
+    letterSpacing: number,
+  ): number => {
+    // Use a hidden div to measure actual rendered height
+    const measureDiv = document.createElement('div');
+    measureDiv.style.position = 'absolute';
+    measureDiv.style.visibility = 'hidden';
+    measureDiv.style.height = 'auto';
+    measureDiv.style.width = `${width}px`;
+    measureDiv.style.fontSize = `${fontSize}px`;
+    measureDiv.style.fontFamily = fontFamily;
+    measureDiv.style.lineHeight = `${lineHeight}px`;
+    measureDiv.style.textTransform = textTransform;
+    measureDiv.style.letterSpacing = `${letterSpacing}px`;
+    measureDiv.style.wordWrap = 'break-word';
+    measureDiv.style.overflowWrap = 'break-word';
+    measureDiv.style.whiteSpace = 'pre-wrap';
+    measureDiv.style.padding = '0';
+    measureDiv.style.margin = '0';
+    measureDiv.style.border = 'none';
+    measureDiv.textContent = text;
+
+    document.body.appendChild(measureDiv);
+    const height = measureDiv.offsetHeight;
+    document.body.removeChild(measureDiv);
+
+    // Calculate number of lines based on height and line height
+    const lineHeightValue =
+      typeof lineHeight === 'number'
+        ? lineHeight
+        : parseFloat(String(lineHeight).replace('px', '').replace('rem', '')) *
+          (String(lineHeight).includes('rem') ? 16 : 1);
+    const actualLineHeight = lineHeightValue || fontSize * 1.2; // Fallback to 1.2x font size
+    const lineCount = Math.ceil(height / actualLineHeight);
+
+    return Math.max(lineCount, text.split('\n').length); // At least as many as explicit line breaks
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     const currentText = tempTextLeft;
-    const newLineCount = getLineCount(newText);
-    const currentLineCount = getLineCount(currentText);
+    const textarea = e.target;
+
+    // Get the actual width of the textarea (accounting for padding)
+    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Check both explicit line breaks and actual rendered lines (with word wrapping)
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+
+    // Use the maximum of explicit lines or actual rendered lines
+    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
+    const currentTotalLineCount = Math.max(
+      getLineCount(currentText),
+      getActualLineCount(
+        currentText,
+        textareaWidth,
+        textSizeleft,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      ),
+    );
 
     // Always allow if line count is decreasing (backspace/delete) or staying the same
-    if (newLineCount <= currentLineCount) {
+    if (totalLineCount <= currentTotalLineCount) {
       setTempTextLeft(newText);
       return;
     }
 
     // Only prevent if line count is increasing AND would exceed maxLines
-    if (newLineCount > maxLines) {
+    if (totalLineCount > maxLines) {
       // Immediately restore previous value to prevent the change
-      const textarea = e.target;
       const cursorPos = textarea.selectionStart ?? 0;
       const savedCursorPos = Math.max(
         0,
@@ -482,19 +563,55 @@ const HtmlComponent = ({
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     const currentText = tempTextRight;
-    const newLineCount = getLineCount(newText);
-    const currentLineCount = getLineCount(currentText);
+    const textarea = e.target;
+
+    // Get the actual width of the textarea (accounting for padding)
+    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Check both explicit line breaks and actual rendered lines (with word wrapping)
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+
+    // Use the maximum of explicit lines or actual rendered lines
+    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
+    const currentTotalLineCount = Math.max(
+      getLineCount(currentText),
+      getActualLineCount(
+        currentText,
+        textareaWidth,
+        textSizeRight,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      ),
+    );
 
     // Always allow if line count is decreasing (backspace/delete) or staying the same
-    if (newLineCount <= currentLineCount) {
+    if (totalLineCount <= currentTotalLineCount) {
       setTempTextRight(newText);
       return;
     }
 
     // Only prevent if line count is increasing AND would exceed maxLines
-    if (newLineCount > maxLines) {
+    if (totalLineCount > maxLines) {
       // Immediately restore previous value to prevent the change
-      const textarea = e.target;
       const cursorPos = textarea.selectionStart ?? 0;
       const savedCursorPos = Math.max(
         0,
@@ -547,7 +664,27 @@ const HtmlComponent = ({
     const textBefore = currentValue.substring(0, selectionStart);
     const textAfter = currentValue.substring(selectionEnd);
     const newText = textBefore + pastedText + textAfter;
-    const newLineCount = getLineCount(newText);
+
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const newLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // If pasted text would exceed maxLines, prevent it
     if (newLineCount > maxLines) {
@@ -564,7 +701,28 @@ const HtmlComponent = ({
   ) => {
     const textarea = e.currentTarget;
     const currentValue = textarea.value;
-    const currentLineCount = getLineCount(currentValue);
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Get both explicit and actual line counts
+    const explicitLineCount = getLineCount(currentValue);
+    const actualLineCount = getActualLineCount(
+      currentValue,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // Always allow backspace, delete, and other control keys
     if (
@@ -613,7 +771,17 @@ const HtmlComponent = ({
 
       // Calculate what the new text would be
       const newText = textBeforeCursor + e.key + textAfterCursor;
-      const newLineCount = getLineCount(newText);
+      const newExplicitLineCount = getLineCount(newText);
+      const newActualLineCount = getActualLineCount(
+        newText,
+        textareaWidth,
+        textSizeleft,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      );
+      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
 
       // If it would exceed maxLines, prevent it
       if (newLineCount > maxLines) {
@@ -640,7 +808,27 @@ const HtmlComponent = ({
     const textBefore = currentValue.substring(0, selectionStart);
     const textAfter = currentValue.substring(selectionEnd);
     const newText = textBefore + pastedText + textAfter;
-    const newLineCount = getLineCount(newText);
+
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const newLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // If pasted text would exceed maxLines, prevent it
     if (newLineCount > maxLines) {
@@ -657,7 +845,28 @@ const HtmlComponent = ({
   ) => {
     const textarea = e.currentTarget;
     const currentValue = textarea.value;
-    const currentLineCount = getLineCount(currentValue);
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Get both explicit and actual line counts
+    const explicitLineCount = getLineCount(currentValue);
+    const actualLineCount = getActualLineCount(
+      currentValue,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // Always allow backspace, delete, and other control keys
     if (
@@ -706,7 +915,17 @@ const HtmlComponent = ({
 
       // Calculate what the new text would be
       const newText = textBeforeCursor + e.key + textAfterCursor;
-      const newLineCount = getLineCount(newText);
+      const newExplicitLineCount = getLineCount(newText);
+      const newActualLineCount = getActualLineCount(
+        newText,
+        textareaWidth,
+        textSizeRight,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      );
+      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
 
       // If it would exceed maxLines, prevent it
       if (newLineCount > maxLines) {
@@ -827,6 +1046,8 @@ const HtmlComponent = ({
                   letterSpacing: `${letterSpacing}px`,
                   display: 'block',
                   boxSizing: 'border-box',
+                  caretColor: textColor,
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               />
             ) : (
@@ -944,6 +1165,8 @@ const HtmlComponent = ({
                 letterSpacing: `${letterSpacing}px`,
                 display: 'block',
                 boxSizing: 'border-box',
+                caretColor: textColor,
+                WebkitTapHighlightColor: 'transparent',
               }}
             />
           ) : (
@@ -1081,6 +1304,8 @@ const HtmlComponent = ({
                       letterSpacing: `${letterSpacing}px`,
                       display: 'block',
                       boxSizing: 'border-box',
+                      caretColor: textColor,
+                      WebkitTapHighlightColor: 'transparent',
                     }}
                   />
                 ) : (
@@ -1197,6 +1422,8 @@ const HtmlComponent = ({
                     letterSpacing: `${letterSpacing}px`,
                     display: 'block',
                     boxSizing: 'border-box',
+                    caretColor: textColor,
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 />
               ) : (
