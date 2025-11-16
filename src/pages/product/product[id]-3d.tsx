@@ -1311,6 +1311,7 @@ const ConfiguratorUnisex3D = () => {
                           letterSpacing={letterSpacing}
                           customLineHeight={lineHeight}
                           enableDragging={enableDragging}
+                          maxLines={9}
                         />
                         <HtmlImageComponent
                           ImprintTextPosition={ImprintTextPosition as any}
