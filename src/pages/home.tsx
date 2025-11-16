@@ -8,7 +8,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { TemplatedSash } from '@/lib/templated-sash';
-import { ThreeDSashes } from '@/lib/3d-sash';
+// import { ThreeDSashes } from '@/lib/3d-sash';
 import { CustomButton } from '@/components/shared/shared_customs';
 
 const Home = () => {
