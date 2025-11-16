@@ -238,12 +238,8 @@ const menuItems = [
     link: '/about',
     title: 'About Us',
   },
-  // {
-  //   link: 'categories',
-  //   title: 'Categories',
-  // },
-  // {
-  //   link: '/checkout',
-  //   title: 'Checkout',
-  // },
+  {
+    link: '/faq',
+    title: 'FAQ',
+  },
 ];

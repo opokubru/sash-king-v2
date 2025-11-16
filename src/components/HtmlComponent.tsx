@@ -69,6 +69,7 @@ interface HtmlComponentProps {
     left?: { x: number; y: number };
     right?: { x: number; y: number };
   };
+  maxLines?: number; // Maximum number of lines allowed (default: 3)
 }
 
 const HtmlComponent = ({
@@ -101,6 +102,7 @@ const HtmlComponent = ({
   enableDragging = false,
   onPositionChange,
   customPositions,
+  maxLines = 3, // Default to 3 lines
 }: HtmlComponentProps) => {
   const [leftDragPosition, setLeftDragPosition] = useState({ x: 0, y: 0 });
   const [rightDragPosition, setRightDragPosition] = useState({ x: 0, y: 0 });
@@ -450,29 +452,27 @@ const HtmlComponent = ({
       return;
     }
 
-    // Only prevent if line count is increasing AND would exceed 3 lines
-    if (newLineCount > 3) {
+    // Only prevent if line count is increasing AND would exceed maxLines
+    if (newLineCount > maxLines) {
+      // Immediately restore previous value to prevent the change
+      const textarea = e.target;
+      const cursorPos = textarea.selectionStart ?? 0;
+      const savedCursorPos = Math.max(
+        0,
+        Math.min(cursorPos - 1, currentText.length),
+      );
+
+      // Restore value immediately
+      textarea.value = currentText;
+      textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+
       // Prevent typing and show toast notification
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
-      // Restore previous value and cursor position after React's update cycle
-      setTimeout(() => {
-        if (leftInputRef.current) {
-          const textarea = leftInputRef.current;
-          const currentCursorPos = textarea.selectionStart ?? 0;
-          const cursorPos =
-            currentCursorPos - (newText.length - currentText.length);
-          textarea.value = currentText;
-          // Restore cursor position (clamp to valid range)
-          const safeCursorPos = Math.max(
-            0,
-            Math.min(cursorPos, currentText.length),
-          );
-          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
-        }
-      }, 0);
+
+      // Don't update state - keep the old value
       return;
     }
 
@@ -491,29 +491,27 @@ const HtmlComponent = ({
       return;
     }
 
-    // Only prevent if line count is increasing AND would exceed 3 lines
-    if (newLineCount > 3) {
+    // Only prevent if line count is increasing AND would exceed maxLines
+    if (newLineCount > maxLines) {
+      // Immediately restore previous value to prevent the change
+      const textarea = e.target;
+      const cursorPos = textarea.selectionStart ?? 0;
+      const savedCursorPos = Math.max(
+        0,
+        Math.min(cursorPos - 1, currentText.length),
+      );
+
+      // Restore value immediately
+      textarea.value = currentText;
+      textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+
       // Prevent typing and show toast notification
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
-      // Restore previous value and cursor position after React's update cycle
-      setTimeout(() => {
-        if (rightInputRef.current) {
-          const textarea = rightInputRef.current;
-          const currentCursorPos = textarea.selectionStart ?? 0;
-          const cursorPos =
-            currentCursorPos - (newText.length - currentText.length);
-          textarea.value = currentText;
-          // Restore cursor position (clamp to valid range)
-          const safeCursorPos = Math.max(
-            0,
-            Math.min(cursorPos, currentText.length),
-          );
-          textarea.setSelectionRange(safeCursorPos, safeCursorPos);
-        }
-      }, 0);
+
+      // Don't update state - keep the old value
       return;
     }
 
@@ -551,10 +549,10 @@ const HtmlComponent = ({
     const newText = textBefore + pastedText + textAfter;
     const newLineCount = getLineCount(newText);
 
-    // If pasted text would exceed 3 lines, prevent it
-    if (newLineCount > 3) {
+    // If pasted text would exceed maxLines, prevent it
+    if (newLineCount > maxLines) {
       e.preventDefault();
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
@@ -564,24 +562,10 @@ const HtmlComponent = ({
   const handleLeftTextKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    // Handle Enter key - allow manual line breaks
-    if (e.key === 'Enter') {
-      // Use the actual textarea value (not state) to get current text
-      const textarea = e.currentTarget;
-      const currentValue = textarea.value;
-      const currentLineCount = getLineCount(currentValue);
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if already at 3 lines (would create 4th line)
-      if (currentLineCount >= 3) {
-        e.preventDefault();
-        toast.error('Maximum 3 lines allowed', {
-          duration: 2000,
-          position: 'top-center',
-        });
-        return;
-      }
-      // Otherwise, let Enter work naturally - it will insert \n
-    }
     // Always allow backspace, delete, and other control keys
     if (
       e.key === 'Backspace' ||
@@ -591,15 +575,55 @@ const HtmlComponent = ({
       e.key === 'ArrowUp' ||
       e.key === 'ArrowDown' ||
       e.ctrlKey ||
-      e.metaKey
+      e.metaKey ||
+      e.key === 'Escape'
     ) {
+      // Escape to cancel editing
+      if (e.key === 'Escape') {
+        setTempTextLeft(textLeft);
+        setEditingLeft(false);
+      }
       // Allow these keys to work normally
       return;
     }
-    // Escape to cancel editing
-    if (e.key === 'Escape') {
-      setTempTextLeft(textLeft);
-      setEditingLeft(false);
+
+    // Handle Enter key - allow manual line breaks
+    if (e.key === 'Enter') {
+      // Prevent Enter if already at maxLines (would create one more line)
+      if (currentLineCount >= maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+      return;
+    }
+
+    // For any other key input (regular typing), check if we're at maxLines
+    // If we're at maxLines, prevent any new character input that would exceed limit
+    if (currentLineCount >= maxLines) {
+      // Check if this input would create a new line
+      // Get the current cursor position
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+
+      // Calculate what the new text would be
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const newLineCount = getLineCount(newText);
+
+      // If it would exceed maxLines, prevent it
+      if (newLineCount > maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
     }
   };
 
@@ -618,10 +642,10 @@ const HtmlComponent = ({
     const newText = textBefore + pastedText + textAfter;
     const newLineCount = getLineCount(newText);
 
-    // If pasted text would exceed 3 lines, prevent it
-    if (newLineCount > 3) {
+    // If pasted text would exceed maxLines, prevent it
+    if (newLineCount > maxLines) {
       e.preventDefault();
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
@@ -631,24 +655,10 @@ const HtmlComponent = ({
   const handleRightTextKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
-    // Handle Enter key - allow manual line breaks
-    if (e.key === 'Enter') {
-      // Use the actual textarea value (not state) to get current text
-      const textarea = e.currentTarget;
-      const currentValue = textarea.value;
-      const currentLineCount = getLineCount(currentValue);
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const currentLineCount = getLineCount(currentValue);
 
-      // Prevent Enter if already at 3 lines (would create 4th line)
-      if (currentLineCount >= 3) {
-        e.preventDefault();
-        toast.error('Maximum 3 lines allowed', {
-          duration: 2000,
-          position: 'top-center',
-        });
-        return;
-      }
-      // Otherwise, let Enter work naturally - it will insert \n
-    }
     // Always allow backspace, delete, and other control keys
     if (
       e.key === 'Backspace' ||
@@ -658,15 +668,55 @@ const HtmlComponent = ({
       e.key === 'ArrowUp' ||
       e.key === 'ArrowDown' ||
       e.ctrlKey ||
-      e.metaKey
+      e.metaKey ||
+      e.key === 'Escape'
     ) {
+      // Escape to cancel editing
+      if (e.key === 'Escape') {
+        setTempTextRight(textRight);
+        setEditingRight(false);
+      }
       // Allow these keys to work normally
       return;
     }
-    // Escape to cancel editing
-    if (e.key === 'Escape') {
-      setTempTextRight(textRight);
-      setEditingRight(false);
+
+    // Handle Enter key - allow manual line breaks
+    if (e.key === 'Enter') {
+      // Prevent Enter if already at maxLines (would create one more line)
+      if (currentLineCount >= maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+      // Otherwise, let Enter work naturally - it will insert \n
+      return;
+    }
+
+    // For any other key input (regular typing), check if we're at maxLines
+    // If we're at maxLines, prevent any new character input that would exceed limit
+    if (currentLineCount >= maxLines) {
+      // Check if this input would create a new line
+      // Get the current cursor position
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+
+      // Calculate what the new text would be
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const newLineCount = getLineCount(newText);
+
+      // If it would exceed maxLines, prevent it
+      if (newLineCount > maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
     }
   };
 
@@ -720,7 +770,7 @@ const HtmlComponent = ({
               opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
               visibility: disableInteractions ? 'hidden' : 'visible',
               borderRadius: '4px',
-              padding: '2px',
+              padding: '0',
               border:
                 selectedText === 'left'
                   ? '2px dashed #3B82F6'

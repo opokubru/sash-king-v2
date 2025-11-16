@@ -22,7 +22,9 @@ const sections = [
     icon: 'mdi:refresh',
     content: (
       <div className="text-gray-700 space-y-4">
-        <p>Your satisfaction is our priority.</p>
+        <p>
+          Your satisfaction is our priority.
+        </p>
         <div>
           <h4 className="font-semibold mb-2">Eligibility:</h4>
           <p>
@@ -57,7 +59,7 @@ const sections = [
   },
 ];
 
-const TermsOfService = () => {
+const ProductionAndReturns = () => {
   return (
     <div className="min-h-screen container text-black px-6 py-16">
       <motion.div
@@ -91,7 +93,10 @@ const TermsOfService = () => {
           >
             <Card className="bg-white border border-primary/30 text-black shadow-lg">
               <CardHeader className="flex items-center gap-4 pb-4">
-                <Icon icon={section.icon} className="w-6 h-6 text-primary/90" />
+                <Icon
+                  icon={section.icon}
+                  className="w-6 h-6 text-primary/90"
+                />
                 <h2 className="text-2xl font-semibold">{section.title}</h2>
               </CardHeader>
               <CardBody className="pt-0">{section.content}</CardBody>
@@ -103,4 +108,5 @@ const TermsOfService = () => {
   );
 };
 
-export default TermsOfService;
+export default ProductionAndReturns;
+

@@ -9,18 +9,19 @@ const contactInfo = [
     label: 'Email',
     value: 'info@sashkinggh.com',
     icon: 'mdi:email-outline',
-  },
-  {
-    label: 'Phone',
-    value: '+233 54 000 0000',
-    icon: 'mdi:phone-outline',
     isprimary: true,
   },
   // {
-  //   label: 'Location',
-  //   value: 'Accra, Ghana (Online Only)',
-  //   icon: 'mdi:map-marker-outline',
+  //   label: 'Phone',
+  //   value: '+233 54 000 0000',
+  //   icon: 'mdi:phone-outline',
+  //   isprimary: true,
   // },
+  {
+    label: 'Location',
+    value: 'Kumasi, Ghana ',
+    icon: 'mdi:map-marker-outline',
+  },
   // {
   //   label: 'Working Hours',
   //   value: 'Mon - Sat: 9:00am – 6:00pm GMT',
