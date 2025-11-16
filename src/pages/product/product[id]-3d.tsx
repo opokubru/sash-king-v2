@@ -52,14 +52,28 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
     (state.color as any) = new Array(nodeCount).fill('#ffffff');
   }
 
-  if (selectedClothing.name === 'Type 1') {
+  // Check for Type 1 pattern: has plain_sections/plain_section, Stripe_1/stripe_1, Stripe_2/stripe_2, mid_stripes
+  const hasType1Pattern = selectedClothing.myNode.some(
+    (node: any) =>
+      node.name === 'plain_sections' ||
+      node.name === 'plain_section' ||
+      node.name === 'Stripe_1' ||
+      node.name === 'stripe_1',
+  );
+
+  // Check for Type 2 pattern: has mid_section, stripe_1, stripe_2
+  const hasType2Pattern = selectedClothing.myNode.some(
+    (node: any) => node.name === 'mid_section',
+  );
+
+  if (hasType1Pattern) {
     // Type 1: Arranged to match image pattern - black background with green, yellow, red stripes
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections') {
+      if (node.name === 'plain_sections' || node.name === 'plain_section') {
         (state.color as any)[index] = '#000000'; // Black (background/outer section)
-      } else if (node.name === 'Stripe_1') {
+      } else if (node.name === 'Stripe_1' || node.name === 'stripe_1') {
         (state.color as any)[index] = '#228B22'; // Forest Green (first stripe)
-      } else if (node.name === 'Stripe_2') {
+      } else if (node.name === 'Stripe_2' || node.name === 'stripe_2') {
         (state.color as any)[index] = '#FFD700'; // Gold/Yellow (second stripe)
       } else if (node.name === 'mid_stripes') {
         (state.color as any)[index] = '#DC143C'; // Crimson Red (third stripe/edge)
@@ -68,7 +82,7 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
         (state.color as any)[index] = '#ffffff';
       }
     });
-  } else if (selectedClothing.name === 'Type 2') {
+  } else if (hasType2Pattern) {
     // Type 2: Both stripes get the same golden color, mid_section is black
     selectedClothing.myNode.forEach((node: any, index: number) => {
       if (node.name === 'mid_section') {
@@ -105,7 +119,21 @@ const generateRandomColorArray = (
 ): string[] => {
   const colors = new Array(nodeCount).fill('#ffffff');
 
-  if (selectedClothing.name === 'Type 1') {
+  // Check for Type 1 pattern: has plain_sections/plain_section, Stripe_1/stripe_1, Stripe_2/stripe_2, mid_stripes
+  const hasType1Pattern = selectedClothing.myNode.some(
+    (node: any) =>
+      node.name === 'plain_sections' ||
+      node.name === 'plain_section' ||
+      node.name === 'Stripe_1' ||
+      node.name === 'stripe_1',
+  );
+
+  // Check for Type 2 pattern: has mid_section, stripe_1, stripe_2
+  const hasType2Pattern = selectedClothing.myNode.some(
+    (node: any) => node.name === 'mid_section',
+  );
+
+  if (hasType1Pattern) {
     // Type 1: Each stripe gets a different random color (like default colors)
     const generateUniqueColor = (existingColors: string[]): string => {
       let newColor = generateRandomColor();
@@ -121,15 +149,15 @@ const generateRandomColorArray = (
     const usedColors: string[] = [];
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections') {
+      if (node.name === 'plain_sections' || node.name === 'plain_section') {
         const color = generateUniqueColor(usedColors);
         colors[index] = color;
         usedColors.push(color);
-      } else if (node.name === 'Stripe_1') {
+      } else if (node.name === 'Stripe_1' || node.name === 'stripe_1') {
         const color = generateUniqueColor(usedColors);
         colors[index] = color;
         usedColors.push(color);
-      } else if (node.name === 'Stripe_2') {
+      } else if (node.name === 'Stripe_2' || node.name === 'stripe_2') {
         const color = generateUniqueColor(usedColors);
         colors[index] = color;
         usedColors.push(color);
@@ -142,7 +170,7 @@ const generateRandomColorArray = (
         colors[index] = generateRandomColor();
       }
     });
-  } else if (selectedClothing.name === 'Type 2') {
+  } else if (hasType2Pattern) {
     // Type 2: stripe_1 and stripe_2 same, mid_section different
     const stripeColor = generateRandomColor();
     let midColor = generateRandomColor();
@@ -223,22 +251,28 @@ const Shirt = ({
       return () => clearTimeout(highlightTimeout);
     }, 2000);
 
-    // Initialize color array
-    if (state.color && Array.isArray(state.color)) {
-      const nodeCount = selectedClothing?.myNode?.length || 0;
-      if (state.color.length < nodeCount) {
+    // Initialize and assign default colors on load
+    if (selectedClothing?.myNode && state.color) {
+      const nodeCount = selectedClothing.myNode.length;
+
+      // Ensure color array is properly initialized
+      if (!Array.isArray(state.color) || state.color.length !== nodeCount) {
         (state.color as any) = new Array(nodeCount).fill('#ffffff');
       }
-    }
 
-    // Assign default colors on load
-    if (selectedClothing?.myNode && state.color) {
+      // Assign default colors based on sash type
       assignDefaultColors(selectedClothing, state);
     }
 
+    // Reset texture array
     if (state.texture && Array.isArray(state.texture)) {
-      for (let i = 0; i < state.texture.length; i++) {
-        (state.texture as any)[i] = null;
+      const nodeCount = selectedClothing?.myNode?.length || 0;
+      if (state.texture.length !== nodeCount) {
+        (state.texture as any) = new Array(nodeCount).fill(null);
+      } else {
+        for (let i = 0; i < state.texture.length; i++) {
+          (state.texture as any)[i] = null;
+        }
       }
     }
 
