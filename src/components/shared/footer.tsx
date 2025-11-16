@@ -92,6 +92,11 @@ const Footer = () => {
               Contact Us
             </Link>
           </div>
+          <div className="flex gap-y-1 flex-col ml-2">
+            <Link className="hover:opacity-80" to="/faq">
+              FAQ
+            </Link>
+          </div>
         </div>
       </div>
       <div className="w-full h-[1px] bg-black/40" />
@@ -112,10 +117,10 @@ const FOOTER_ITEMS = [
       //   title: 'Privacy Policy',
       //   href: '/privacy-policy',
       // },
-      // {
-      //   title: 'Terms of Service',
-      //   href: '/terms-of-service',
-      // },
+      {
+        title: 'Terms of Service',
+        href: '/terms-of-service',
+      },
       {
         title: 'Contact Us',
         href: '/contact',
@@ -128,6 +133,10 @@ const FOOTER_ITEMS = [
       {
         title: 'About Us',
         href: '/about',
+      },
+      {
+        title: 'FAQ',
+        href: '/faq',
       },
     ],
   },

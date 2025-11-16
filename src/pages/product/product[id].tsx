@@ -536,7 +536,7 @@ const ConfiguratorUnisexSpecial = () => {
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={handleInstructionsDismiss}
-                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
                         >
                           Got it!
                         </button>
