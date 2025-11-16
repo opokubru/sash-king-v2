@@ -7,19 +7,19 @@ import PageWrapper from '@/components/shared/page-wrapper';
 const contactInfo = [
   {
     label: 'Email',
-    value: 'info@sashkinggh.com',
+    value: 'info@sashking.com',
     icon: 'mdi:email-outline',
     isprimary: true,
   },
-  // {
-  //   label: 'Phone',
-  //   value: '+233 54 000 0000',
-  //   icon: 'mdi:phone-outline',
-  //   isprimary: true,
-  // },
+  {
+    label: 'Phone',
+    value: '+233 55 666 5072',
+    icon: 'mdi:phone-outline',
+    isprimary: true,
+  },
   {
     label: 'Location',
-    value: 'Kumasi, Ghana ',
+    value: 'Kumasi, Ghana',
     icon: 'mdi:map-marker-outline',
   },
   // {

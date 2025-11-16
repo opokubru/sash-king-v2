@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Accordion, AccordionItem } from '@nextui-org/react';
+// import { Accordion, AccordionItem } from '@nextui-org/react';
 import { Icon } from '@iconify/react/dist/iconify.js';
 import { socials } from '@/utils/data/social';
 
@@ -50,7 +50,7 @@ const Footer = () => {
         </div>
         {/* mobile */}
         <div className="lg:hidden block mt-5">
-          <Accordion
+          {/* <Accordion
             itemClasses={{
               base: 'py-0 w-full',
               title: 'font-normal text-medium text-primary-white',
@@ -76,10 +76,20 @@ const Footer = () => {
                 </div>
               </AccordionItem>
             ))}
-          </Accordion>
+          </Accordion> */}
+          <div className="flex gap-y-1 flex-col ml-2">
+            <Link className="hover:opacity-80" to="/about">
+              About Us
+            </Link>
+          </div>
           <div className="flex gap-y-1 flex-col ml-2">
             <Link className="hover:opacity-80" to="/terms-of-service">
               Terms of Service
+            </Link>
+          </div>
+          <div className="flex gap-y-1 flex-col ml-2">
+            <Link className="hover:opacity-80" to="/contact">
+              Contact Us
             </Link>
           </div>
         </div>
