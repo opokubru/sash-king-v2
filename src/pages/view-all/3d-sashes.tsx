@@ -48,13 +48,16 @@ export const ThreeDSashesPage = () => {
                     <img
                       src={stole.image}
                       alt={stole.name}
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <div className="mt-3">
                     <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
                       {stole.name}
                     </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {stole.description}
+                    </p>
                     <p className="text-sm font-semibold text-gray-900 mb-3">
                       {getCurrencySymbol('GHS') + parseToMoney(stole.price)}
                     </p>
