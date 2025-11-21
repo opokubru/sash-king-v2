@@ -8,7 +8,13 @@ import {
   NavbarMenuItem,
 } from '@nextui-org/react';
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import {
+  Link,
+  NavLink,
+  useNavigate,
+  useLocation,
+  matchPath,
+} from 'react-router-dom';
 import { CustomButton } from './shared_customs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
@@ -20,6 +26,7 @@ export default function NavbarComponent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { items } = useSelector((state: RootState) => state.cart);
 
@@ -197,36 +204,48 @@ export default function NavbarComponent() {
           </button>
         </NavbarContent>
 
-        <NavbarMenu className="bg-white">
-          {menuItems.map((item, index) => (
-            <NavbarMenuItem key={`${item}-${index}`}>
-              <NavLink
-                onClick={() => setIsMenuOpen(false)}
-                className={({ isActive }) =>
-                  `w-full text-sm text-[#1A1A1A] hover:border-b-2 border-primary ${
-                    isActive
-                      ? 'text-black border-b-3 border-primary'
-                      : 'text-[#1A1A1A]'
-                  }`
-                }
-                to={item.link}
-              >
-                {item.title}
-                <span>{item.title === 'Checkout' && items?.length}</span>
-              </NavLink>
-            </NavbarMenuItem>
-          ))}
-          <div className="flex md:gap-x-4 flex-col gap-4">
-            <CustomButton
-              onClick={() => {
-                navigate('/contact');
-                setIsMenuOpen(false);
-              }}
-              className="bg-primary text-white"
-            >
-              Contact Us
-            </CustomButton>
-          </div>
+        <NavbarMenu className="bg-white py-8">
+          {menuItems.map((item, index) => {
+            const isActive =
+              matchPath(
+                { path: item.link, end: item.link === '/' },
+                location.pathname,
+              ) !== null;
+
+            return (
+              <NavbarMenuItem key={`${item}-${index}`}>
+                <NavLink
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`w-full flex items-center gap-4 py-5 ${
+                    isActive ? 'text-[#D4AF37]' : 'ext-gray-600'
+                  }`}
+                  to={item.link}
+                >
+                  <div className="relative">
+                    <Icon
+                      icon={item.icon}
+                      className={`text-2xl ${
+                        isActive ? 'text-[#D4AF37]' : 'text-gray-600'
+                      }`}
+                      style={{ strokeWidth: 1.5 }}
+                    />
+                    {item.title === 'Checkout' && (
+                      <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full">
+                        {items.length}
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xl font-normal ${
+                      isActive ? 'text-[#D4AF37]' : 'ext-gray-600'
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </NavLink>
+              </NavbarMenuItem>
+            );
+          })}
         </NavbarMenu>
       </Navbar>
     </>
@@ -235,15 +254,72 @@ export default function NavbarComponent() {
 
 const menuItems = [
   {
+    link: '/',
+    title: 'Home',
+    icon: 'mdi:home-outline',
+  },
+  {
     link: '/about',
     title: 'About Us',
+    icon: 'mdi:information-outline',
   },
-  // {
-  //   link: 'categories',
-  //   title: 'Categories',
-  // },
-  // {
-  //   link: '/checkout',
-  //   title: 'Checkout',
-  // },
+  {
+    link: '/templated-sash',
+    title: 'Design With Templates',
+    icon: 'mdi:shopping-outline',
+  },
+
+  {
+    link: '/design-your-own',
+    title: 'Design From Scratch',
+    icon: 'mdi:palette-outline',
+  },
+  {
+    link: '/faq',
+    title: 'FAQ',
+    icon: 'mdi:frequently-asked-questions',
+  },
+  {
+    link: '/contact',
+    title: 'Contact Us',
+    icon: 'mdi:phone-outline',
+  },
 ];
+
+// const mobileMenuItems = [
+//   {
+//     link: '/',
+//     title: 'Home',
+//     icon: 'mdi:home-outline',
+//   },
+//   {
+//     link: '/templated-sash',
+//     title: 'Loom Store',
+//     icon: 'mdi:shopping-outline',
+//   },
+//   {
+//     link: '/checkout',
+//     title: 'Checkout',
+//     icon: 'mdi:cart-outline',
+//   },
+//   {
+//     link: '/design-your-own',
+//     title: 'Customize',
+//     icon: 'mdi:palette-outline',
+//   },
+//   {
+//     link: '/about',
+//     title: 'About',
+//     icon: 'mdi:information-outline',
+//   },
+//   {
+//     link: '/contact',
+//     title: 'Contact Us',
+//     icon: 'mdi:phone-outline',
+//   },
+//   {
+//     link: '/contact',
+//     title: 'Become a Partner',
+//     icon: 'mdi:wallet-outline',
+//   },
+// ];

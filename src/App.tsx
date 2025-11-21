@@ -11,6 +11,8 @@ import PrivacyPolicy from './pages/info_pages/privacy';
 import TermsOfService from './pages/info_pages/terms-of-service';
 import Contact from './pages/info_pages/contact';
 import About from './pages/info_pages/about';
+import FAQ from './pages/info_pages/faq';
+import ProductionAndReturns from './pages/info_pages/production-and-returns';
 // import ProductDetail from './pages/product/product[id]';
 // import Checkout from './pages/checkout/checkout';
 // import AllCategoriesPage from './pages/product/categories';
@@ -81,6 +83,8 @@ function App() {
 
             {/* info pages  */}
             <Route path="about" element={<About />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="production-and-returns" element={<ProductionAndReturns />} />
             <Route path="terms-of-service" element={<TermsOfService />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="contact" element={<Contact />} />

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, OrbitControls } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSnapshot } from 'valtio';
 import uuid from 'react-uuid';
@@ -31,6 +31,7 @@ import { ThreeDSashes } from '@/lib/3d-sash';
 import TakeTour from '@/components/TakeTour';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import { MeshPartColorPicker } from '@/components/MeshPartColorPicker';
+import toast from 'react-hot-toast';
 
 interface ShirtProps {
   isRotating: boolean;
@@ -51,31 +52,43 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
     (state.color as any) = new Array(nodeCount).fill('#ffffff');
   }
 
-  if (selectedClothing.name === 'Type 1') {
-    // Type 1: plain_sections and mid_stripes get black, Stripe_1 and Stripe_2 get yellow
-    const blackColor = '#000000'; // For plain_sections and mid_stripes
-    const yellowColor = '#FFFF00'; // For Stripe_1 and Stripe_2
+  // Check for Type 1 pattern: has plain_sections/plain_section, Stripe_1/stripe_1, Stripe_2/stripe_2, mid_stripes
+  const hasType1Pattern = selectedClothing.myNode.some(
+    (node: any) =>
+      node.name === 'plain_sections' ||
+      node.name === 'plain_section' ||
+      node.name === 'Stripe_1' ||
+      node.name === 'stripe_1',
+  );
 
+  // Check for Type 2 pattern: has mid_section, stripe_1, stripe_2
+  const hasType2Pattern = selectedClothing.myNode.some(
+    (node: any) => node.name === 'mid_section',
+  );
+
+  if (hasType1Pattern) {
+    // Type 1: Arranged to match image pattern - black background with green, yellow, red stripes
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
-        (state.color as any)[index] = blackColor;
-      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
-        (state.color as any)[index] = yellowColor;
+      if (node.name === 'plain_sections' || node.name === 'plain_section') {
+        (state.color as any)[index] = '#000000'; // Black (background/outer section)
+      } else if (node.name === 'Stripe_1' || node.name === 'stripe_1') {
+        (state.color as any)[index] = '#228B22'; // Forest Green (first stripe)
+      } else if (node.name === 'Stripe_2' || node.name === 'stripe_2') {
+        (state.color as any)[index] = '#FFD700'; // Gold/Yellow (second stripe)
+      } else if (node.name === 'mid_stripes') {
+        (state.color as any)[index] = '#DC143C'; // Crimson Red (third stripe/edge)
       } else {
         // Fallback for any other nodes
         (state.color as any)[index] = '#ffffff';
       }
     });
-  } else if (selectedClothing.name === 'Type 2') {
-    // Type 2: mid_section gets black, stripe_1 and stripe_2 get yellow
-    const blackColor = '#000000'; // For mid_section
-    const yellowColor = '#FFFF00'; // For stripe_1 and stripe_2
-
+  } else if (hasType2Pattern) {
+    // Type 2: Both stripes get the same golden color, mid_section is black
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'stripe_1' || node.name === 'stripe_2') {
-        (state.color as any)[index] = yellowColor;
-      } else if (node.name === 'mid_section') {
-        (state.color as any)[index] = blackColor;
+      if (node.name === 'mid_section') {
+        (state.color as any)[index] = '#000000'; // Black
+      } else if (node.name === 'stripe_1' || node.name === 'stripe_2') {
+        (state.color as any)[index] = '#FFD700'; // Gold (same for both stripes)
       } else {
         // Fallback for any other nodes
         (state.color as any)[index] = '#ffffff';
@@ -99,40 +112,65 @@ const generateRandomColor = () => {
   );
 };
 
-// Assign random colors based on sash type constraints (utility function) - for randomize button
-const assignRandomColors = (selectedClothing: any, state: any) => {
-  if (!selectedClothing?.myNode || !state.color) return;
+// Generate random color array based on sash type constraints (utility function) - returns color array
+const generateRandomColorArray = (
+  selectedClothing: any,
+  nodeCount: number,
+): string[] => {
+  const colors = new Array(nodeCount).fill('#ffffff');
 
-  const nodeCount = selectedClothing.myNode.length;
+  // Check for Type 1 pattern: has plain_sections/plain_section, Stripe_1/stripe_1, Stripe_2/stripe_2, mid_stripes
+  const hasType1Pattern = selectedClothing.myNode.some(
+    (node: any) =>
+      node.name === 'plain_sections' ||
+      node.name === 'plain_section' ||
+      node.name === 'Stripe_1' ||
+      node.name === 'stripe_1',
+  );
 
-  // Initialize color array if needed
-  if (!Array.isArray(state.color) || state.color.length < nodeCount) {
-    (state.color as any) = new Array(nodeCount).fill('#ffffff');
-  }
+  // Check for Type 2 pattern: has mid_section, stripe_1, stripe_2
+  const hasType2Pattern = selectedClothing.myNode.some(
+    (node: any) => node.name === 'mid_section',
+  );
 
-  if (selectedClothing.name === 'Type 1') {
-    // Type 1: mid_stripes and plain_sections same, Stripe_1 and Stripe_2 same
-    const baseColor = generateRandomColor(); // For plain_sections and mid_stripes
-    let stripeColor = generateRandomColor(); // For Stripe_1 and Stripe_2
+  if (hasType1Pattern) {
+    // Type 1: Each stripe gets a different random color (like default colors)
+    const generateUniqueColor = (existingColors: string[]): string => {
+      let newColor = generateRandomColor();
+      let attempts = 0;
+      // Ensure the new color is different from existing ones
+      while (existingColors.includes(newColor) && attempts < 20) {
+        newColor = generateRandomColor();
+        attempts++;
+      }
+      return newColor;
+    };
 
-    // Ensure the two color groups are different
-    let attempts = 0;
-    while (stripeColor === baseColor && attempts < 10) {
-      stripeColor = generateRandomColor();
-      attempts++;
-    }
+    const usedColors: string[] = [];
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections' || node.name === 'mid_stripes') {
-        (state.color as any)[index] = baseColor;
-      } else if (node.name === 'Stripe_1' || node.name === 'Stripe_2') {
-        (state.color as any)[index] = stripeColor;
+      if (node.name === 'plain_sections' || node.name === 'plain_section') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'Stripe_1' || node.name === 'stripe_1') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'Stripe_2' || node.name === 'stripe_2') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
+      } else if (node.name === 'mid_stripes') {
+        const color = generateUniqueColor(usedColors);
+        colors[index] = color;
+        usedColors.push(color);
       } else {
         // Fallback for any other nodes
-        (state.color as any)[index] = generateRandomColor();
+        colors[index] = generateRandomColor();
       }
     });
-  } else if (selectedClothing.name === 'Type 2') {
+  } else if (hasType2Pattern) {
     // Type 2: stripe_1 and stripe_2 same, mid_section different
     const stripeColor = generateRandomColor();
     let midColor = generateRandomColor();
@@ -146,20 +184,22 @@ const assignRandomColors = (selectedClothing: any, state: any) => {
 
     selectedClothing.myNode.forEach((node: any, index: number) => {
       if (node.name === 'stripe_1' || node.name === 'stripe_2') {
-        (state.color as any)[index] = stripeColor;
+        colors[index] = stripeColor;
       } else if (node.name === 'mid_section') {
-        (state.color as any)[index] = midColor;
+        colors[index] = midColor;
       } else {
         // Fallback for any other nodes
-        (state.color as any)[index] = generateRandomColor();
+        colors[index] = generateRandomColor();
       }
     });
   } else {
     // For other types, assign random colors to all nodes
     selectedClothing.myNode.forEach((_node: any, index: number) => {
-      (state.color as any)[index] = generateRandomColor();
+      colors[index] = generateRandomColor();
     });
   }
+
+  return colors;
 };
 
 const Shirt = ({
@@ -211,22 +251,28 @@ const Shirt = ({
       return () => clearTimeout(highlightTimeout);
     }, 2000);
 
-    // Initialize color array
-    if (state.color && Array.isArray(state.color)) {
-      const nodeCount = selectedClothing?.myNode?.length || 0;
-      if (state.color.length < nodeCount) {
+    // Initialize and assign default colors on load
+    if (selectedClothing?.myNode && state.color) {
+      const nodeCount = selectedClothing.myNode.length;
+
+      // Ensure color array is properly initialized
+      if (!Array.isArray(state.color) || state.color.length !== nodeCount) {
         (state.color as any) = new Array(nodeCount).fill('#ffffff');
       }
-    }
 
-    // Assign default colors on load
-    if (selectedClothing?.myNode && state.color) {
+      // Assign default colors based on sash type
       assignDefaultColors(selectedClothing, state);
     }
 
+    // Reset texture array
     if (state.texture && Array.isArray(state.texture)) {
-      for (let i = 0; i < state.texture.length; i++) {
-        (state.texture as any)[i] = null;
+      const nodeCount = selectedClothing?.myNode?.length || 0;
+      if (state.texture.length !== nodeCount) {
+        (state.texture as any) = new Array(nodeCount).fill(null);
+      } else {
+        for (let i = 0; i < state.texture.length; i++) {
+          (state.texture as any)[i] = null;
+        }
       }
     }
 
@@ -328,6 +374,10 @@ const ConfiguratorUnisex3D = () => {
 
   const [isRotating] = useState(false);
 
+  // Color history for randomize navigation
+  const [colorHistory, setColorHistory] = useState<string[][]>([]);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1);
+
   // const canvasRef = useRef(null);
   // toast
   const toastRef = useRef(null);
@@ -349,6 +399,73 @@ const ConfiguratorUnisex3D = () => {
       setShowColorPicker(false);
     }
   }, [selectedPart]);
+
+  // Reset color history when clothing changes
+  useEffect(() => {
+    setColorHistory([]);
+    setCurrentHistoryIndex(-1);
+  }, [selectedClothing?.name]);
+
+  // Handle randomize colors with history
+  const handleRandomizeColors = () => {
+    if (!selectedClothing?.myNode || !state.color) return;
+
+    const nodeCount = selectedClothing.myNode.length;
+
+    // Initialize color array if needed
+    if (!Array.isArray(state.color) || state.color.length < nodeCount) {
+      (state.color as any) = new Array(nodeCount).fill('#ffffff');
+    }
+
+    // Generate new random colors
+    const newColors = generateRandomColorArray(selectedClothing, nodeCount);
+
+    // Save current colors to history before changing (if not already at the end)
+    const currentColors = [...(state.color as string[])];
+
+    // If we're not at the end of history, remove everything after current index
+    const newHistory = colorHistory.slice(0, currentHistoryIndex + 1);
+
+    // Add current colors to history if they're different from the last entry
+    if (
+      newHistory.length === 0 ||
+      JSON.stringify(newHistory[newHistory.length - 1]) !==
+        JSON.stringify(currentColors)
+    ) {
+      newHistory.push(currentColors);
+    }
+
+    // Add new colors to history
+    newHistory.push(newColors);
+
+    // Update history and index
+    setColorHistory(newHistory);
+    setCurrentHistoryIndex(newHistory.length - 1);
+
+    // Apply new colors
+    (state.color as any) = newColors;
+  };
+
+  // Handle previous colors
+  const handlePreviousColors = () => {
+    if (currentHistoryIndex > 0 && colorHistory.length > 0) {
+      const newIndex = currentHistoryIndex - 1;
+      setCurrentHistoryIndex(newIndex);
+      (state.color as any) = [...colorHistory[newIndex]];
+    }
+  };
+
+  // Handle next colors
+  const handleNextColors = () => {
+    if (
+      currentHistoryIndex < colorHistory.length - 1 &&
+      colorHistory.length > 0
+    ) {
+      const newIndex = currentHistoryIndex + 1;
+      setCurrentHistoryIndex(newIndex);
+      (state.color as any) = [...colorHistory[newIndex]];
+    }
+  };
 
   //total price
   // useEffect(() => {
@@ -422,7 +539,7 @@ const ConfiguratorUnisex3D = () => {
 
   // Advanced text styling (kept for HtmlComponent compatibility, but not used in simplified UI)
   const [textAlignment] = useState<'left' | 'center' | 'right' | 'justify'>(
-    'left',
+    'center',
   );
   const [textBold] = useState(false);
   const [textItalic] = useState(false);
@@ -436,86 +553,9 @@ const ConfiguratorUnisex3D = () => {
   const [rotationAngle] = useState(0);
 
   // Dragging state
-  const [enableDragging] = useState(true);
+  const [enableDragging] = useState(false);
 
-  // Helper function to convert rem/px string to number (for drag positions)
-  const parsePosition = (value: string | undefined): number => {
-    if (!value) return 0;
-    // Remove 'rem' or 'px' and convert to number
-    const numStr = value.replace(/rem|px/g, '').trim();
-    const num = parseFloat(numStr);
-    // Convert rem to px (assuming 1rem = 16px, adjust if needed)
-    if (value.includes('rem')) {
-      return num * 16;
-    }
-    return num || 0;
-  };
-
-  // Initialize positions from selectedClothing defaults
-  const getInitialTextPositions = () => {
-    if (!selectedClothing) return {};
-    return {
-      left: {
-        x: parsePosition(selectedClothing.positioningLeft?.text?.left),
-        y: parsePosition(selectedClothing.positioningLeft?.text?.top),
-      },
-      right: {
-        x: parsePosition(selectedClothing.positioningRight?.text?.left),
-        y: parsePosition(selectedClothing.positioningRight?.text?.top),
-      },
-    };
-  };
-
-  const getInitialImagePositions = () => {
-    if (!selectedClothing) return {};
-    return {
-      left: {
-        x: parsePosition(selectedClothing.positioningLeft?.image?.left),
-        y: parsePosition(selectedClothing.positioningLeft?.image?.top),
-      },
-      right: {
-        x: parsePosition(selectedClothing.positioningRight?.image?.left),
-        y: parsePosition(selectedClothing.positioningRight?.image?.top),
-      },
-    };
-  };
-
-  const [textPositions, setTextPositions] = useState<{
-    left?: { x: number; y: number };
-    right?: { x: number; y: number };
-  }>(getInitialTextPositions());
-
-  const [imagePositions, setImagePositions] = useState<{
-    left?: { x: number; y: number };
-    right?: { x: number; y: number };
-  }>(getInitialImagePositions());
-
-  // Reset positions when clothing changes
-  useEffect(() => {
-    if (selectedClothing) {
-      setTextPositions({
-        left: {
-          x: parsePosition(selectedClothing.positioningLeft?.text?.left),
-          y: parsePosition(selectedClothing.positioningLeft?.text?.top),
-        },
-        right: {
-          x: parsePosition(selectedClothing.positioningRight?.text?.left),
-          y: parsePosition(selectedClothing.positioningRight?.text?.top),
-        },
-      });
-      setImagePositions({
-        left: {
-          x: parsePosition(selectedClothing.positioningLeft?.image?.left),
-          y: parsePosition(selectedClothing.positioningLeft?.image?.top),
-        },
-        right: {
-          x: parsePosition(selectedClothing.positioningRight?.image?.left),
-          y: parsePosition(selectedClothing.positioningRight?.image?.top),
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClothing?.name]);
+  // Dragging and position helpers removed - dragging is disabled
 
   // Text editing bottom sheet
   const [showTextEditor, setShowTextEditor] = useState(false);
@@ -536,22 +576,16 @@ const ConfiguratorUnisex3D = () => {
 
   const handleImageUploadLeft = async (file: File) => {
     setUploadedImageLeft(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
   };
 
   const handleImageUploadRight = async (file: File) => {
     setUploadedImageRight(URL.createObjectURL(file));
-    (toastRef.current as any)?.show({
-      severity: 'success',
-      summary: 'Please Note',
-      detail:
-        'Focus would be on the pattern in your image, hence background may be removed where applicable',
-    });
+    toast.success(
+      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+    );
   };
 
   const ImprintTextPosition = useMemo(() => {
@@ -1053,12 +1087,18 @@ const ConfiguratorUnisex3D = () => {
                           <i className="pi pi-th-large text-blue-500"></i>
                           <span>Tap on cut-out sections to change colors</span>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <i className="pi pi-info-circle text-blue-500"></i>
+                          <span>
+                            Cant' t decide on colors? Use "Randomize" button
+                          </span>
+                        </div>
                       </div>
 
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={handleInstructionsDismiss}
-                          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                          className="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors text-sm font-medium"
                         >
                           Got it!
                         </button>
@@ -1188,24 +1228,6 @@ const ConfiguratorUnisex3D = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* <button
-              onClick={() => setEnableDragging(!enableDragging)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                enableDragging
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              title={enableDragging ? 'Disable dragging' : 'Enable dragging'}
-            >
-              <i
-                className={`pi ${
-                  enableDragging ? 'pi-lock' : 'pi-unlock'
-                } text-sm`}
-              ></i>
-              <span className="font-medium text-sm">
-                {enableDragging ? 'Lock Position' : 'Unlock Position'}
-              </span>
-            </button> */}
             <button
               onClick={handleShowInstructions}
               className="flex items-center gap-2"
@@ -1214,18 +1236,35 @@ const ConfiguratorUnisex3D = () => {
               <i className="pi pi-question-circle text-sm text-primary"></i>
               <span className="font-bold text-primary">Help</span>
             </button>
-            <button
-              onClick={() => {
-                if (selectedClothing?.myNode && state.color) {
-                  assignRandomColors(selectedClothing, state);
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousColors}
+                disabled={currentHistoryIndex <= 0 || colorHistory.length === 0}
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Previous colors"
+              >
+                <i className="pi pi-chevron-left text-sm"></i>
+              </button>
+              <button
+                onClick={handleRandomizeColors}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                title="Randomize colors"
+              >
+                <i className="pi pi-refresh text-sm"></i>
+                <span className="font-medium text-sm">Randomize</span>
+              </button>
+              <button
+                onClick={handleNextColors}
+                disabled={
+                  currentHistoryIndex >= colorHistory.length - 1 ||
+                  colorHistory.length === 0
                 }
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              title="Randomize colors"
-            >
-              <i className="pi pi-refresh text-sm"></i>
-              <span className="font-medium text-sm">Randomize Colors</span>
-            </button>
+                className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Next colors"
+              >
+                <i className="pi pi-chevron-right text-sm"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1233,113 +1272,119 @@ const ConfiguratorUnisex3D = () => {
           <div className="flex-1 relative">
             <div
               ref={canvasContainerRef}
-              className="right-panel h-[40rem] lg:h-[80vh]"
+              className="right-panel h-[40rem] lg:h-[80vh] relative overflow-hidden"
+              style={{
+                isolation: 'isolate',
+                contain: 'layout style paint',
+                clipPath: 'inset(0)',
+              }}
             >
-              <Canvas
-                camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
-                gl={{ preserveDrawingBuffer: true }}
-                className="main-canvas h-full "
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ zIndex: 1 }}
               >
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} />
-                {selectedClothing &&
-                  selectedClothing.name &&
-                  isLoadingModel === false && (
-                    <>
-                      <HtmlComponent
-                        textLeft={enteredTextLeft}
-                        textRight={enteredTextRight}
-                        textColor={
-                          editingText &&
-                          !colorOptions.find((c) => c.label === textColor)
-                            ? textColor
-                            : colorOptions.find((c) => c.label === textColor)
-                                ?.color || textColor
-                        }
-                        textSizeleft={fontSizeLeft}
-                        textSizeRight={fontSizeRight}
-                        fontFamily={fontFamily}
-                        textLeftRotate={
-                          editingText === 'left' && rotationAngle !== 0
-                            ? rotationAngle
-                            : selectedClothing?.positioningLeft?.text?.rotate ||
-                              0
-                        }
-                        textRightRotate={
-                          editingText === 'right' && rotationAngle !== 0
-                            ? rotationAngle
-                            : selectedClothing?.positioningRight?.text
-                                ?.rotate || 0
-                        }
-                        ImprintTextPosition={ImprintTextPosition as any}
-                        hideRightText={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        onTextLeftChange={setEnteredTextLeft}
-                        onTextRightChange={setEnteredTextRight}
-                        onTextLeftClick={() => handleTextClick('left')}
-                        onTextRightClick={() => handleTextClick('right')}
-                        onTextLeftLongPress={() => handleTextLongPress('left')}
-                        onTextRightLongPress={() =>
-                          handleTextLongPress('right')
-                        }
-                        selectedText={editingText}
-                        disableInteractions={showTextEditor || showInstructions}
-                        textBold={textBold}
-                        textItalic={textItalic}
-                        textUnderline={textUnderline}
-                        textAlignment={textAlignment}
-                        letterSpacing={letterSpacing}
-                        customLineHeight={lineHeight}
-                        enableDragging={enableDragging}
-                        onPositionChange={(side, position) => {
-                          setTextPositions((prev) => ({
-                            ...prev,
-                            [side]: position,
-                          }));
-                        }}
-                        customPositions={textPositions}
-                      />
-                      <HtmlImageComponent
-                        ImprintTextPosition={ImprintTextPosition as any}
-                        imageLeft={uploadedImageLeft}
-                        imageRight={uploadedImageRight || ''}
-                        hideLogo={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        hideRightText={
-                          selectedClothing?.name?.includes('Beads Bracelet') ||
-                          false
-                        }
-                        textColor={textColor}
-                        onImageLeftChange={handleImageUploadLeft}
-                        onImageRightChange={handleImageUploadRight}
-                        disableInteractions={showTextEditor || showInstructions}
-                        enableDragging={enableDragging}
-                        onPositionChange={(side, position) => {
-                          setImagePositions((prev) => ({
-                            ...prev,
-                            [side]: position,
-                          }));
-                        }}
-                        customPositions={imagePositions}
-                      />
-                    </>
-                  )}
-                <Shirt
-                  isRotating={isRotating}
-                  selectedClothing={selectedClothing}
-                  selectedPart={selectedPart}
-                  setSelectedPart={setSelectedPart}
-                  selectedTexture={state.texture[selectedPart || 0]}
-                />
-                {selectedClothing?.name &&
+                <Canvas
+                  camera={{ position: [0, 0, selectedClothing?.myZoom || 5] }}
+                  gl={{ preserveDrawingBuffer: true }}
+                  className="main-canvas h-full w-full"
+                >
+                  <ambientLight intensity={0.5} />
+                  <pointLight position={[10, 10, 10]} />
+                  {selectedClothing &&
+                    selectedClothing.name &&
+                    isLoadingModel === false && (
+                      <>
+                        <HtmlComponent
+                          textLeft={enteredTextLeft}
+                          textRight={enteredTextRight}
+                          textColor={
+                            editingText &&
+                            !colorOptions.find((c) => c.label === textColor)
+                              ? textColor
+                              : colorOptions.find((c) => c.label === textColor)
+                                  ?.color || textColor
+                          }
+                          textSizeleft={fontSizeLeft}
+                          textSizeRight={fontSizeRight}
+                          fontFamily={fontFamily}
+                          textLeftRotate={
+                            editingText === 'left' && rotationAngle !== 0
+                              ? rotationAngle
+                              : selectedClothing?.positioningLeft?.text
+                                  ?.rotate || 0
+                          }
+                          textRightRotate={
+                            editingText === 'right' && rotationAngle !== 0
+                              ? rotationAngle
+                              : selectedClothing?.positioningRight?.text
+                                  ?.rotate || 0
+                          }
+                          ImprintTextPosition={ImprintTextPosition as any}
+                          hideRightText={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          onTextLeftChange={setEnteredTextLeft}
+                          onTextRightChange={setEnteredTextRight}
+                          onTextLeftClick={() => handleTextClick('left')}
+                          onTextRightClick={() => handleTextClick('right')}
+                          onTextLeftLongPress={() =>
+                            handleTextLongPress('left')
+                          }
+                          onTextRightLongPress={() =>
+                            handleTextLongPress('right')
+                          }
+                          selectedText={editingText}
+                          disableInteractions={
+                            showTextEditor || showInstructions
+                          }
+                          textBold={textBold}
+                          textItalic={textItalic}
+                          textUnderline={textUnderline}
+                          textAlignment={textAlignment}
+                          letterSpacing={letterSpacing}
+                          customLineHeight={lineHeight}
+                          enableDragging={enableDragging}
+                          maxLines={9}
+                        />
+                        <HtmlImageComponent
+                          ImprintTextPosition={ImprintTextPosition as any}
+                          imageLeft={uploadedImageLeft}
+                          imageRight={uploadedImageRight || ''}
+                          hideLogo={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          hideRightText={
+                            selectedClothing?.name?.includes(
+                              'Beads Bracelet',
+                            ) || false
+                          }
+                          textColor={textColor}
+                          onImageLeftChange={handleImageUploadLeft}
+                          onImageRightChange={handleImageUploadRight}
+                          disableInteractions={
+                            showTextEditor || showInstructions
+                          }
+                          enableDragging={enableDragging}
+                        />
+                      </>
+                    )}
+                  <Shirt
+                    isRotating={isRotating}
+                    selectedClothing={selectedClothing}
+                    selectedPart={selectedPart}
+                    setSelectedPart={setSelectedPart}
+                    selectedTexture={state.texture[selectedPart || 0]}
+                  />
+                  {/* {selectedClothing?.name &&
                   !noSpinFor.includes(selectedClothing.name) && (
                     <OrbitControls enableRotate={false} />
-                  )}
-              </Canvas>
+                  )} */}
+                </Canvas>
+              </div>
             </div>
           </div>
         </div>
@@ -1516,7 +1561,7 @@ const ConfiguratorUnisex3D = () => {
           document.body,
         )}
 
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl">
+      <div className="bg-gradient-to-r from-gray-900 to-black text-white rounded-t-2xl shadow-2xl relative z-50">
         <div className="container mx-auto px-6 py-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Order Details */}

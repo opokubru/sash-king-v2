@@ -69,6 +69,7 @@ interface HtmlComponentProps {
     left?: { x: number; y: number };
     right?: { x: number; y: number };
   };
+  maxLines?: number; // Maximum number of lines allowed (default: 3)
 }
 
 const HtmlComponent = ({
@@ -101,6 +102,7 @@ const HtmlComponent = ({
   enableDragging = false,
   onPositionChange,
   customPositions,
+  maxLines = 3, // Default to 3 lines
 }: HtmlComponentProps) => {
   const [leftDragPosition, setLeftDragPosition] = useState({ x: 0, y: 0 });
   const [rightDragPosition, setRightDragPosition] = useState({ x: 0, y: 0 });
@@ -115,12 +117,12 @@ const HtmlComponent = ({
   const leftInputRef = useRef<HTMLInputElement>(null);
   const rightInputRef = useRef<HTMLInputElement>(null);
 
-  // Double tap detection
-  const leftLastTapTime = useRef<number>(0);
-  const rightLastTapTime = useRef<number>(0);
-  const leftTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const rightTapTimeout = useRef<NodeJS.Timeout | null>(null);
-  const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
+  // Long press detection
+  const leftLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const rightLongPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const LONG_PRESS_DURATION = 500; // 500ms for long press
+  const leftLongPressStarted = useRef(false);
+  const rightLongPressStarted = useRef(false);
 
   useEffect(() => {
     setTempTextLeft(textLeft);
@@ -209,259 +211,450 @@ const HtmlComponent = ({
     }
   }, [editingRight]);
 
-  const handleLeftTextClick = () => {
+  const handleLeftTextClick = (e?: React.MouseEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // If drag started, don't handle click
     if (leftDragStarted.current) {
       leftDragStarted.current = false;
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (leftLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        leftLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextLeftLongPress) {
-        onTextLeftLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingLeft) {
+      setEditingLeft(true);
+      if (onTextLeftClick) {
+        onTextLeftClick();
       }
-      leftLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
-        }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleLeftTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleLeftTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
+    // Start long press timer
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
     }
-  };
-
-  const handleLeftTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleLeftTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - leftLastTapTime.current;
-
-    if (leftTapTimeout.current) {
-      clearTimeout(leftTapTimeout.current);
-      leftTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
       if (onTextLeftLongPress) {
         onTextLeftLongPress();
       }
-      leftLastTapTime.current = 0;
-    } else {
-      // Single tap
-      leftLastTapTime.current = currentTime;
-      leftTapTimeout.current = setTimeout(() => {
-        if (!editingLeft) {
-          setEditingLeft(true);
-          if (onTextLeftClick) {
-            onTextLeftClick();
-          }
-        }
-        leftTapTimeout.current = null;
-        leftLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
     }
   };
 
-  const handleRightTextClick = () => {
+  const handleLeftTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchStart = () => {
+    // Start long press timer for touch
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+    }
+    leftLongPressStarted.current = false;
+    leftLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      leftLongPressStarted.current = true;
+      if (onTextLeftLongPress) {
+        onTextLeftLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLeftTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+    leftLongPressStarted.current = false;
+  };
+
+  const handleLeftTextTouchEnd = (e?: React.TouchEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
+    // Clear long press timer on touch end
+    if (leftLongPressTimer.current) {
+      clearTimeout(leftLongPressTimer.current);
+      leftLongPressTimer.current = null;
+    }
+
+    // If long press was not triggered, handle as tap
+    if (!leftLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingLeft) {
+        setEditingLeft(true);
+        if (onTextLeftClick) {
+          onTextLeftClick();
+        }
+      }
+    } else {
+      // Long press was triggered, reset flag
+      leftLongPressStarted.current = false;
+    }
+  };
+
+  const handleRightTextClick = (e?: React.MouseEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
     // If drag started, don't handle click
     if (rightDragStarted.current) {
       rightDragStarted.current = false;
       return;
     }
 
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    // Clear any pending single tap timeout
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // If long press was triggered, don't handle click
+    if (rightLongPressStarted.current) {
+      // Reset flag after handling
+      setTimeout(() => {
+        rightLongPressStarted.current = false;
+      }, 0);
+      return;
     }
 
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected - show bottom sheet
-      if (onTextRightLongPress) {
-        onTextRightLongPress();
+    // Single tap - immediately start inline editing
+    if (!editingRight) {
+      setEditingRight(true);
+      if (onTextRightClick) {
+        onTextRightClick();
       }
-      rightLastTapTime.current = 0; // Reset to prevent triple tap
-    } else {
-      // Single tap - set up timeout to handle if no second tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        // Single tap - enter inline edit mode
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
-        }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
     }
   };
 
   const handleRightTextMouseDown = () => {
-    // No-op for double tap (handled in click)
-  };
-
-  const handleRightTextMouseUp = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextMouseLeave = () => {
-    // Cancel single tap timeout if mouse leaves
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
+    // Start long press timer
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
     }
-  };
-
-  const handleRightTextTouchStart = () => {
-    // No-op for double tap
-  };
-
-  const handleRightTextTouchEnd = (e: React.TouchEvent) => {
-    // Use the same double tap logic for touch
-    const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - rightLastTapTime.current;
-
-    if (rightTapTimeout.current) {
-      clearTimeout(rightTapTimeout.current);
-      rightTapTimeout.current = null;
-    }
-
-    if (timeSinceLastTap < DOUBLE_TAP_DELAY) {
-      // Double tap detected
-      e.preventDefault();
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
       if (onTextRightLongPress) {
         onTextRightLongPress();
       }
-      rightLastTapTime.current = 0;
-    } else {
-      // Single tap
-      rightLastTapTime.current = currentTime;
-      rightTapTimeout.current = setTimeout(() => {
-        if (!editingRight) {
-          setEditingRight(true);
-          if (onTextRightClick) {
-            onTextRightClick();
-          }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextMouseUp = () => {
+    // Clear long press timer on mouse up
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+  };
+
+  const handleRightTextMouseLeave = () => {
+    // Cancel long press timer if mouse leaves
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchStart = () => {
+    // Start long press timer for touch
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+    }
+    rightLongPressStarted.current = false;
+    rightLongPressTimer.current = setTimeout(() => {
+      // Long press detected - show bottom sheet
+      rightLongPressStarted.current = true;
+      if (onTextRightLongPress) {
+        onTextRightLongPress();
+      }
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleRightTextTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+    rightLongPressStarted.current = false;
+  };
+
+  const handleRightTextTouchEnd = (e?: React.TouchEvent) => {
+    // Stop propagation to prevent triggering outside click handler
+    if (e) {
+      e.stopPropagation();
+    }
+
+    // Clear long press timer on touch end
+    if (rightLongPressTimer.current) {
+      clearTimeout(rightLongPressTimer.current);
+      rightLongPressTimer.current = null;
+    }
+
+    // If long press was not triggered, handle as tap
+    if (!rightLongPressStarted.current) {
+      // Single tap - immediately start inline editing
+      if (!editingRight) {
+        setEditingRight(true);
+        if (onTextRightClick) {
+          onTextRightClick();
         }
-        rightTapTimeout.current = null;
-        rightLastTapTime.current = 0;
-      }, DOUBLE_TAP_DELAY);
+      }
+    } else {
+      // Long press was triggered, reset flag
+      rightLongPressStarted.current = false;
     }
   };
 
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (leftTapTimeout.current) {
-        clearTimeout(leftTapTimeout.current);
+      if (leftLongPressTimer.current) {
+        clearTimeout(leftLongPressTimer.current);
       }
-      if (rightTapTimeout.current) {
-        clearTimeout(rightTapTimeout.current);
+      if (rightLongPressTimer.current) {
+        clearTimeout(rightLongPressTimer.current);
       }
     };
   }, []);
 
-  // Helper function to wrap text at 7 characters per line
-  const wrapTextAt7Chars = (text: string): string => {
-    const lines: string[] = [];
-    const currentLines = text.split('\n');
+  // Handle clicks outside to exit editing mode
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
 
-    for (const line of currentLines) {
-      let remaining = line;
-
-      while (remaining.length > 0) {
-        if (remaining.length <= 7) {
-          lines.push(remaining);
-          break;
-        }
-
-        // Try to break at word boundary first (space within first 7 chars)
-        const first7Chars = remaining.substring(0, 7);
-        const lastSpaceIndex = first7Chars.lastIndexOf(' ');
-
-        let breakPoint = 7;
-        if (lastSpaceIndex > 0) {
-          // Break after the space
-          breakPoint = lastSpaceIndex + 1;
-        }
-
-        lines.push(remaining.substring(0, breakPoint));
-        // Trim leading spaces from next line
-        remaining = remaining.substring(breakPoint).replace(/^\s+/, '');
+      // Don't exit if clicking on textarea or its container
+      if (
+        target.tagName === 'TEXTAREA' ||
+        target.closest('[data-text-container]') ||
+        target.closest('.overlay') ||
+        target.closest('[data-three-html]')
+      ) {
+        return;
       }
+
+      // Exit editing mode
+      if (editingLeft) {
+        setEditingLeft(false);
+        if (onTextLeftChange) {
+          onTextLeftChange(tempTextLeft);
+        }
+      }
+      if (editingRight) {
+        setEditingRight(false);
+        if (onTextRightChange) {
+          onTextRightChange(tempTextRight);
+        }
+      }
+    };
+
+    // Only add listener when in editing mode
+    if (editingLeft || editingRight) {
+      // Use capture phase and a small delay to ensure it runs after other handlers
+      document.addEventListener('click', handleDocumentClick, true);
+      document.addEventListener('touchstart', handleDocumentClick, true);
+
+      return () => {
+        document.removeEventListener('click', handleDocumentClick, true);
+        document.removeEventListener('touchstart', handleDocumentClick, true);
+      };
+    }
+  }, [
+    editingLeft,
+    editingRight,
+    tempTextLeft,
+    tempTextRight,
+    onTextLeftChange,
+    onTextRightChange,
+  ]);
+
+  // Handle clicking outside to exit editing mode
+  const handleOutsideClick = (e: any) => {
+    // Only exit if clicking outside the text areas
+    const target = (e.target || e.nativeEvent?.target) as HTMLElement;
+    if (!target) return;
+
+    // Don't exit if clicking on textarea or its container
+    if (
+      target.tagName === 'TEXTAREA' ||
+      target.closest('[data-text-container]') ||
+      target.closest('.overlay')
+    ) {
+      return;
     }
 
-    return lines.join('\n');
+    // Exit editing mode
+    if (editingLeft) {
+      setEditingLeft(false);
+      if (onTextLeftChange) {
+        onTextLeftChange(tempTextLeft);
+      }
+    }
+    if (editingRight) {
+      setEditingRight(false);
+      if (onTextRightChange) {
+        onTextRightChange(tempTextRight);
+      }
+    }
   };
 
-  // Helper function to convert wrapped text (with \n) to HTML (with <br>)
-  const wrapTextToHtml = (text: string): string => {
-    const wrappedText = wrapTextAt7Chars(text);
-    return wrappedText.split('\n').join('<br>');
+  // Helper function to convert text (with \n) to HTML (with <br>)
+  // No automatic wrapping - only breaks on user-entered line breaks (Enter)
+  const textToHtml = (text: string): string => {
+    return text.split('\n').join('<br>');
   };
 
-  // Helper function to get current line count
+  // Helper function to get current line count (explicit line breaks only)
   const getLineCount = (text: string): number => {
     return text.split('\n').length;
   };
 
+  // Helper function to measure actual rendered lines including word wrapping
+  const getActualLineCount = (
+    text: string,
+    width: number,
+    fontSize: number,
+    fontFamily: string,
+    lineHeight: number,
+    textTransform: string,
+    letterSpacing: number,
+  ): number => {
+    // Use a hidden div to measure actual rendered height
+    const measureDiv = document.createElement('div');
+    measureDiv.style.position = 'absolute';
+    measureDiv.style.visibility = 'hidden';
+    measureDiv.style.height = 'auto';
+    measureDiv.style.width = `${width}px`;
+    measureDiv.style.fontSize = `${fontSize}px`;
+    measureDiv.style.fontFamily = fontFamily;
+    measureDiv.style.lineHeight = `${lineHeight}px`;
+    measureDiv.style.textTransform = textTransform;
+    measureDiv.style.letterSpacing = `${letterSpacing}px`;
+    measureDiv.style.wordWrap = 'break-word';
+    measureDiv.style.overflowWrap = 'break-word';
+    measureDiv.style.whiteSpace = 'pre-wrap';
+    measureDiv.style.padding = '0';
+    measureDiv.style.margin = '0';
+    measureDiv.style.border = 'none';
+    measureDiv.textContent = text;
+
+    document.body.appendChild(measureDiv);
+    const height = measureDiv.offsetHeight;
+    document.body.removeChild(measureDiv);
+
+    // Calculate number of lines based on height and line height
+    const lineHeightValue =
+      typeof lineHeight === 'number'
+        ? lineHeight
+        : parseFloat(String(lineHeight).replace('px', '').replace('rem', '')) *
+          (String(lineHeight).includes('rem') ? 16 : 1);
+    const actualLineHeight = lineHeightValue || fontSize * 1.2; // Fallback to 1.2x font size
+    const lineCount = Math.ceil(height / actualLineHeight);
+
+    return Math.max(lineCount, text.split('\n').length); // At least as many as explicit line breaks
+  };
+
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextLeft;
+    const textarea = e.target;
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Get the actual width of the textarea (accounting for padding)
+    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Check both explicit line breaks and actual rendered lines (with word wrapping)
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+
+    // Use the maximum of explicit lines or actual rendered lines
+    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
+    const currentTotalLineCount = Math.max(
+      getLineCount(currentText),
+      getActualLineCount(
+        currentText,
+        textareaWidth,
+        textSizeleft,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      ),
+    );
+
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (totalLineCount <= currentTotalLineCount) {
+      setTempTextLeft(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed maxLines
+    if (totalLineCount > maxLines) {
+      // Immediately restore previous value to prevent the change
+      const cursorPos = textarea.selectionStart ?? 0;
+      const savedCursorPos = Math.max(
+        0,
+        Math.min(cursorPos - 1, currentText.length),
+      );
+
+      // Restore value immediately
+      textarea.value = currentText;
+      textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+
       // Prevent typing and show toast notification
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+
+      // Don't update state - keep the old value
+      return;
     }
 
     setTempTextLeft(newText);
@@ -469,17 +662,74 @@ const HtmlComponent = ({
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
+    const currentText = tempTextRight;
+    const textarea = e.target;
 
-    // Don't wrap while typing - just check line count to prevent exceeding 3 lines
-    // Wrapping will be applied when displaying (escaped mode) or on blur
-    const lineCount = getLineCount(newText);
-    if (lineCount > 3) {
+    // Get the actual width of the textarea (accounting for padding)
+    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Check both explicit line breaks and actual rendered lines (with word wrapping)
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+
+    // Use the maximum of explicit lines or actual rendered lines
+    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
+    const currentTotalLineCount = Math.max(
+      getLineCount(currentText),
+      getActualLineCount(
+        currentText,
+        textareaWidth,
+        textSizeRight,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      ),
+    );
+
+    // Always allow if line count is decreasing (backspace/delete) or staying the same
+    if (totalLineCount <= currentTotalLineCount) {
+      setTempTextRight(newText);
+      return;
+    }
+
+    // Only prevent if line count is increasing AND would exceed maxLines
+    if (totalLineCount > maxLines) {
+      // Immediately restore previous value to prevent the change
+      const cursorPos = textarea.selectionStart ?? 0;
+      const savedCursorPos = Math.max(
+        0,
+        Math.min(cursorPos - 1, currentText.length),
+      );
+
+      // Restore value immediately
+      textarea.value = currentText;
+      textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+
       // Prevent typing and show toast notification
-      toast.error('Maximum 3 lines allowed', {
+      toast.error(`Maximum ${maxLines} lines allowed`, {
         duration: 2000,
         position: 'top-center',
       });
-      return; // Don't update the text
+
+      // Don't update state - keep the old value
+      return;
     }
 
     setTempTextRight(newText);
@@ -488,74 +738,304 @@ const HtmlComponent = ({
   const handleLeftTextBlur = () => {
     setEditingLeft(false);
     if (onTextLeftChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextLeft);
-      onTextLeftChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextLeftChange(tempTextLeft);
     }
   };
 
   const handleRightTextBlur = () => {
     setEditingRight(false);
     if (onTextRightChange) {
-      // Apply wrapping when saving the text
-      const wrappedText = wrapTextAt7Chars(tempTextRight);
-      onTextRightChange(wrappedText);
+      // Save text exactly as user typed it (no automatic wrapping)
+      onTextRightChange(tempTextRight);
+    }
+  };
+
+  const handleLeftTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const newLineCount = Math.max(explicitLineCount, actualLineCount);
+
+    // If pasted text would exceed maxLines, prevent it
+    if (newLineCount > maxLines) {
+      e.preventDefault();
+      toast.error(`Maximum ${maxLines} lines allowed`, {
+        duration: 2000,
+        position: 'top-center',
+      });
     }
   };
 
   const handleLeftTextKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Get both explicit and actual line counts
+    const explicitLineCount = getLineCount(currentValue);
+    const actualLineCount = getActualLineCount(
+      currentValue,
+      textareaWidth,
+      textSizeleft,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
+
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.key === 'Escape'
+    ) {
+      // Escape to cancel editing
+      if (e.key === 'Escape') {
+        setTempTextLeft(textLeft);
+        setEditingLeft(false);
+      }
+      // Allow these keys to work normally
+      return;
+    }
+
     // Handle Enter key - allow manual line breaks
     if (e.key === 'Enter') {
-      // Use the actual textarea value (not state) to get current text
-      const textarea = e.currentTarget;
-      const currentValue = textarea.value;
-      const currentLineCount = getLineCount(currentValue);
-
-      // Prevent Enter if it would exceed 3 lines
-      if (currentLineCount >= 3) {
+      // Prevent Enter if already at maxLines (would create one more line)
+      if (currentLineCount >= maxLines) {
         e.preventDefault();
-        toast.error('Maximum 3 lines allowed', {
+        toast.error(`Maximum ${maxLines} lines allowed`, {
           duration: 2000,
           position: 'top-center',
         });
         return;
       }
       // Otherwise, let Enter work naturally - it will insert \n
+      return;
     }
-    // Escape to cancel editing
-    if (e.key === 'Escape') {
-      setTempTextLeft(textLeft);
-      setEditingLeft(false);
+
+    // For any other key input (regular typing), check if we're at maxLines
+    // If we're at maxLines, prevent any new character input that would exceed limit
+    if (currentLineCount >= maxLines) {
+      // Check if this input would create a new line
+      // Get the current cursor position
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+
+      // Calculate what the new text would be
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const newExplicitLineCount = getLineCount(newText);
+      const newActualLineCount = getActualLineCount(
+        newText,
+        textareaWidth,
+        textSizeleft,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      );
+      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
+
+      // If it would exceed maxLines, prevent it
+      if (newLineCount > maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
+    }
+  };
+
+  const handleRightTextPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pastedText = e.clipboardData.getData('text');
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const selectionStart = textarea.selectionStart;
+    const selectionEnd = textarea.selectionEnd;
+
+    // Calculate what the new text would be
+    const textBefore = currentValue.substring(0, selectionStart);
+    const textAfter = currentValue.substring(selectionEnd);
+    const newText = textBefore + pastedText + textAfter;
+
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+    const explicitLineCount = getLineCount(newText);
+    const actualLineCount = getActualLineCount(
+      newText,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const newLineCount = Math.max(explicitLineCount, actualLineCount);
+
+    // If pasted text would exceed maxLines, prevent it
+    if (newLineCount > maxLines) {
+      e.preventDefault();
+      toast.error(`Maximum ${maxLines} lines allowed`, {
+        duration: 2000,
+        position: 'top-center',
+      });
     }
   };
 
   const handleRightTextKeyDown = (
     e: React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
+    const textarea = e.currentTarget;
+    const currentValue = textarea.value;
+    const textareaWidth = textarea.offsetWidth - 4;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
+    const lineHeightNum =
+      typeof lineHeightValue === 'number'
+        ? lineHeightValue
+        : parseFloat(
+            String(lineHeightValue).replace('px', '').replace('rem', ''),
+          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+
+    // Get both explicit and actual line counts
+    const explicitLineCount = getLineCount(currentValue);
+    const actualLineCount = getActualLineCount(
+      currentValue,
+      textareaWidth,
+      textSizeRight,
+      fontFamily,
+      lineHeightNum,
+      'uppercase',
+      letterSpacing,
+    );
+    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
+
+    // Always allow backspace, delete, and other control keys
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'ArrowLeft' ||
+      e.key === 'ArrowRight' ||
+      e.key === 'ArrowUp' ||
+      e.key === 'ArrowDown' ||
+      e.ctrlKey ||
+      e.metaKey ||
+      e.key === 'Escape'
+    ) {
+      // Escape to cancel editing
+      if (e.key === 'Escape') {
+        setTempTextRight(textRight);
+        setEditingRight(false);
+      }
+      // Allow these keys to work normally
+      return;
+    }
+
     // Handle Enter key - allow manual line breaks
     if (e.key === 'Enter') {
-      // Use the actual textarea value (not state) to get current text
-      const textarea = e.currentTarget;
-      const currentValue = textarea.value;
-      const currentLineCount = getLineCount(currentValue);
-
-      // Prevent Enter if it would exceed 3 lines
-      if (currentLineCount >= 3) {
+      // Prevent Enter if already at maxLines (would create one more line)
+      if (currentLineCount >= maxLines) {
         e.preventDefault();
-        toast.error('Maximum 3 lines allowed', {
+        toast.error(`Maximum ${maxLines} lines allowed`, {
           duration: 2000,
           position: 'top-center',
         });
         return;
       }
       // Otherwise, let Enter work naturally - it will insert \n
+      return;
     }
-    // Escape to cancel editing
-    if (e.key === 'Escape') {
-      setTempTextRight(textRight);
-      setEditingRight(false);
+
+    // For any other key input (regular typing), check if we're at maxLines
+    // If we're at maxLines, prevent any new character input that would exceed limit
+    if (currentLineCount >= maxLines) {
+      // Check if this input would create a new line
+      // Get the current cursor position
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+
+      // Calculate what the new text would be
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const newExplicitLineCount = getLineCount(newText);
+      const newActualLineCount = getActualLineCount(
+        newText,
+        textareaWidth,
+        textSizeRight,
+        fontFamily,
+        lineHeightNum,
+        'uppercase',
+        letterSpacing,
+      );
+      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
+
+      // If it would exceed maxLines, prevent it
+      if (newLineCount > maxLines) {
+        e.preventDefault();
+        toast.error(`Maximum ${maxLines} lines allowed`, {
+          duration: 2000,
+          position: 'top-center',
+        });
+        return;
+      }
     }
   };
 
@@ -563,9 +1043,12 @@ const HtmlComponent = ({
     <Html
       className={disableInteractions ? 'html-disabled' : ''}
       style={{
-        zIndex: disableInteractions ? -1 : 0,
+        zIndex: disableInteractions ? -1 : 1,
         pointerEvents: disableInteractions ? 'none' : 'auto',
+        position: 'relative',
       }}
+      onClick={(e: any) => handleOutsideClick(e)}
+      onTouchStart={(e: any) => handleOutsideClick(e)}
     >
       {/* Left Text */}
       {enableDragging && !disableInteractions ? (
@@ -583,6 +1066,7 @@ const HtmlComponent = ({
         >
           <div
             className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+            data-text-container="left"
             style={{
               pointerEvents: disableInteractions ? 'none' : 'auto',
               position: 'absolute',
@@ -593,7 +1077,7 @@ const HtmlComponent = ({
               fontSize: textSizeleft,
               width: ImprintTextPosition?.left?.width,
               height: ImprintTextPosition?.left?.height,
-              wordWrap: 'break-word',
+              wordWrap: 'normal',
               overflow: 'hidden',
               textTransform: 'uppercase',
               lineHeight: customLineHeight
@@ -608,7 +1092,7 @@ const HtmlComponent = ({
               opacity: disableInteractions ? 0 : textLeft !== '' ? 1 : 1,
               visibility: disableInteractions ? 'hidden' : 'visible',
               borderRadius: '4px',
-              padding: '2px',
+              padding: '0',
               border:
                 selectedText === 'left'
                   ? '2px dashed #3B82F6'
@@ -620,12 +1104,13 @@ const HtmlComponent = ({
                   ? '0 0 10px rgba(59, 130, 246, 0.3)'
                   : 'none',
             }}
-            onClick={handleLeftTextClick}
+            onClick={(e) => handleLeftTextClick(e)}
             onMouseDown={handleLeftTextMouseDown}
             onMouseUp={handleLeftTextMouseUp}
             onMouseLeave={handleLeftTextMouseLeave}
             onTouchStart={handleLeftTextTouchStart}
-            onTouchEnd={handleLeftTextTouchEnd}
+            onTouchMove={handleLeftTextTouchMove}
+            onTouchEnd={(e) => handleLeftTextTouchEnd(e)}
           >
             {editingLeft ? (
               <textarea
@@ -634,6 +1119,9 @@ const HtmlComponent = ({
                 onChange={handleLeftTextChange}
                 onBlur={handleLeftTextBlur}
                 onKeyDown={handleLeftTextKeyDown}
+                onPaste={handleLeftTextPaste}
+                onClick={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -649,10 +1137,10 @@ const HtmlComponent = ({
                   color: textColor,
                   resize: 'none',
                   overflow: 'hidden',
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: 'pre',
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
@@ -663,6 +1151,8 @@ const HtmlComponent = ({
                   letterSpacing: `${letterSpacing}px`,
                   display: 'block',
                   boxSizing: 'border-box',
+                  caretColor: textColor,
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               />
             ) : (
@@ -674,10 +1164,10 @@ const HtmlComponent = ({
                   lineHeight: customLineHeight
                     ? `${customLineHeight}`
                     : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                  wordWrap: 'break-word',
-                  overflowWrap: 'break-word',
+                  wordWrap: 'normal',
+                  overflowWrap: 'normal',
                   wordBreak: 'normal',
-                  whiteSpace: 'pre-wrap',
+                  whiteSpace: textLeft !== '' ? 'pre' : 'normal',
                   display: 'block',
                   fontWeight: textBold ? 'bold' : 'normal',
                   fontStyle: textItalic ? 'italic' : 'normal',
@@ -687,10 +1177,10 @@ const HtmlComponent = ({
                 dangerouslySetInnerHTML={{
                   __html: hideRightText
                     ? textLeft !== ''
-                      ? wrapTextToHtml(textLeft)
+                      ? textToHtml(textLeft)
                       : 'TAP TO ADD TEXT'
                     : textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT',
                 }}
               />
@@ -700,6 +1190,7 @@ const HtmlComponent = ({
       ) : (
         <div
           className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+          data-text-container="left"
           style={{
             pointerEvents: disableInteractions ? 'none' : 'auto',
             position: 'absolute',
@@ -737,12 +1228,12 @@ const HtmlComponent = ({
                 ? '0 0 10px rgba(59, 130, 246, 0.3)'
                 : 'none',
           }}
-          onClick={handleLeftTextClick}
+          onClick={(e) => handleLeftTextClick(e)}
           onMouseDown={handleLeftTextMouseDown}
           onMouseUp={handleLeftTextMouseUp}
           onMouseLeave={handleLeftTextMouseLeave}
           onTouchStart={handleLeftTextTouchStart}
-          onTouchEnd={handleLeftTextTouchEnd}
+          onTouchEnd={(e) => handleLeftTextTouchEnd(e)}
         >
           {editingLeft ? (
             <textarea
@@ -751,6 +1242,8 @@ const HtmlComponent = ({
               onChange={handleLeftTextChange}
               onBlur={handleLeftTextBlur}
               onKeyDown={handleLeftTextKeyDown}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -780,6 +1273,8 @@ const HtmlComponent = ({
                 letterSpacing: `${letterSpacing}px`,
                 display: 'block',
                 boxSizing: 'border-box',
+                caretColor: textColor,
+                WebkitTapHighlightColor: 'transparent',
               }}
             />
           ) : (
@@ -791,10 +1286,10 @@ const HtmlComponent = ({
                 lineHeight: customLineHeight
                   ? `${customLineHeight}`
                   : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
+                wordWrap: 'normal',
+                overflowWrap: 'normal',
                 wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
+                whiteSpace: textLeft !== '' ? 'pre' : 'normal',
                 display: 'block',
                 fontWeight: textBold ? 'bold' : 'normal',
                 fontStyle: textItalic ? 'italic' : 'normal',
@@ -804,10 +1299,10 @@ const HtmlComponent = ({
               dangerouslySetInnerHTML={{
                 __html: hideRightText
                   ? textLeft !== ''
-                    ? wrapTextToHtml(textLeft)
+                    ? textToHtml(textLeft)
                     : 'TAP TO ADD TEXT'
                   : textLeft !== ''
-                  ? wrapTextToHtml(textLeft)
+                  ? textToHtml(textLeft)
                   : 'TAP TO ADD TEXT',
               }}
             />
@@ -833,6 +1328,7 @@ const HtmlComponent = ({
             >
               <div
                 className="overlay cursor-move hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+                data-text-container="right"
                 style={{
                   pointerEvents: disableInteractions ? 'none' : 'auto',
                   position: 'absolute',
@@ -870,12 +1366,13 @@ const HtmlComponent = ({
                       ? '0 0 10px rgba(59, 130, 246, 0.3)'
                       : 'none',
                 }}
-                onClick={handleRightTextClick}
+                onClick={(e) => handleRightTextClick(e)}
                 onMouseDown={handleRightTextMouseDown}
                 onMouseUp={handleRightTextMouseUp}
                 onMouseLeave={handleRightTextMouseLeave}
                 onTouchStart={handleRightTextTouchStart}
-                onTouchEnd={handleRightTextTouchEnd}
+                onTouchMove={handleRightTextTouchMove}
+                onTouchEnd={(e) => handleRightTextTouchEnd(e)}
               >
                 {editingRight ? (
                   <textarea
@@ -884,6 +1381,9 @@ const HtmlComponent = ({
                     onChange={handleRightTextChange}
                     onBlur={handleRightTextBlur}
                     onKeyDown={handleRightTextKeyDown}
+                    onPaste={handleRightTextPaste}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -915,6 +1415,8 @@ const HtmlComponent = ({
                       letterSpacing: `${letterSpacing}px`,
                       display: 'block',
                       boxSizing: 'border-box',
+                      caretColor: textColor,
+                      WebkitTapHighlightColor: 'transparent',
                     }}
                   />
                 ) : (
@@ -928,10 +1430,10 @@ const HtmlComponent = ({
                         : `${
                             ImprintTextPosition?.right?.lineHeight || '2.8rem'
                           }`,
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
+                      wordWrap: 'normal',
+                      overflowWrap: 'normal',
                       wordBreak: 'normal',
-                      whiteSpace: 'pre-wrap',
+                      whiteSpace: textRight !== '' ? 'pre' : 'normal',
                       display: 'block',
                       fontWeight: textBold ? 'bold' : 'normal',
                       fontStyle: textItalic ? 'italic' : 'normal',
@@ -941,7 +1443,7 @@ const HtmlComponent = ({
                     dangerouslySetInnerHTML={{
                       __html:
                         textRight !== ''
-                          ? wrapTextToHtml(textRight)
+                          ? textToHtml(textRight)
                           : 'TAP TO ADD TEXT',
                     }}
                   />
@@ -951,6 +1453,7 @@ const HtmlComponent = ({
           ) : (
             <div
               className="overlay cursor-pointer hover:bg-blue-100 hover:bg-opacity-20 transition-colors"
+              data-text-container="right"
               style={{
                 pointerEvents: disableInteractions ? 'none' : 'auto',
                 position: 'absolute',
@@ -988,12 +1491,12 @@ const HtmlComponent = ({
                     ? '0 0 10px rgba(59, 130, 246, 0.3)'
                     : 'none',
               }}
-              onClick={handleRightTextClick}
+              onClick={(e) => handleRightTextClick(e)}
               onMouseDown={handleRightTextMouseDown}
               onMouseUp={handleRightTextMouseUp}
               onMouseLeave={handleRightTextMouseLeave}
               onTouchStart={handleRightTextTouchStart}
-              onTouchEnd={handleRightTextTouchEnd}
+              onTouchEnd={(e) => handleRightTextTouchEnd(e)}
             >
               {editingRight ? (
                 <textarea
@@ -1002,6 +1505,8 @@ const HtmlComponent = ({
                   onChange={handleRightTextChange}
                   onBlur={handleRightTextBlur}
                   onKeyDown={handleRightTextKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                   style={{
                     background: 'transparent',
                     border: 'none',
@@ -1031,6 +1536,8 @@ const HtmlComponent = ({
                     letterSpacing: `${letterSpacing}px`,
                     display: 'block',
                     boxSizing: 'border-box',
+                    caretColor: textColor,
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 />
               ) : (
@@ -1042,10 +1549,10 @@ const HtmlComponent = ({
                     lineHeight: customLineHeight
                       ? `${customLineHeight}`
                       : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
+                    wordWrap: 'normal',
+                    overflowWrap: 'normal',
                     wordBreak: 'normal',
-                    whiteSpace: 'pre-wrap',
+                    whiteSpace: textRight !== '' ? 'pre' : 'normal',
                     display: 'block',
                     fontWeight: textBold ? 'bold' : 'normal',
                     fontStyle: textItalic ? 'italic' : 'normal',
@@ -1055,7 +1562,7 @@ const HtmlComponent = ({
                   dangerouslySetInnerHTML={{
                     __html:
                       textRight !== ''
-                        ? wrapTextToHtml(textRight)
+                        ? textToHtml(textRight)
                         : 'TAP TO ADD TEXT',
                   }}
                 />

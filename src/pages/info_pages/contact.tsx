@@ -7,20 +7,21 @@ import PageWrapper from '@/components/shared/page-wrapper';
 const contactInfo = [
   {
     label: 'Email',
-    value: 'info@sashkinggh.com',
+    value: 'info@sashking.com',
     icon: 'mdi:email-outline',
+    isprimary: true,
   },
   {
     label: 'Phone',
-    value: '+233 54 000 0000',
+    value: '+233 55 666 5072',
     icon: 'mdi:phone-outline',
     isprimary: true,
   },
-  // {
-  //   label: 'Location',
-  //   value: 'Accra, Ghana (Online Only)',
-  //   icon: 'mdi:map-marker-outline',
-  // },
+  {
+    label: 'Location',
+    value: 'Kumasi, Ghana',
+    icon: 'mdi:map-marker-outline',
+  },
   // {
   //   label: 'Working Hours',
   //   value: 'Mon - Sat: 9:00am – 6:00pm GMT',
