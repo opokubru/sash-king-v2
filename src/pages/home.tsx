@@ -305,13 +305,13 @@ const Home = () => {
 
           <div className="relative ">
             {/* <Slider {...greekSettings} className="greek-carousel"> */}
-            <div className="px-2">
-              <div className="group">
-                <div className="relative overflow-hidden bg-gray-100">
+            <div className=" mx-auto md:w-[60vw] flex items-center justify-center ">
+              <div className="group  w-full">
+                <div className="relative w-full ">
                   <img
                     src={'/images/3d-sash/1.jpeg'}
                     alt={'sash from scratch'}
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-64 object-cover "
                   />
                 </div>
                 <div className="mt-3">
