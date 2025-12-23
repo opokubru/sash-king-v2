@@ -97,6 +97,11 @@ const Footer = () => {
               FAQ
             </Link>
           </div>
+          <div className="flex gap-y-1 flex-col ml-2">
+            <Link className="hover:opacity-80" to="/admin/signin">
+              Admin Login
+            </Link>
+          </div>
         </div>
       </div>
       <div className="w-full h-[1px] bg-black/40" />
