@@ -297,7 +297,7 @@ const Home = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4 uppercase">
               Design From Scratch
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Start from scratch and create something truly extraordinary. Our
               3D design tools make it easy to bring your vision to life.
             </p>
@@ -305,7 +305,7 @@ const Home = () => {
 
           <div className="relative ">
             {/* <Slider {...greekSettings} className="greek-carousel"> */}
-            <div className=" mx-auto md:w-[60vw] flex items-center justify-center ">
+            <div className=" mx-auto md:w-[35vw] flex items-center justify-center ">
               <div className="group  w-full">
                 <div className="relative w-full ">
                   <img
