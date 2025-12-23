@@ -193,6 +193,40 @@ const ConfiguratorUnisexSpecial = () => {
     ImprintTextPosition?.right?.size || 12,
   );
 
+  // Restore state from sessionStorage when returning from confirmation page
+  useEffect(() => {
+    const storedData = sessionStorage.getItem('orderData');
+    if (storedData) {
+      try {
+        const orderData = JSON.parse(storedData);
+        // Only restore if it's the same product
+        if (orderData.productId === id) {
+          // Restore text
+          if (orderData.textLeft) setEnteredTextLeft(orderData.textLeft);
+          if (orderData.textRight) setEnteredTextRight(orderData.textRight);
+          // Restore styling
+          if (orderData.textColor) setTextColor(orderData.textColor);
+          if (orderData.fontFamily) {
+            setFontFamily(orderData.fontFamily);
+            const fontIndex = fonts.indexOf(orderData.fontFamily);
+            if (fontIndex !== -1) setCurrentFontIndex(fontIndex);
+          }
+          if (orderData.fontSizeLeft) setFontSizeLeft(orderData.fontSizeLeft);
+          if (orderData.fontSizeRight)
+            setFontSizeRight(orderData.fontSizeRight);
+          // Restore images
+          if (orderData.uploadedImageLeft)
+            setUploadedImageLeft(orderData.uploadedImageLeft);
+          if (orderData.uploadedImageRight)
+            setUploadedImageRight(orderData.uploadedImageRight);
+        }
+      } catch (error) {
+        console.error('Error restoring order data:', error);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only run on mount and when product ID changes
+
   const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   useEffect(() => {
@@ -347,6 +381,7 @@ const ConfiguratorUnisexSpecial = () => {
 
       // Store the order data in sessionStorage
       const orderData = {
+        productId: id, // Save product ID for restoration
         currencySymbol,
         total: Number(total),
         readyBy: selectedClothing?.readyIn || 0,

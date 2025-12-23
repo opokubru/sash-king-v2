@@ -249,8 +249,29 @@ const Shirt = ({
       return () => clearTimeout(highlightTimeout);
     }, 2000);
 
-    // Initialize and assign default colors on load
-    if (selectedClothing?.myNode && state.color) {
+    // Check if we have restored colors from sessionStorage
+    const storedData = sessionStorage.getItem('orderData');
+    let hasRestoredColors = false;
+    if (storedData) {
+      try {
+        const orderData = JSON.parse(storedData);
+        // Only use restored colors if it's the same product and colors exist
+        if (
+          orderData.productId === selectedClothing?.id &&
+          orderData.meshColors &&
+          Array.isArray(orderData.meshColors) &&
+          orderData.meshColors.length > 0
+        ) {
+          hasRestoredColors = true;
+          (state.color as any) = orderData.meshColors;
+        }
+      } catch (error) {
+        console.error('Error checking restored colors:', error);
+      }
+    }
+
+    // Initialize and assign default colors on load (only if no restored colors)
+    if (!hasRestoredColors && selectedClothing?.myNode && state.color) {
       const nodeCount = selectedClothing.myNode.length;
 
       // Ensure color array is properly initialized
@@ -628,6 +649,41 @@ const ConfiguratorUnisex3D = () => {
     selectedClothing?.positioningRight?.text?.size,
   ]);
 
+  // Restore state from sessionStorage when returning from confirmation page
+  useEffect(() => {
+    const storedData = sessionStorage.getItem('orderData');
+    if (storedData) {
+      try {
+        const orderData = JSON.parse(storedData);
+        // Only restore if it's the same product
+        if (orderData.productId === id) {
+          // Restore text
+          if (orderData.textLeft) setEnteredTextLeft(orderData.textLeft);
+          if (orderData.textRight) setEnteredTextRight(orderData.textRight);
+          // Restore styling
+          if (orderData.textColor) setTextColor(orderData.textColor);
+          if (orderData.fontFamily) {
+            setFontFamily(orderData.fontFamily);
+            const fontIndex = fonts.indexOf(orderData.fontFamily);
+            if (fontIndex !== -1) setCurrentFontIndex(fontIndex);
+          }
+          if (orderData.fontSizeLeft) setFontSizeLeft(orderData.fontSizeLeft);
+          if (orderData.fontSizeRight)
+            setFontSizeRight(orderData.fontSizeRight);
+          // Restore images
+          if (orderData.uploadedImageLeft)
+            setUploadedImageLeft(orderData.uploadedImageLeft);
+          if (orderData.uploadedImageRight)
+            setUploadedImageRight(orderData.uploadedImageRight);
+          // Note: Mesh colors are restored in the Shirt component's useEffect
+        }
+      } catch (error) {
+        console.error('Error restoring order data:', error);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only run on mount and when product ID changes
+
   const [isLoadingModel, setIsLoadingModel] = useState(true);
 
   useEffect(() => {
@@ -809,6 +865,7 @@ const ConfiguratorUnisex3D = () => {
 
       // Store the order data in sessionStorage
       const orderData = {
+        productId: id, // Save product ID for restoration
         currencySymbol,
         total: Number(total),
         readyBy: selectedClothing?.readyIn || 0,
@@ -823,6 +880,7 @@ const ConfiguratorUnisex3D = () => {
         fontSizeRight,
         fontFamily,
         textColor,
+        meshColors: state.color ? [...(state.color as string[])] : [], // Save mesh colors
       };
 
       sessionStorage.setItem('orderData', JSON.stringify(orderData));
