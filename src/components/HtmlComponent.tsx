@@ -69,7 +69,6 @@ interface HtmlComponentProps {
     left?: { x: number; y: number };
     right?: { x: number; y: number };
   };
-  maxLines?: number; // Maximum number of lines allowed (default: 3)
 }
 
 const HtmlComponent = ({
@@ -102,7 +101,6 @@ const HtmlComponent = ({
   enableDragging = false,
   onPositionChange,
   customPositions,
-  maxLines = 3, // Default to 3 lines
 }: HtmlComponentProps) => {
   const [leftDragPosition, setLeftDragPosition] = useState({ x: 0, y: 0 });
   const [rightDragPosition, setRightDragPosition] = useState({ x: 0, y: 0 });
@@ -535,22 +533,25 @@ const HtmlComponent = ({
     return text.split('\n').join('<br>');
   };
 
-  // Helper function to get current line count (explicit line breaks only)
-  const getLineCount = (text: string): number => {
-    return text.split('\n').length;
+  // Helper function to parse CSS units to pixels
+  const parseToPixels = (value: string | number): number => {
+    if (typeof value === 'number') return value;
+    const numValue = parseFloat(value);
+    if (value.includes('rem')) return numValue * 16;
+    if (value.includes('em')) return numValue * 16;
+    return numValue; // Assume pixels
   };
 
-  // Helper function to measure actual rendered lines including word wrapping
-  const getActualLineCount = (
+  // Helper function to measure actual rendered height of text
+  const measureTextHeight = (
     text: string,
     width: number,
     fontSize: number,
     fontFamily: string,
-    lineHeight: number,
+    lineHeight: number | string,
     textTransform: string,
     letterSpacing: number,
   ): number => {
-    // Use a hidden div to measure actual rendered height
     const measureDiv = document.createElement('div');
     measureDiv.style.position = 'absolute';
     measureDiv.style.visibility = 'hidden';
@@ -558,7 +559,8 @@ const HtmlComponent = ({
     measureDiv.style.width = `${width}px`;
     measureDiv.style.fontSize = `${fontSize}px`;
     measureDiv.style.fontFamily = fontFamily;
-    measureDiv.style.lineHeight = `${lineHeight}px`;
+    measureDiv.style.lineHeight =
+      typeof lineHeight === 'number' ? `${lineHeight}px` : lineHeight;
     measureDiv.style.textTransform = textTransform;
     measureDiv.style.letterSpacing = `${letterSpacing}px`;
     measureDiv.style.wordWrap = 'break-word';
@@ -567,22 +569,124 @@ const HtmlComponent = ({
     measureDiv.style.padding = '0';
     measureDiv.style.margin = '0';
     measureDiv.style.border = 'none';
-    measureDiv.textContent = text;
+    measureDiv.innerHTML = text
+      .split('\n')
+      .map((line) => line || '&nbsp;')
+      .join('<br>');
 
     document.body.appendChild(measureDiv);
     const height = measureDiv.offsetHeight;
     document.body.removeChild(measureDiv);
 
-    // Calculate number of lines based on height and line height
-    const lineHeightValue =
-      typeof lineHeight === 'number'
-        ? lineHeight
-        : parseFloat(String(lineHeight).replace('px', '').replace('rem', '')) *
-          (String(lineHeight).includes('rem') ? 16 : 1);
-    const actualLineHeight = lineHeightValue || fontSize * 1.2; // Fallback to 1.2x font size
-    const lineCount = Math.ceil(height / actualLineHeight);
+    return height;
+  };
 
-    return Math.max(lineCount, text.split('\n').length); // At least as many as explicit line breaks
+  // Helper function to hyphenate a word that's too long for the container width
+  const hyphenateWord = (
+    word: string,
+    maxWidth: number,
+    fontSize: number,
+    fontFamily: string,
+    letterSpacing: number,
+    textTransform: string,
+  ): string => {
+    // Create a hidden span to measure text width
+    const measureSpan = document.createElement('span');
+    measureSpan.style.position = 'absolute';
+    measureSpan.style.visibility = 'hidden';
+    measureSpan.style.whiteSpace = 'nowrap';
+    measureSpan.style.fontSize = `${fontSize}px`;
+    measureSpan.style.fontFamily = fontFamily;
+    measureSpan.style.letterSpacing = `${letterSpacing}px`;
+    measureSpan.style.textTransform = textTransform;
+    document.body.appendChild(measureSpan);
+
+    // Check if the word fits
+    measureSpan.textContent = word;
+    if (measureSpan.offsetWidth <= maxWidth) {
+      document.body.removeChild(measureSpan);
+      return word;
+    }
+
+    // Find where to break the word
+    let result = '';
+    let currentLine = '';
+
+    for (let i = 0; i < word.length; i++) {
+      const char = word[i];
+      const testLine = currentLine + char;
+      measureSpan.textContent = testLine + '-';
+
+      if (measureSpan.offsetWidth > maxWidth && currentLine.length > 0) {
+        // Need to break here
+        result += currentLine + '-\n';
+        currentLine = char;
+      } else {
+        currentLine = testLine;
+      }
+    }
+
+    // Add remaining characters
+    if (currentLine) {
+      result += currentLine;
+    }
+
+    document.body.removeChild(measureSpan);
+    return result;
+  };
+
+  // Helper function to process text and hyphenate long words
+  const processTextWithHyphenation = (
+    text: string,
+    maxWidth: number,
+    fontSize: number,
+    fontFamily: string,
+    letterSpacing: number,
+    textTransform: string,
+  ): string => {
+    const lines = text.split('\n');
+    const processedLines = lines.map((line) => {
+      const words = line.split(' ');
+      const processedWords = words.map((word) =>
+        hyphenateWord(
+          word,
+          maxWidth,
+          fontSize,
+          fontFamily,
+          letterSpacing,
+          textTransform,
+        ),
+      );
+      return processedWords.join(' ');
+    });
+    return processedLines.join('\n');
+  };
+
+  // Helper function to check if text would exceed container height
+  const wouldExceedHeight = (
+    text: string,
+    containerWidth: number | string,
+    containerHeight: number | string,
+    fontSize: number,
+    fontFamily: string,
+    lineHeight: number | string,
+    letterSpacing: number,
+    textTransform: string = 'uppercase',
+  ): boolean => {
+    const widthPx = parseToPixels(containerWidth);
+    const heightPx = parseToPixels(containerHeight);
+
+    const measuredHeight = measureTextHeight(
+      text,
+      widthPx,
+      fontSize,
+      fontFamily,
+      lineHeight,
+      textTransform,
+      letterSpacing,
+    );
+
+    return measuredHeight > heightPx;
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -590,74 +694,94 @@ const HtmlComponent = ({
     const currentText = tempTextLeft;
     const textarea = e.target;
 
-    // Get the actual width of the textarea (accounting for padding)
-    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.left?.width || 100;
+    const containerHeight = ImprintTextPosition?.left?.height || 100;
     const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || '2.8rem';
+    const widthPx = parseToPixels(containerWidth);
 
-    // Check both explicit line breaks and actual rendered lines (with word wrapping)
-    const explicitLineCount = getLineCount(newText);
-    const actualLineCount = getActualLineCount(
+    // Process text with hyphenation for long words
+    const processedText = processTextWithHyphenation(
       newText,
-      textareaWidth,
+      widthPx - 4, // Account for padding
       textSizeleft,
       fontFamily,
-      lineHeightNum,
-      'uppercase',
       letterSpacing,
+      'uppercase',
     );
 
-    // Use the maximum of explicit lines or actual rendered lines
-    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
-    const currentTotalLineCount = Math.max(
-      getLineCount(currentText),
-      getActualLineCount(
-        currentText,
-        textareaWidth,
-        textSizeleft,
-        fontFamily,
-        lineHeightNum,
-        'uppercase',
-        letterSpacing,
-      ),
+    // Check if text (or processed text) would exceed container height
+    const textToCheck = processedText !== newText ? processedText : newText;
+    const exceedsHeight = wouldExceedHeight(
+      textToCheck,
+      containerWidth,
+      containerHeight,
+      textSizeleft,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
     );
 
-    // Always allow if line count is decreasing (backspace/delete) or staying the same
-    if (totalLineCount <= currentTotalLineCount) {
-      setTempTextLeft(newText);
+    // Check if current text already exceeds (allow deletion)
+    const currentExceedsHeight = wouldExceedHeight(
+      currentText,
+      containerWidth,
+      containerHeight,
+      textSizeleft,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
+    );
+
+    // Allow if text is getting shorter or current already exceeds
+    if (textToCheck.length <= currentText.length || currentExceedsHeight) {
+      // If hyphenation was applied, use the processed text
+      if (processedText !== newText) {
+        setTempTextLeft(processedText);
+        // Update cursor position after hyphenation
+        setTimeout(() => {
+          if (textarea) {
+            textarea.value = processedText;
+          }
+        }, 0);
+      } else {
+        setTempTextLeft(newText);
+      }
       return;
     }
 
-    // Only prevent if line count is increasing AND would exceed maxLines
-    if (totalLineCount > maxLines) {
-      // Immediately restore previous value to prevent the change
+    // Prevent if would exceed container height
+    if (exceedsHeight) {
       const cursorPos = textarea.selectionStart ?? 0;
       const savedCursorPos = Math.max(
         0,
         Math.min(cursorPos - 1, currentText.length),
       );
 
-      // Restore value immediately
       textarea.value = currentText;
       textarea.setSelectionRange(savedCursorPos, savedCursorPos);
 
-      // Prevent typing and show toast notification
-      toast.error(`Maximum ${maxLines} lines allowed`, {
+      toast.error('Text exceeds the available space', {
         duration: 2000,
         position: 'top-center',
       });
-
-      // Don't update state - keep the old value
       return;
     }
 
-    setTempTextLeft(newText);
+    // If hyphenation was applied, use the processed text
+    if (processedText !== newText) {
+      setTempTextLeft(processedText);
+      setTimeout(() => {
+        if (textarea) {
+          textarea.value = processedText;
+        }
+      }, 0);
+    } else {
+      setTempTextLeft(newText);
+    }
   };
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -665,74 +789,93 @@ const HtmlComponent = ({
     const currentText = tempTextRight;
     const textarea = e.target;
 
-    // Get the actual width of the textarea (accounting for padding)
-    const textareaWidth = textarea.offsetWidth - 4; // Subtract padding
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.right?.width || 100;
+    const containerHeight = ImprintTextPosition?.right?.height || 100;
     const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || '2.8rem';
+    const widthPx = parseToPixels(containerWidth);
 
-    // Check both explicit line breaks and actual rendered lines (with word wrapping)
-    const explicitLineCount = getLineCount(newText);
-    const actualLineCount = getActualLineCount(
+    // Process text with hyphenation for long words
+    const processedText = processTextWithHyphenation(
       newText,
-      textareaWidth,
+      widthPx - 4, // Account for padding
       textSizeRight,
       fontFamily,
-      lineHeightNum,
-      'uppercase',
       letterSpacing,
+      'uppercase',
     );
 
-    // Use the maximum of explicit lines or actual rendered lines
-    const totalLineCount = Math.max(explicitLineCount, actualLineCount);
-    const currentTotalLineCount = Math.max(
-      getLineCount(currentText),
-      getActualLineCount(
-        currentText,
-        textareaWidth,
-        textSizeRight,
-        fontFamily,
-        lineHeightNum,
-        'uppercase',
-        letterSpacing,
-      ),
+    // Check if text (or processed text) would exceed container height
+    const textToCheck = processedText !== newText ? processedText : newText;
+    const exceedsHeight = wouldExceedHeight(
+      textToCheck,
+      containerWidth,
+      containerHeight,
+      textSizeRight,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
     );
 
-    // Always allow if line count is decreasing (backspace/delete) or staying the same
-    if (totalLineCount <= currentTotalLineCount) {
-      setTempTextRight(newText);
+    // Check if current text already exceeds (allow deletion)
+    const currentExceedsHeight = wouldExceedHeight(
+      currentText,
+      containerWidth,
+      containerHeight,
+      textSizeRight,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
+    );
+
+    // Allow if text is getting shorter or current already exceeds
+    if (textToCheck.length <= currentText.length || currentExceedsHeight) {
+      // If hyphenation was applied, use the processed text
+      if (processedText !== newText) {
+        setTempTextRight(processedText);
+        setTimeout(() => {
+          if (textarea) {
+            textarea.value = processedText;
+          }
+        }, 0);
+      } else {
+        setTempTextRight(newText);
+      }
       return;
     }
 
-    // Only prevent if line count is increasing AND would exceed maxLines
-    if (totalLineCount > maxLines) {
-      // Immediately restore previous value to prevent the change
+    // Prevent if would exceed container height
+    if (exceedsHeight) {
       const cursorPos = textarea.selectionStart ?? 0;
       const savedCursorPos = Math.max(
         0,
         Math.min(cursorPos - 1, currentText.length),
       );
 
-      // Restore value immediately
       textarea.value = currentText;
       textarea.setSelectionRange(savedCursorPos, savedCursorPos);
 
-      // Prevent typing and show toast notification
-      toast.error(`Maximum ${maxLines} lines allowed`, {
+      toast.error('Text exceeds the available space', {
         duration: 2000,
         position: 'top-center',
       });
-
-      // Don't update state - keep the old value
       return;
     }
 
-    setTempTextRight(newText);
+    // If hyphenation was applied, use the processed text
+    if (processedText !== newText) {
+      setTempTextRight(processedText);
+      setTimeout(() => {
+        if (textarea) {
+          textarea.value = processedText;
+        }
+      }, 0);
+    } else {
+      setTempTextRight(newText);
+    }
   };
 
   const handleLeftTextBlur = () => {
@@ -765,31 +908,38 @@ const HtmlComponent = ({
     const textAfter = currentValue.substring(selectionEnd);
     const newText = textBefore + pastedText + textAfter;
 
-    const textareaWidth = textarea.offsetWidth - 4;
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.left?.width || 100;
+    const containerHeight = ImprintTextPosition?.left?.height || 100;
     const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
-    const explicitLineCount = getLineCount(newText);
-    const actualLineCount = getActualLineCount(
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || '2.8rem';
+    const widthPx = parseToPixels(containerWidth);
+
+    // Process text with hyphenation for long words
+    const processedText = processTextWithHyphenation(
       newText,
-      textareaWidth,
+      widthPx - 4,
       textSizeleft,
       fontFamily,
-      lineHeightNum,
-      'uppercase',
       letterSpacing,
+      'uppercase',
     );
-    const newLineCount = Math.max(explicitLineCount, actualLineCount);
 
-    // If pasted text would exceed maxLines, prevent it
-    if (newLineCount > maxLines) {
+    // Check if would exceed container height
+    const exceedsHeight = wouldExceedHeight(
+      processedText,
+      containerWidth,
+      containerHeight,
+      textSizeleft,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
+    );
+
+    if (exceedsHeight) {
       e.preventDefault();
-      toast.error(`Maximum ${maxLines} lines allowed`, {
+      toast.error('Pasted text exceeds the available space', {
         duration: 2000,
         position: 'top-center',
       });
@@ -801,28 +951,6 @@ const HtmlComponent = ({
   ) => {
     const textarea = e.currentTarget;
     const currentValue = textarea.value;
-    const textareaWidth = textarea.offsetWidth - 4;
-    const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.left?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
-
-    // Get both explicit and actual line counts
-    const explicitLineCount = getLineCount(currentValue);
-    const actualLineCount = getActualLineCount(
-      currentValue,
-      textareaWidth,
-      textSizeleft,
-      fontFamily,
-      lineHeightNum,
-      'uppercase',
-      letterSpacing,
-    );
-    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // Always allow backspace, delete, and other control keys
     if (
@@ -845,52 +973,76 @@ const HtmlComponent = ({
       return;
     }
 
-    // Handle Enter key - allow manual line breaks
-    if (e.key === 'Enter') {
-      // Prevent Enter if already at maxLines (would create one more line)
-      if (currentLineCount >= maxLines) {
-        e.preventDefault();
-        toast.error(`Maximum ${maxLines} lines allowed`, {
-          duration: 2000,
-          position: 'top-center',
-        });
-        return;
-      }
-      // Otherwise, let Enter work naturally - it will insert \n
-      return;
-    }
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.left?.width || 100;
+    const containerHeight = ImprintTextPosition?.left?.height || 100;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.left?.lineHeight || '2.8rem';
 
-    // For any other key input (regular typing), check if we're at maxLines
-    // If we're at maxLines, prevent any new character input that would exceed limit
-    if (currentLineCount >= maxLines) {
-      // Check if this input would create a new line
-      // Get the current cursor position
+    // Handle Enter key - check if adding a new line would exceed height
+    if (e.key === 'Enter') {
       const cursorPos = textarea.selectionStart ?? 0;
       const textBeforeCursor = currentValue.substring(0, cursorPos);
       const textAfterCursor = currentValue.substring(cursorPos);
+      const newText = textBeforeCursor + '\n' + textAfterCursor;
 
-      // Calculate what the new text would be
-      const newText = textBeforeCursor + e.key + textAfterCursor;
-      const newExplicitLineCount = getLineCount(newText);
-      const newActualLineCount = getActualLineCount(
+      const exceedsHeight = wouldExceedHeight(
         newText,
-        textareaWidth,
+        containerWidth,
+        containerHeight,
         textSizeleft,
         fontFamily,
-        lineHeightNum,
-        'uppercase',
+        lineHeightValue,
         letterSpacing,
+        'uppercase',
       );
-      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
 
-      // If it would exceed maxLines, prevent it
-      if (newLineCount > maxLines) {
+      if (exceedsHeight) {
         e.preventDefault();
-        toast.error(`Maximum ${maxLines} lines allowed`, {
+        toast.error('Text exceeds the available space', {
           duration: 2000,
           position: 'top-center',
         });
-        return;
+      }
+      return;
+    }
+
+    // For regular character input, check if it would exceed height
+    // Only check for single printable characters (length === 1)
+    if (e.key.length === 1) {
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+      const widthPx = parseToPixels(containerWidth);
+
+      // Process with hyphenation
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const processedText = processTextWithHyphenation(
+        newText,
+        widthPx - 4,
+        textSizeleft,
+        fontFamily,
+        letterSpacing,
+        'uppercase',
+      );
+
+      const exceedsHeight = wouldExceedHeight(
+        processedText,
+        containerWidth,
+        containerHeight,
+        textSizeleft,
+        fontFamily,
+        lineHeightValue,
+        letterSpacing,
+        'uppercase',
+      );
+
+      if (exceedsHeight) {
+        e.preventDefault();
+        toast.error('Text exceeds the available space', {
+          duration: 2000,
+          position: 'top-center',
+        });
       }
     }
   };
@@ -909,31 +1061,38 @@ const HtmlComponent = ({
     const textAfter = currentValue.substring(selectionEnd);
     const newText = textBefore + pastedText + textAfter;
 
-    const textareaWidth = textarea.offsetWidth - 4;
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.right?.width || 100;
+    const containerHeight = ImprintTextPosition?.right?.height || 100;
     const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
-    const explicitLineCount = getLineCount(newText);
-    const actualLineCount = getActualLineCount(
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || '2.8rem';
+    const widthPx = parseToPixels(containerWidth);
+
+    // Process text with hyphenation for long words
+    const processedText = processTextWithHyphenation(
       newText,
-      textareaWidth,
+      widthPx - 4,
       textSizeRight,
       fontFamily,
-      lineHeightNum,
-      'uppercase',
       letterSpacing,
+      'uppercase',
     );
-    const newLineCount = Math.max(explicitLineCount, actualLineCount);
 
-    // If pasted text would exceed maxLines, prevent it
-    if (newLineCount > maxLines) {
+    // Check if would exceed container height
+    const exceedsHeight = wouldExceedHeight(
+      processedText,
+      containerWidth,
+      containerHeight,
+      textSizeRight,
+      fontFamily,
+      lineHeightValue,
+      letterSpacing,
+      'uppercase',
+    );
+
+    if (exceedsHeight) {
       e.preventDefault();
-      toast.error(`Maximum ${maxLines} lines allowed`, {
+      toast.error('Pasted text exceeds the available space', {
         duration: 2000,
         position: 'top-center',
       });
@@ -945,28 +1104,6 @@ const HtmlComponent = ({
   ) => {
     const textarea = e.currentTarget;
     const currentValue = textarea.value;
-    const textareaWidth = textarea.offsetWidth - 4;
-    const lineHeightValue =
-      customLineHeight || ImprintTextPosition?.right?.lineHeight || 2.8;
-    const lineHeightNum =
-      typeof lineHeightValue === 'number'
-        ? lineHeightValue
-        : parseFloat(
-            String(lineHeightValue).replace('px', '').replace('rem', ''),
-          ) * (String(lineHeightValue).includes('rem') ? 16 : 1);
-
-    // Get both explicit and actual line counts
-    const explicitLineCount = getLineCount(currentValue);
-    const actualLineCount = getActualLineCount(
-      currentValue,
-      textareaWidth,
-      textSizeRight,
-      fontFamily,
-      lineHeightNum,
-      'uppercase',
-      letterSpacing,
-    );
-    const currentLineCount = Math.max(explicitLineCount, actualLineCount);
 
     // Always allow backspace, delete, and other control keys
     if (
@@ -989,63 +1126,89 @@ const HtmlComponent = ({
       return;
     }
 
-    // Handle Enter key - allow manual line breaks
-    if (e.key === 'Enter') {
-      // Prevent Enter if already at maxLines (would create one more line)
-      if (currentLineCount >= maxLines) {
-        e.preventDefault();
-        toast.error(`Maximum ${maxLines} lines allowed`, {
-          duration: 2000,
-          position: 'top-center',
-        });
-        return;
-      }
-      // Otherwise, let Enter work naturally - it will insert \n
-      return;
-    }
+    // Get container dimensions
+    const containerWidth = ImprintTextPosition?.right?.width || 100;
+    const containerHeight = ImprintTextPosition?.right?.height || 100;
+    const lineHeightValue =
+      customLineHeight || ImprintTextPosition?.right?.lineHeight || '2.8rem';
 
-    // For any other key input (regular typing), check if we're at maxLines
-    // If we're at maxLines, prevent any new character input that would exceed limit
-    if (currentLineCount >= maxLines) {
-      // Check if this input would create a new line
-      // Get the current cursor position
+    // Handle Enter key - check if adding a new line would exceed height
+    if (e.key === 'Enter') {
       const cursorPos = textarea.selectionStart ?? 0;
       const textBeforeCursor = currentValue.substring(0, cursorPos);
       const textAfterCursor = currentValue.substring(cursorPos);
+      const newText = textBeforeCursor + '\n' + textAfterCursor;
 
-      // Calculate what the new text would be
-      const newText = textBeforeCursor + e.key + textAfterCursor;
-      const newExplicitLineCount = getLineCount(newText);
-      const newActualLineCount = getActualLineCount(
+      const exceedsHeight = wouldExceedHeight(
         newText,
-        textareaWidth,
+        containerWidth,
+        containerHeight,
         textSizeRight,
         fontFamily,
-        lineHeightNum,
-        'uppercase',
+        lineHeightValue,
         letterSpacing,
+        'uppercase',
       );
-      const newLineCount = Math.max(newExplicitLineCount, newActualLineCount);
 
-      // If it would exceed maxLines, prevent it
-      if (newLineCount > maxLines) {
+      if (exceedsHeight) {
         e.preventDefault();
-        toast.error(`Maximum ${maxLines} lines allowed`, {
+        toast.error('Text exceeds the available space', {
           duration: 2000,
           position: 'top-center',
         });
-        return;
+      }
+      return;
+    }
+
+    // For regular character input, check if it would exceed height
+    // Only check for single printable characters (length === 1)
+    if (e.key.length === 1) {
+      const cursorPos = textarea.selectionStart ?? 0;
+      const textBeforeCursor = currentValue.substring(0, cursorPos);
+      const textAfterCursor = currentValue.substring(cursorPos);
+      const widthPx = parseToPixels(containerWidth);
+
+      // Process with hyphenation
+      const newText = textBeforeCursor + e.key + textAfterCursor;
+      const processedText = processTextWithHyphenation(
+        newText,
+        widthPx - 4,
+        textSizeRight,
+        fontFamily,
+        letterSpacing,
+        'uppercase',
+      );
+
+      const exceedsHeight = wouldExceedHeight(
+        processedText,
+        containerWidth,
+        containerHeight,
+        textSizeRight,
+        fontFamily,
+        lineHeightValue,
+        letterSpacing,
+        'uppercase',
+      );
+
+      if (exceedsHeight) {
+        e.preventDefault();
+        toast.error('Text exceeds the available space', {
+          duration: 2000,
+          position: 'top-center',
+        });
       }
     }
   };
 
-  const sharedTextStyle = {
+  const sharedTextStyle: React.CSSProperties = {
     fontSize: textSizeleft,
     fontFamily,
     textTransform: 'uppercase',
     lineHeight: customLineHeight
       ? `${customLineHeight}`
-      : `${ImprintTextPosition.left.lineHeight}px`,
+      : ImprintTextPosition.left.lineHeight
+      ? `${ImprintTextPosition.left.lineHeight}`
+      : '2.8rem',
     textAlign: textAlignment,
     fontWeight: textBold ? 'bold' : 'normal',
     fontStyle: textItalic ? 'italic' : 'normal',

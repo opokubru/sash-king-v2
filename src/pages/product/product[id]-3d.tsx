@@ -535,21 +535,6 @@ const ConfiguratorUnisex3D = () => {
   ];
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
 
-  // Advanced text styling (kept for HtmlComponent compatibility, but not used in simplified UI)
-  const [textAlignment] = useState<'left' | 'center' | 'right' | 'justify'>(
-    'center',
-  );
-  const [textBold] = useState(false);
-  const [textItalic] = useState(false);
-  const [textUnderline] = useState(false);
-  const [letterSpacing] = useState(0);
-  const [lineHeight] = useState(1.2);
-
-  // Position controls (kept for HtmlComponent compatibility, but not used in simplified UI)
-  const [positionX] = useState(0);
-  const [positionY] = useState(0);
-  const [rotationAngle] = useState(0);
-
   // Dragging state
   const [enableDragging] = useState(false);
 
@@ -587,75 +572,39 @@ const ConfiguratorUnisex3D = () => {
   };
 
   const ImprintTextPosition = useMemo(() => {
-    const baseLeft = {
-      text: enteredTextLeft,
-      top: selectedClothing?.positioningLeft?.text.top,
-      left: selectedClothing?.positioningLeft?.text.left,
-      height: selectedClothing?.positioningLeft?.text.height,
-      width: selectedClothing?.positioningLeft?.text.width,
-      lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
-      image: {
-        top: selectedClothing?.positioningLeft?.image.top,
-        left: selectedClothing?.positioningLeft?.image.left,
-        height: selectedClothing?.positioningLeft?.image.height,
-        width: selectedClothing?.positioningLeft?.image.width,
-      },
-      size: selectedClothing?.positioningLeft?.text?.size || 12,
-    };
-
-    const baseRight = {
-      text: enteredTextRight,
-      top: selectedClothing?.positioningRight?.text.top,
-      left: selectedClothing?.positioningRight?.text.left,
-      height: selectedClothing?.positioningRight?.text.height,
-      width: selectedClothing?.positioningRight?.text.width,
-      lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
-      image: {
-        top: selectedClothing?.positioningRight?.image.top,
-        left: selectedClothing?.positioningRight?.image.left,
-        height: selectedClothing?.positioningRight?.image.height,
-        width: selectedClothing?.positioningRight?.image.width,
-      },
-      size: selectedClothing?.positioningRight?.text.size || 12,
-    };
-
-    // Apply custom positioning if editing
-    if (editingText === 'left') {
-      return {
-        left: {
-          ...baseLeft,
-          left: positionX !== 0 ? `${positionX}px` : baseLeft.left,
-          top: positionY !== 0 ? `${positionY}px` : baseLeft.top,
-          lineHeight: lineHeight || baseLeft.lineHeight,
-        },
-        right: baseRight,
-      };
-    } else if (editingText === 'right') {
-      return {
-        left: baseLeft,
-        right: {
-          ...baseRight,
-          left: positionX !== 0 ? `${positionX}px` : baseRight.left,
-          top: positionY !== 0 ? `${positionY}px` : baseRight.top,
-          lineHeight: lineHeight || baseRight.lineHeight,
-        },
-      };
-    }
-
     return {
-      left: baseLeft,
-      right: baseRight,
+      left: {
+        text: enteredTextLeft,
+        top: selectedClothing?.positioningLeft?.text.top,
+        left: selectedClothing?.positioningLeft?.text.left,
+        height: selectedClothing?.positioningLeft?.text.height,
+        width: selectedClothing?.positioningLeft?.text.width,
+        lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningLeft?.image.top,
+          left: selectedClothing?.positioningLeft?.image.left,
+          height: selectedClothing?.positioningLeft?.image.height,
+          width: selectedClothing?.positioningLeft?.image.width,
+        },
+        size: selectedClothing?.positioningLeft?.text?.size || 12,
+      },
+      right: {
+        text: enteredTextRight,
+        top: selectedClothing?.positioningRight?.text.top,
+        left: selectedClothing?.positioningRight?.text.left,
+        height: selectedClothing?.positioningRight?.text.height,
+        width: selectedClothing?.positioningRight?.text.width,
+        lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningRight?.image.top,
+          left: selectedClothing?.positioningRight?.image.left,
+          height: selectedClothing?.positioningRight?.image.height,
+          width: selectedClothing?.positioningRight?.image.width,
+        },
+        size: selectedClothing?.positioningRight?.text.size || 12,
+      },
     };
-  }, [
-    selectedClothing?.positioningLeft,
-    selectedClothing?.positioningRight,
-    enteredTextLeft,
-    enteredTextRight,
-    editingText,
-    positionX,
-    positionY,
-    lineHeight,
-  ]);
+  }, [selectedClothing?.name, enteredTextLeft, enteredTextRight]);
 
   // Initialize font sizes from selectedClothing defaults
   const [fontSizeLeft, setFontSizeLeft] = useState(
@@ -1330,33 +1279,22 @@ const ConfiguratorUnisex3D = () => {
                         <HtmlComponent
                           textLeft={enteredTextLeft}
                           textRight={enteredTextRight}
-                          textColor={
-                            editingText &&
-                            !colorOptions.find((c) => c.label === textColor)
-                              ? textColor
-                              : colorOptions.find((c) => c.label === textColor)
-                                  ?.color || textColor
-                          }
-                          textSizeleft={fontSizeLeft}
-                          textSizeRight={fontSizeRight}
+                          textColor={textColor}
+                          textSizeleft={fontSizeLeft as number}
+                          textSizeRight={fontSizeRight as number}
                           fontFamily={fontFamily}
                           textLeftRotate={
-                            editingText === 'left' && rotationAngle !== 0
-                              ? rotationAngle
-                              : selectedClothing?.positioningLeft?.text
-                                  ?.rotate || 0
+                            selectedClothing?.positioningLeft?.text?.rotate
                           }
                           textRightRotate={
-                            editingText === 'right' && rotationAngle !== 0
-                              ? rotationAngle
-                              : selectedClothing?.positioningRight?.text
-                                  ?.rotate || 0
+                            selectedClothing?.positioningRight?.text?.rotate
                           }
+                          // textLeftOrientation={textLeftOrientation}
+                          // textRightOrientation={textRightOrientation}
+
                           ImprintTextPosition={ImprintTextPosition as any}
                           hideRightText={
-                            selectedClothing?.name?.includes(
-                              'Beads Bracelet',
-                            ) || false
+                            selectedClothing?.name === 'Beads Bracelet'
                           }
                           onTextLeftChange={setEnteredTextLeft}
                           onTextRightChange={setEnteredTextRight}
@@ -1372,14 +1310,7 @@ const ConfiguratorUnisex3D = () => {
                           disableInteractions={
                             showTextEditor || showInstructions
                           }
-                          textBold={textBold}
-                          textItalic={textItalic}
-                          textUnderline={textUnderline}
-                          textAlignment={textAlignment}
-                          letterSpacing={letterSpacing}
-                          customLineHeight={lineHeight}
-                          enableDragging={enableDragging}
-                          maxLines={9}
+                          textAlignment="center"
                         />
                         <HtmlImageComponent
                           ImprintTextPosition={ImprintTextPosition as any}
