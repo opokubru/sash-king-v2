@@ -1039,6 +1039,24 @@ const HtmlComponent = ({
     }
   };
 
+  const sharedTextStyle = {
+    fontSize: textSizeleft,
+    fontFamily,
+    textTransform: 'uppercase',
+    lineHeight: customLineHeight
+      ? `${customLineHeight}`
+      : `${ImprintTextPosition.left.lineHeight}px`,
+    textAlign: textAlignment,
+    fontWeight: textBold ? 'bold' : 'normal',
+    fontStyle: textItalic ? 'italic' : 'normal',
+    textDecoration: textUnderline ? 'underline' : 'none',
+    letterSpacing: `${letterSpacing}px`,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
+    boxSizing: 'border-box',
+  };
+
   return (
     <Html
       className={disableInteractions ? 'html-disabled' : ''}
@@ -1245,65 +1263,28 @@ const HtmlComponent = ({
               onClick={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               style={{
+                ...sharedTextStyle,
                 background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                borderRadius: '4px',
-                padding: '0',
-                margin: '0',
-                fontSize: textSizeleft,
-                fontFamily: fontFamily,
-                textTransform: 'uppercase',
+                border: '2px solid transparent',
+                padding: 0,
+                margin: 0,
                 width: '100%',
                 height: '100%',
-                color: textColor,
                 resize: 'none',
-                overflow: 'hidden',
-                wordWrap: 'break-word',
-                overflowWrap: 'break-word',
-                wordBreak: 'normal',
-                whiteSpace: 'pre-wrap',
-                lineHeight: customLineHeight
-                  ? `${customLineHeight}`
-                  : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                textAlign: textAlignment,
-                fontWeight: textBold ? 'bold' : 'normal',
-                fontStyle: textItalic ? 'italic' : 'normal',
-                textDecoration: textUnderline ? 'underline' : 'none',
-                letterSpacing: `${letterSpacing}px`,
-                display: 'block',
-                boxSizing: 'border-box',
-                caretColor: textColor,
-                WebkitTapHighlightColor: 'transparent',
+                color: textColor,
               }}
             />
           ) : (
             <div
               style={{
+                ...sharedTextStyle,
                 width: '100%',
                 height: '100%',
-                textAlign: textAlignment,
-                lineHeight: customLineHeight
-                  ? `${customLineHeight}`
-                  : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                wordWrap: 'normal',
-                overflowWrap: 'normal',
-                wordBreak: 'normal',
-                whiteSpace: textLeft !== '' ? 'pre' : 'normal',
-                display: 'block',
-                fontWeight: textBold ? 'bold' : 'normal',
-                fontStyle: textItalic ? 'italic' : 'normal',
-                textDecoration: textUnderline ? 'underline' : 'none',
-                letterSpacing: `${letterSpacing}px`,
+                border: '2px solid transparent',
+                color: textColor,
               }}
               dangerouslySetInnerHTML={{
-                __html: hideRightText
-                  ? textLeft !== ''
-                    ? textToHtml(textLeft)
-                    : 'TAP TO ADD TEXT'
-                  : textLeft !== ''
-                  ? textToHtml(textLeft)
-                  : 'TAP TO ADD TEXT',
+                __html: textToHtml(textLeft || 'TAP TO ADD TEXT'),
               }}
             />
           )}
@@ -1543,21 +1524,36 @@ const HtmlComponent = ({
               ) : (
                 <div
                   style={{
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    borderRadius: '4px',
+                    padding: '0',
+                    margin: '0',
+                    fontSize: textSizeRight,
+                    fontFamily: fontFamily,
+                    textTransform: 'uppercase',
                     width: '100%',
                     height: '100%',
-                    textAlign: textAlignment,
+                    color: textColor,
+                    resize: 'none',
+                    overflow: 'hidden',
+                    wordWrap: 'break-word',
+                    overflowWrap: 'break-word',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre-wrap',
                     lineHeight: customLineHeight
                       ? `${customLineHeight}`
                       : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
-                    wordWrap: 'normal',
-                    overflowWrap: 'normal',
-                    wordBreak: 'normal',
-                    whiteSpace: textRight !== '' ? 'pre' : 'normal',
-                    display: 'block',
+                    textAlign: textAlignment,
                     fontWeight: textBold ? 'bold' : 'normal',
                     fontStyle: textItalic ? 'italic' : 'normal',
                     textDecoration: textUnderline ? 'underline' : 'none',
                     letterSpacing: `${letterSpacing}px`,
+                    display: 'block',
+                    boxSizing: 'border-box',
+                    caretColor: textColor,
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                   dangerouslySetInnerHTML={{
                     __html:

@@ -12,8 +12,6 @@ import 'primeicons/primeicons.css';
 // import { Link } from "react-router-dom";
 // import { InputText } from 'primereact/inputtext';
 
-import html2canvas from 'html2canvas';
-
 import { Dialog } from 'primereact/dialog';
 // import './styles.css';
 import { useParams, useNavigate } from 'react-router';
@@ -254,10 +252,12 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   const captureCanvasAsImage = async () => {
+    // Deactivate all editing mode first
+    setEditingText(null);
+    setShowTextEditor(false);
     console.log('captureCanvasAsImage started');
 
     try {
-      // Use the container ref which wraps the Canvas
       const containerElement = canvasContainerRef.current;
 
       if (!containerElement) {
@@ -265,16 +265,63 @@ const ConfiguratorUnisexSpecial = () => {
         return;
       }
 
-      console.log('Capturing image...');
-      const canvasImage = await html2canvas(containerElement, {
-        allowTaint: true,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scale: 1,
-      });
+      // Use getDisplayMedia to capture the current tab
+      // preferCurrentTab + selfBrowserSurface helps Chrome auto-select current tab
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: 'browser',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        preferCurrentTab: true,
+        selfBrowserSurface: 'include',
+        systemAudio: 'exclude',
+        surfaceSwitching: 'exclude',
+        monitorTypeSurfaces: 'exclude',
+      } as any);
 
+      // Create video element to capture frame
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+
+      // Wait a frame for the video to be ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Get container position and dimensions
+      const rect = containerElement.getBoundingClientRect();
+      const scale = window.devicePixelRatio || 1;
+
+      // Create canvas to capture the frame
+      const canvas = document.createElement('canvas');
+      canvas.width = rect.width * scale;
+      canvas.height = rect.height * scale;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        stream.getTracks().forEach((track) => track.stop());
+        console.error('Could not get 2D context');
+        return;
+      }
+
+      // Draw the cropped region from the video
+      ctx.drawImage(
+        video,
+        rect.left * scale,
+        rect.top * scale,
+        rect.width * scale,
+        rect.height * scale,
+        0,
+        0,
+        rect.width * scale,
+        rect.height * scale,
+      );
+
+      // Stop the stream
+      stream.getTracks().forEach((track) => track.stop());
+
+      const dataUrl = canvas.toDataURL('image/png');
       console.log('Image captured successfully');
-      const dataUrl = canvasImage.toDataURL();
 
       // Convert blob URLs to data URLs for uploaded images
       let uploadedImageLeftDataUrl = '';
@@ -485,7 +532,7 @@ const ConfiguratorUnisexSpecial = () => {
                       damping: 25,
                       stiffness: 200,
                     }}
-                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container max-w-2xl mx-auto"
                     onClick={(e) => e.stopPropagation()}
                     style={{ zIndex: 999999 }}
                   >
@@ -863,7 +910,7 @@ const ConfiguratorUnisexSpecial = () => {
                     damping: 25,
                     stiffness: 200,
                   }}
-                  className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                  className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container max-w-2xl mx-auto"
                   onClick={(e) => e.stopPropagation()}
                   style={{ zIndex: 999999 }}
                 >
