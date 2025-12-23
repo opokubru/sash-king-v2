@@ -12,8 +12,6 @@ import 'primeicons/primeicons.css';
 
 import { state } from '@/lib/store';
 
-import html2canvas from 'html2canvas';
-
 import { Dialog } from 'primereact/dialog';
 import { useParams, useNavigate } from 'react-router';
 
@@ -251,8 +249,29 @@ const Shirt = ({
       return () => clearTimeout(highlightTimeout);
     }, 2000);
 
-    // Initialize and assign default colors on load
-    if (selectedClothing?.myNode && state.color) {
+    // Check if we have restored colors from sessionStorage
+    const storedData = sessionStorage.getItem('orderData');
+    let hasRestoredColors = false;
+    if (storedData) {
+      try {
+        const orderData = JSON.parse(storedData);
+        // Only use restored colors if it's the same product and colors exist
+        if (
+          orderData.productId === selectedClothing?.id &&
+          orderData.meshColors &&
+          Array.isArray(orderData.meshColors) &&
+          orderData.meshColors.length > 0
+        ) {
+          hasRestoredColors = true;
+          (state.color as any) = orderData.meshColors;
+        }
+      } catch (error) {
+        console.error('Error checking restored colors:', error);
+      }
+    }
+
+    // Initialize and assign default colors on load (only if no restored colors)
+    if (!hasRestoredColors && selectedClothing?.myNode && state.color) {
       const nodeCount = selectedClothing.myNode.length;
 
       // Ensure color array is properly initialized
@@ -537,21 +556,6 @@ const ConfiguratorUnisex3D = () => {
   ];
   const [currentFontIndex, setCurrentFontIndex] = useState(0);
 
-  // Advanced text styling (kept for HtmlComponent compatibility, but not used in simplified UI)
-  const [textAlignment] = useState<'left' | 'center' | 'right' | 'justify'>(
-    'center',
-  );
-  const [textBold] = useState(false);
-  const [textItalic] = useState(false);
-  const [textUnderline] = useState(false);
-  const [letterSpacing] = useState(0);
-  const [lineHeight] = useState(1.2);
-
-  // Position controls (kept for HtmlComponent compatibility, but not used in simplified UI)
-  const [positionX] = useState(0);
-  const [positionY] = useState(0);
-  const [rotationAngle] = useState(0);
-
   // Dragging state
   const [enableDragging] = useState(false);
 
@@ -589,75 +593,39 @@ const ConfiguratorUnisex3D = () => {
   };
 
   const ImprintTextPosition = useMemo(() => {
-    const baseLeft = {
-      text: enteredTextLeft,
-      top: selectedClothing?.positioningLeft?.text.top,
-      left: selectedClothing?.positioningLeft?.text.left,
-      height: selectedClothing?.positioningLeft?.text.height,
-      width: selectedClothing?.positioningLeft?.text.width,
-      lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
-      image: {
-        top: selectedClothing?.positioningLeft?.image.top,
-        left: selectedClothing?.positioningLeft?.image.left,
-        height: selectedClothing?.positioningLeft?.image.height,
-        width: selectedClothing?.positioningLeft?.image.width,
-      },
-      size: selectedClothing?.positioningLeft?.text?.size || 12,
-    };
-
-    const baseRight = {
-      text: enteredTextRight,
-      top: selectedClothing?.positioningRight?.text.top,
-      left: selectedClothing?.positioningRight?.text.left,
-      height: selectedClothing?.positioningRight?.text.height,
-      width: selectedClothing?.positioningRight?.text.width,
-      lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
-      image: {
-        top: selectedClothing?.positioningRight?.image.top,
-        left: selectedClothing?.positioningRight?.image.left,
-        height: selectedClothing?.positioningRight?.image.height,
-        width: selectedClothing?.positioningRight?.image.width,
-      },
-      size: selectedClothing?.positioningRight?.text.size || 12,
-    };
-
-    // Apply custom positioning if editing
-    if (editingText === 'left') {
-      return {
-        left: {
-          ...baseLeft,
-          left: positionX !== 0 ? `${positionX}px` : baseLeft.left,
-          top: positionY !== 0 ? `${positionY}px` : baseLeft.top,
-          lineHeight: lineHeight || baseLeft.lineHeight,
-        },
-        right: baseRight,
-      };
-    } else if (editingText === 'right') {
-      return {
-        left: baseLeft,
-        right: {
-          ...baseRight,
-          left: positionX !== 0 ? `${positionX}px` : baseRight.left,
-          top: positionY !== 0 ? `${positionY}px` : baseRight.top,
-          lineHeight: lineHeight || baseRight.lineHeight,
-        },
-      };
-    }
-
     return {
-      left: baseLeft,
-      right: baseRight,
+      left: {
+        text: enteredTextLeft,
+        top: selectedClothing?.positioningLeft?.text.top,
+        left: selectedClothing?.positioningLeft?.text.left,
+        height: selectedClothing?.positioningLeft?.text.height,
+        width: selectedClothing?.positioningLeft?.text.width,
+        lineHeight: selectedClothing?.positioningLeft?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningLeft?.image.top,
+          left: selectedClothing?.positioningLeft?.image.left,
+          height: selectedClothing?.positioningLeft?.image.height,
+          width: selectedClothing?.positioningLeft?.image.width,
+        },
+        size: selectedClothing?.positioningLeft?.text?.size || 12,
+      },
+      right: {
+        text: enteredTextRight,
+        top: selectedClothing?.positioningRight?.text.top,
+        left: selectedClothing?.positioningRight?.text.left,
+        height: selectedClothing?.positioningRight?.text.height,
+        width: selectedClothing?.positioningRight?.text.width,
+        lineHeight: selectedClothing?.positioningRight?.text.lineHeight,
+        image: {
+          top: selectedClothing?.positioningRight?.image.top,
+          left: selectedClothing?.positioningRight?.image.left,
+          height: selectedClothing?.positioningRight?.image.height,
+          width: selectedClothing?.positioningRight?.image.width,
+        },
+        size: selectedClothing?.positioningRight?.text.size || 12,
+      },
     };
-  }, [
-    selectedClothing?.positioningLeft,
-    selectedClothing?.positioningRight,
-    enteredTextLeft,
-    enteredTextRight,
-    editingText,
-    positionX,
-    positionY,
-    lineHeight,
-  ]);
+  }, [selectedClothing?.name, enteredTextLeft, enteredTextRight]);
 
   // Initialize font sizes from selectedClothing defaults
   const [fontSizeLeft, setFontSizeLeft] = useState(
@@ -680,6 +648,41 @@ const ConfiguratorUnisex3D = () => {
     selectedClothing?.positioningLeft?.text?.size,
     selectedClothing?.positioningRight?.text?.size,
   ]);
+
+  // Restore state from sessionStorage when returning from confirmation page
+  useEffect(() => {
+    const storedData = sessionStorage.getItem('orderData');
+    if (storedData) {
+      try {
+        const orderData = JSON.parse(storedData);
+        // Only restore if it's the same product
+        if (orderData.productId === id) {
+          // Restore text
+          if (orderData.textLeft) setEnteredTextLeft(orderData.textLeft);
+          if (orderData.textRight) setEnteredTextRight(orderData.textRight);
+          // Restore styling
+          if (orderData.textColor) setTextColor(orderData.textColor);
+          if (orderData.fontFamily) {
+            setFontFamily(orderData.fontFamily);
+            const fontIndex = fonts.indexOf(orderData.fontFamily);
+            if (fontIndex !== -1) setCurrentFontIndex(fontIndex);
+          }
+          if (orderData.fontSizeLeft) setFontSizeLeft(orderData.fontSizeLeft);
+          if (orderData.fontSizeRight)
+            setFontSizeRight(orderData.fontSizeRight);
+          // Restore images
+          if (orderData.uploadedImageLeft)
+            setUploadedImageLeft(orderData.uploadedImageLeft);
+          if (orderData.uploadedImageRight)
+            setUploadedImageRight(orderData.uploadedImageRight);
+          // Note: Mesh colors are restored in the Shirt component's useEffect
+        }
+      } catch (error) {
+        console.error('Error restoring order data:', error);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // Only run on mount and when product ID changes
 
   const [isLoadingModel, setIsLoadingModel] = useState(true);
 
@@ -769,10 +772,12 @@ const ConfiguratorUnisex3D = () => {
   };
 
   const captureCanvasAsImage = async () => {
+    // deativate all editing mode first
+    setEditingText(null);
+    setShowTextEditor(false);
     console.log('captureCanvasAsImage started');
 
     try {
-      // Use the container ref which wraps the Canvas
       const containerElement = canvasContainerRef.current;
 
       if (!containerElement) {
@@ -780,16 +785,63 @@ const ConfiguratorUnisex3D = () => {
         return;
       }
 
-      console.log('Capturing image...');
-      const canvasImage = await html2canvas(containerElement, {
-        allowTaint: true,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        scale: 1,
-      });
+      // Use getDisplayMedia to capture the current tab
+      // preferCurrentTab + selfBrowserSurface helps Chrome auto-select current tab
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: 'browser',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        preferCurrentTab: true,
+        selfBrowserSurface: 'include',
+        systemAudio: 'exclude',
+        surfaceSwitching: 'exclude',
+        monitorTypeSurfaces: 'exclude',
+      } as any);
 
+      // Create video element to capture frame
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      await video.play();
+
+      // Wait a frame for the video to be ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Get container position and dimensions
+      const rect = containerElement.getBoundingClientRect();
+      const scale = window.devicePixelRatio || 1;
+
+      // Create canvas to capture the frame
+      const canvas = document.createElement('canvas');
+      canvas.width = rect.width * scale;
+      canvas.height = rect.height * scale;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        stream.getTracks().forEach((track) => track.stop());
+        console.error('Could not get 2D context');
+        return;
+      }
+
+      // Draw the cropped region from the video
+      ctx.drawImage(
+        video,
+        rect.left * scale,
+        rect.top * scale,
+        rect.width * scale,
+        rect.height * scale,
+        0,
+        0,
+        rect.width * scale,
+        rect.height * scale,
+      );
+
+      // Stop the stream
+      stream.getTracks().forEach((track) => track.stop());
+
+      const dataUrl = canvas.toDataURL('image/png');
       console.log('Image captured successfully');
-      const dataUrl = canvasImage.toDataURL();
 
       // Convert blob URLs to data URLs for uploaded images
       let uploadedImageLeftDataUrl = '';
@@ -798,7 +850,6 @@ const ConfiguratorUnisex3D = () => {
       if (uploadedImageLeft) {
         try {
           uploadedImageLeftDataUrl = await blobToDataURL(uploadedImageLeft);
-          console.log('Converted left image blob to data URL');
         } catch (error) {
           console.error('Failed to convert left image:', error);
         }
@@ -807,7 +858,6 @@ const ConfiguratorUnisex3D = () => {
       if (uploadedImageRight) {
         try {
           uploadedImageRightDataUrl = await blobToDataURL(uploadedImageRight);
-          console.log('Converted right image blob to data URL');
         } catch (error) {
           console.error('Failed to convert right image:', error);
         }
@@ -815,6 +865,7 @@ const ConfiguratorUnisex3D = () => {
 
       // Store the order data in sessionStorage
       const orderData = {
+        productId: id, // Save product ID for restoration
         currencySymbol,
         total: Number(total),
         readyBy: selectedClothing?.readyIn || 0,
@@ -829,26 +880,15 @@ const ConfiguratorUnisex3D = () => {
         fontSizeRight,
         fontFamily,
         textColor,
+        meshColors: state.color ? [...(state.color as string[])] : [], // Save mesh colors
       };
 
       sessionStorage.setItem('orderData', JSON.stringify(orderData));
-      console.log('Order data stored, navigating to confirmation...');
-
-      // Navigate to confirmation page
       navigate('/confirmation');
     } catch (error) {
       console.error('Error capturing canvas:', error);
     }
   };
-
-  // Create a state object to store the form field values
-
-  // Handle changes in the size form fields
-
-  // description dialogs
-  // const [selectedTexture, setSelectedTexture] = useState({});
-
-  // parse part title
 
   // Welcome
   const [showTourPopup, setShowTourPopup] = useState(true);
@@ -1040,7 +1080,7 @@ const ConfiguratorUnisex3D = () => {
                       damping: 25,
                       stiffness: 200,
                     }}
-                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container"
+                    className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl bottom-sheet-container max-w-2xl mx-auto"
                     onClick={(e) => e.stopPropagation()}
                     style={{ zIndex: 999999 }}
                   >
@@ -1297,33 +1337,22 @@ const ConfiguratorUnisex3D = () => {
                         <HtmlComponent
                           textLeft={enteredTextLeft}
                           textRight={enteredTextRight}
-                          textColor={
-                            editingText &&
-                            !colorOptions.find((c) => c.label === textColor)
-                              ? textColor
-                              : colorOptions.find((c) => c.label === textColor)
-                                  ?.color || textColor
-                          }
-                          textSizeleft={fontSizeLeft}
-                          textSizeRight={fontSizeRight}
+                          textColor={textColor}
+                          textSizeleft={fontSizeLeft as number}
+                          textSizeRight={fontSizeRight as number}
                           fontFamily={fontFamily}
                           textLeftRotate={
-                            editingText === 'left' && rotationAngle !== 0
-                              ? rotationAngle
-                              : selectedClothing?.positioningLeft?.text
-                                  ?.rotate || 0
+                            selectedClothing?.positioningLeft?.text?.rotate
                           }
                           textRightRotate={
-                            editingText === 'right' && rotationAngle !== 0
-                              ? rotationAngle
-                              : selectedClothing?.positioningRight?.text
-                                  ?.rotate || 0
+                            selectedClothing?.positioningRight?.text?.rotate
                           }
+                          // textLeftOrientation={textLeftOrientation}
+                          // textRightOrientation={textRightOrientation}
+
                           ImprintTextPosition={ImprintTextPosition as any}
                           hideRightText={
-                            selectedClothing?.name?.includes(
-                              'Beads Bracelet',
-                            ) || false
+                            selectedClothing?.name === 'Beads Bracelet'
                           }
                           onTextLeftChange={setEnteredTextLeft}
                           onTextRightChange={setEnteredTextRight}
@@ -1339,14 +1368,7 @@ const ConfiguratorUnisex3D = () => {
                           disableInteractions={
                             showTextEditor || showInstructions
                           }
-                          textBold={textBold}
-                          textItalic={textItalic}
-                          textUnderline={textUnderline}
-                          textAlignment={textAlignment}
-                          letterSpacing={letterSpacing}
-                          customLineHeight={lineHeight}
-                          enableDragging={enableDragging}
-                          maxLines={9}
+                          textAlignment="center"
                         />
                         <HtmlImageComponent
                           ImprintTextPosition={ImprintTextPosition as any}
