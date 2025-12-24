@@ -128,7 +128,7 @@ const Checkout = () => {
           email,
           tel,
           location: city,
-          items: orderItemsWithUrls,
+          // items: orderItemsWithUrls,
           subject: 'New Product Order',
           dateTime: new Date().toLocaleString('en-US', {
             year: 'numeric',
@@ -156,6 +156,9 @@ const Checkout = () => {
           customer: `${firstName} ${lastName}`,
           order: orderItemsWithUrls,
           total_amount: totalAmount,
+          customer_email: email,
+          customer_phone: tel,
+          customer_location: city,
         };
 
         await addOrder(orderData);

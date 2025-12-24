@@ -17,6 +17,7 @@ import ProductionAndReturns from './pages/info_pages/production-and-returns';
 // import Checkout from './pages/checkout/checkout';
 // import AllCategoriesPage from './pages/product/categories';
 import AdminSignInPage from './pages/admin/auth/signin';
+import ResetPasswordPage from './pages/admin/auth/reset-password';
 // import SelectedCategoryPage from './pages/product/categories[id]';
 // import TopDealsPage from './pages/product/top-deals-page';
 // import NewArrivalsPage from './pages/product/new-arrival-page';
@@ -60,6 +61,7 @@ function App() {
             <Route path="admin" element={<AdminPage />} />
             <Route path="admin/orders/:id" element={<OrderViewPage />} />
             <Route path="admin/signin" element={<AdminSignInPage />} />
+            <Route path="admin/reset-password" element={<ResetPasswordPage />} />
 
             {/* View All Pages */}
             <Route path="templated-sash" element={<TemplatedSashesPage />} />
