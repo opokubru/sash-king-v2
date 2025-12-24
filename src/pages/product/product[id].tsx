@@ -263,12 +263,8 @@ const ConfiguratorUnisexSpecial = () => {
     };
   }, [selectedClothing?.name, enteredTextLeft, enteredTextRight]);
 
-  const [fontSizeLeft, setFontSizeLeft] = useState(
-    ImprintTextPosition?.left?.size || 12,
-  );
-  const [fontSizeRight, setFontSizeRight] = useState(
-    ImprintTextPosition?.right?.size || 12,
-  );
+  const [fontSizeLeft, setFontSizeLeft] = useState(9);
+  const [fontSizeRight, setFontSizeRight] = useState(9);
 
   // Restore state from sessionStorage when returning from confirmation page
   useEffect(() => {

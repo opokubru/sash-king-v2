@@ -30,6 +30,7 @@ import TakeTour from '@/components/TakeTour';
 import LoadingAnimation from '@/components/LoadingAnimation';
 import { MeshPartColorPicker } from '@/components/MeshPartColorPicker';
 import toast from 'react-hot-toast';
+import * as htmlToImage from 'html-to-image';
 
 interface ShirtProps {
   isRotating: boolean;
@@ -55,6 +56,7 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
     (node: any) =>
       node.name === 'plain_sections' ||
       node.name === 'plain_section' ||
+      node.name === 'mid_section' ||
       node.name === 'Stripe_1' ||
       node.name === 'stripe_1',
   );
@@ -67,7 +69,11 @@ const assignDefaultColors = (selectedClothing: any, state: any) => {
   if (hasType1Pattern) {
     // Type 1: Arranged to match image pattern - black background with green, yellow, red stripes
     selectedClothing.myNode.forEach((node: any, index: number) => {
-      if (node.name === 'plain_sections' || node.name === 'plain_section') {
+      if (
+        node.name === 'plain_sections' ||
+        node.name === 'plain_section' ||
+        node.name === 'mid_section'
+      ) {
         (state.color as any)[index] = '#000000'; // Black (background/outer section)
       } else if (node.name === 'Stripe_1' || node.name === 'stripe_1') {
         (state.color as any)[index] = '#228B22'; // Forest Green (first stripe)
@@ -578,18 +584,111 @@ const ConfiguratorUnisex3D = () => {
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
+  // Max file size for logo uploads (2MB)
+  const MAX_FILE_SIZE = 2 * 1024 * 1024;
+  // Max dimensions for logo images
+  const MAX_LOGO_DIMENSION = 400;
+  // Max dimensions for captured image
+  const MAX_CAPTURE_DIMENSION = 800;
+
+  // Compress and resize image to reduce storage size
+  const compressImage = (
+    dataUrl: string,
+    maxDimension: number,
+    quality: number = 0.7,
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        let { width, height } = img;
+
+        // Calculate new dimensions maintaining aspect ratio
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = dataUrl;
+    });
+  };
+
+  // Convert file to data URL for better capture compatibility
+  const fileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageUploadLeft = async (file: File) => {
-    setUploadedImageLeft(URL.createObjectURL(file));
-    toast.success(
-      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
-    );
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
+
+    try {
+      // Convert to data URL
+      const dataUrl = await fileToDataURL(file);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageLeft(compressedDataUrl);
+      toast.success(
+        'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+      );
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      toast.error('Failed to upload image');
+    }
   };
 
   const handleImageUploadRight = async (file: File) => {
-    setUploadedImageRight(URL.createObjectURL(file));
-    toast.success(
-      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
-    );
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
+
+    try {
+      // Convert to data URL
+      const dataUrl = await fileToDataURL(file);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageRight(compressedDataUrl);
+      toast.success(
+        'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+      );
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      toast.error('Failed to upload image');
+    }
   };
 
   const ImprintTextPosition = useMemo(() => {
@@ -752,141 +851,145 @@ const ConfiguratorUnisex3D = () => {
 
   // Confrimation or not
 
-  // Helper function to convert blob URL to data URL
-  const blobToDataURL = (blobUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!blobUrl.startsWith('blob:')) {
-        resolve(blobUrl);
-        return;
-      }
-      fetch(blobUrl)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        })
-        .catch(reject);
-    });
-  };
-
   const captureCanvasAsImage = async () => {
-    // deativate all editing mode first
+    if (!canvasContainerRef.current) return;
+
+    // Leave all editing modes
     setEditingText(null);
     setShowTextEditor(false);
-    console.log('captureCanvasAsImage started');
 
     try {
-      const containerElement = canvasContainerRef.current;
+      // Find the WebGL canvas element
+      const webglCanvas = canvasContainerRef.current.querySelector(
+        'canvas',
+      ) as HTMLCanvasElement;
 
-      if (!containerElement) {
-        console.error('Container element not found');
-        return;
+      let finalDataUrl: string;
+
+      if (webglCanvas) {
+        // Wait a moment for the canvas to be fully rendered
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Create a composite canvas
+        const container = canvasContainerRef.current;
+        const rect = container.getBoundingClientRect();
+        const scale = Math.min(2, window.devicePixelRatio || 1);
+
+        const outputCanvas = document.createElement('canvas');
+        outputCanvas.width = rect.width * scale;
+        outputCanvas.height = rect.height * scale;
+        const ctx = outputCanvas.getContext('2d');
+
+        if (ctx) {
+          // Fill with white background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+          // Draw the WebGL canvas (the 3D sash model)
+          ctx.drawImage(
+            webglCanvas,
+            0,
+            0,
+            webglCanvas.width,
+            webglCanvas.height,
+            0,
+            0,
+            outputCanvas.width,
+            outputCanvas.height,
+          );
+
+          // Now capture the HTML overlays (text, logos) with html-to-image
+          try {
+            const overlayDataUrl = await htmlToImage.toPng(container, {
+              cacheBust: true,
+              backgroundColor: 'transparent',
+              filter: (node) => {
+                // Exclude the canvas element since we already captured it
+                return node.tagName !== 'CANVAS';
+              },
+            });
+
+            // Draw the overlays on top
+            const overlayImg = document.createElement('img');
+            await new Promise<void>((resolve, reject) => {
+              overlayImg.onload = () => resolve();
+              overlayImg.onerror = reject;
+              overlayImg.src = overlayDataUrl;
+            });
+            ctx.drawImage(
+              overlayImg,
+              0,
+              0,
+              outputCanvas.width,
+              outputCanvas.height,
+            );
+          } catch (overlayErr) {
+            console.log(
+              'Overlay capture failed, using WebGL canvas only:',
+              overlayErr,
+            );
+          }
+
+          finalDataUrl = outputCanvas.toDataURL('image/jpeg', 0.8);
+        } else {
+          // Fallback to html-to-image if canvas context fails
+          finalDataUrl = await htmlToImage.toJpeg(container, {
+            cacheBust: true,
+            quality: 0.8,
+            backgroundColor: '#ffffff',
+          });
+        }
+      } else {
+        // No WebGL canvas found, use html-to-image directly
+        finalDataUrl = await htmlToImage.toJpeg(canvasContainerRef.current, {
+          cacheBust: true,
+          quality: 0.8,
+          backgroundColor: '#ffffff',
+        });
       }
 
-      // Use getDisplayMedia to capture the current tab
-      // preferCurrentTab + selfBrowserSurface helps Chrome auto-select current tab
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          displaySurface: 'browser',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        preferCurrentTab: true,
-        selfBrowserSurface: 'include',
-        systemAudio: 'exclude',
-        surfaceSwitching: 'exclude',
-        monitorTypeSurfaces: 'exclude',
-      } as any);
-
-      // Create video element to capture frame
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      await video.play();
-
-      // Wait a frame for the video to be ready
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Get container position and dimensions
-      const rect = containerElement.getBoundingClientRect();
-      const scale = window.devicePixelRatio || 1;
-
-      // Create canvas to capture the frame
-      const canvas = document.createElement('canvas');
-      canvas.width = rect.width * scale;
-      canvas.height = rect.height * scale;
-      const ctx = canvas.getContext('2d');
-
-      if (!ctx) {
-        stream.getTracks().forEach((track) => track.stop());
-        console.error('Could not get 2D context');
-        return;
-      }
-
-      // Draw the cropped region from the video
-      ctx.drawImage(
-        video,
-        rect.left * scale,
-        rect.top * scale,
-        rect.width * scale,
-        rect.height * scale,
-        0,
-        0,
-        rect.width * scale,
-        rect.height * scale,
+      // Compress the captured image to fit in sessionStorage
+      const compressedImage = await compressImage(
+        finalDataUrl,
+        MAX_CAPTURE_DIMENSION,
+        0.8,
       );
-
-      // Stop the stream
-      stream.getTracks().forEach((track) => track.stop());
-
-      const dataUrl = canvas.toDataURL('image/png');
-      console.log('Image captured successfully');
-
-      // Convert blob URLs to data URLs for uploaded images
-      let uploadedImageLeftDataUrl = '';
-      let uploadedImageRightDataUrl = '';
-
-      if (uploadedImageLeft) {
-        try {
-          uploadedImageLeftDataUrl = await blobToDataURL(uploadedImageLeft);
-        } catch (error) {
-          console.error('Failed to convert left image:', error);
-        }
-      }
-
-      if (uploadedImageRight) {
-        try {
-          uploadedImageRightDataUrl = await blobToDataURL(uploadedImageRight);
-        } catch (error) {
-          console.error('Failed to convert right image:', error);
-        }
-      }
 
       // Store the order data in sessionStorage
       const orderData = {
-        productId: id, // Save product ID for restoration
+        productId: id,
         currencySymbol,
         total: Number(total),
         readyBy: selectedClothing?.readyIn || 0,
         name: selectedClothing?.name || '',
         textLeft: enteredTextLeft || '',
         textRight: enteredTextRight || '',
-        modelImage: dataUrl,
-        customSizeValues: {},
-        uploadedImageLeft: uploadedImageLeftDataUrl,
-        uploadedImageRight: uploadedImageRightDataUrl,
+        modelImage: compressedImage,
+        // Images are already compressed when uploaded
+        uploadedImageLeft: uploadedImageLeft || '',
+        uploadedImageRight: uploadedImageRight || '',
         fontSizeLeft,
         fontSizeRight,
         fontFamily,
         textColor,
-        meshColors: state.color ? [...(state.color as string[])] : [], // Save mesh colors
+        meshColors: state.color ? [...(state.color as string[])] : [],
       };
+
+      // Check if data fits in sessionStorage (with some buffer)
+      const dataSize = JSON.stringify(orderData).length;
+      const maxSize = 4 * 1024 * 1024; // 4MB safe limit
+
+      if (dataSize > maxSize) {
+        // Further compress if still too large
+        const smallerImage = await compressImage(finalDataUrl, 600, 0.6);
+        orderData.modelImage = smallerImage;
+      }
 
       sessionStorage.setItem('orderData', JSON.stringify(orderData));
       navigate('/confirmation');
-    } catch (error) {
-      console.error('Error capturing canvas:', error);
+    } catch (err) {
+      console.error('Capture failed:', err);
+      toast.error('Failed to capture design. Please try again.');
     }
   };
 

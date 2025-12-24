@@ -292,7 +292,7 @@ export const ThreeDSashes: Product[] = [
         text: {
           top: '2rem',
           left: '-8.8rem',
-          height: '9rem',
+          height: '10rem',
           width: '3rem',
           lineHeight: '2.4rem',
           rotate: 0,
@@ -308,9 +308,9 @@ export const ThreeDSashes: Product[] = [
       positioningRight: {
         text: {
           top: '-5rem',
-          left: '4.7rem',
+          left: '5rem',
           height: '16rem',
-          width: '3rem',
+          width: '2.7rem',
           lineHeight: '2.4rem',
           rotate: -1,
           size: 12,
