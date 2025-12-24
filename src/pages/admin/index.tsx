@@ -337,7 +337,7 @@ const AdminPage = () => {
           <>
             {/* Mobile Card View */}
             <div className="sm:hidden space-y-3">
-              {orders.map((order) => (
+              {orders.map((order, index) => (
                 <div
                   key={order.id}
                   className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
@@ -345,7 +345,7 @@ const AdminPage = () => {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <span className="font-mono text-sm font-bold text-slate-900">
-                        #{order.id}
+                        #{index + 1}
                       </span>
                       <p className="text-xs text-slate-500 mt-0.5">
                         {formatDate(order.created_at)}
@@ -471,7 +471,9 @@ const AdminPage = () => {
                               {order.customer || 'N/A'}
                             </p>
                             <p className="text-xs text-slate-500 truncate">
-                              {order.customer_email || order.customer_phone || 'No contact'}
+                              {order.customer_email ||
+                                order.customer_phone ||
+                                'No contact'}
                             </p>
                           </div>
                         </td>
@@ -507,7 +509,9 @@ const AdminPage = () => {
                         </td>
                         <td className="px-4 lg:px-6 py-4">
                           <button
-                            onClick={() => navigate(`/admin/orders/${order.id}`)}
+                            onClick={() =>
+                              navigate(`/admin/orders/${order.id}`)
+                            }
                             className="p-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
                             title="View order"
                           >

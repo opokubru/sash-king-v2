@@ -121,6 +121,53 @@ const ConfiguratorUnisexSpecial = () => {
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
+  // Max file size for logo uploads (2MB)
+  const MAX_FILE_SIZE = 2 * 1024 * 1024;
+  // Max dimensions for logo images
+  const MAX_LOGO_DIMENSION = 400;
+  // Max dimensions for captured image
+  const MAX_CAPTURE_DIMENSION = 800;
+
+  // Compress and resize image to reduce storage size
+  const compressImage = (
+    dataUrl: string,
+    maxDimension: number,
+    quality: number = 0.7,
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        let { width, height } = img;
+
+        // Calculate new dimensions maintaining aspect ratio
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = dataUrl;
+    });
+  };
+
   // Convert file to data URL for better capture compatibility
   const fileToDataURL = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -132,10 +179,21 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   const handleImageUploadLeft = async (file: File) => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
+
     try {
-      // Convert to data URL immediately for better capture compatibility
+      // Convert to data URL
       const dataUrl = await fileToDataURL(file);
-      setUploadedImageLeft(dataUrl);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageLeft(compressedDataUrl);
       toast.success(
         'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
       );
@@ -146,10 +204,21 @@ const ConfiguratorUnisexSpecial = () => {
   };
 
   const handleImageUploadRight = async (file: File) => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
+
     try {
-      // Convert to data URL immediately for better capture compatibility
+      // Convert to data URL
       const dataUrl = await fileToDataURL(file);
-      setUploadedImageRight(dataUrl);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageRight(compressedDataUrl);
       toast.success(
         'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
       );
@@ -274,35 +343,23 @@ const ConfiguratorUnisexSpecial = () => {
     setFontSizeRight((prevSize: any) => prevSize - 1);
   };
 
-  // Helper function to convert blob URL to data URL
-  const blobToDataURL = (blobUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!blobUrl.startsWith('blob:')) {
-        resolve(blobUrl);
-        return;
-      }
-      fetch(blobUrl)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        })
-        .catch(reject);
-    });
-  };
-
   const captureCanvasAsImage = async () => {
     if (!canvasContainerRef.current) return;
 
     try {
-      const dataUrl = await htmlToImage.toPng(canvasContainerRef.current, {
+      // Capture at reasonable size to avoid storage issues
+      const dataUrl = await htmlToImage.toJpeg(canvasContainerRef.current, {
         cacheBust: true,
-        quality: 1,
-        width: canvasContainerRef.current.clientWidth * 2,
-        height: canvasContainerRef.current.clientHeight * 2,
+        quality: 0.8,
+        backgroundColor: '#ffffff',
       });
+
+      // Compress the captured image to fit in sessionStorage
+      const compressedImage = await compressImage(
+        dataUrl,
+        MAX_CAPTURE_DIMENSION,
+        0.8,
+      );
 
       // store + navigate
       const orderData = {
@@ -313,22 +370,31 @@ const ConfiguratorUnisexSpecial = () => {
         name: selectedClothing?.name || '',
         textLeft: enteredTextLeft || '',
         textRight: enteredTextRight || '',
-        modelImage: dataUrl,
-        uploadedImageLeft: uploadedImageLeft
-          ? await blobToDataURL(uploadedImageLeft)
-          : '',
-        uploadedImageRight: uploadedImageRight
-          ? await blobToDataURL(uploadedImageRight)
-          : '',
+        modelImage: compressedImage,
+        // Images are already compressed when uploaded, no need to re-convert
+        uploadedImageLeft: uploadedImageLeft || '',
+        uploadedImageRight: uploadedImageRight || '',
         fontSizeLeft,
         fontSizeRight,
         fontFamily,
         textColor,
       };
+
+      // Check if data fits in sessionStorage (with some buffer)
+      const dataSize = JSON.stringify(orderData).length;
+      const maxSize = 4 * 1024 * 1024; // 4MB safe limit
+
+      if (dataSize > maxSize) {
+        // Further compress if still too large
+        const smallerImage = await compressImage(dataUrl, 600, 0.6);
+        orderData.modelImage = smallerImage;
+      }
+
       sessionStorage.setItem('orderData', JSON.stringify(orderData));
       navigate('/confirmation');
     } catch (err) {
       console.error('html-to-image failed:', err);
+      toast.error('Failed to capture design. Please try again.');
     }
   };
 
