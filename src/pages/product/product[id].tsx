@@ -346,17 +346,102 @@ const ConfiguratorUnisexSpecial = () => {
   const captureCanvasAsImage = async () => {
     if (!canvasContainerRef.current) return;
 
+    // leave all editing modes
+    setEditingText(null);
+
     try {
-      // Capture at reasonable size to avoid storage issues
-      const dataUrl = await htmlToImage.toJpeg(canvasContainerRef.current, {
-        cacheBust: true,
-        quality: 0.8,
-        backgroundColor: '#ffffff',
-      });
+      // Find the WebGL canvas element
+      const webglCanvas = canvasContainerRef.current.querySelector(
+        'canvas',
+      ) as HTMLCanvasElement;
+
+      let finalDataUrl: string;
+
+      if (webglCanvas) {
+        // Wait a moment for the canvas to be fully rendered
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Create a composite canvas
+        const container = canvasContainerRef.current;
+        const rect = container.getBoundingClientRect();
+        const scale = Math.min(2, window.devicePixelRatio || 1);
+
+        const outputCanvas = document.createElement('canvas');
+        outputCanvas.width = rect.width * scale;
+        outputCanvas.height = rect.height * scale;
+        const ctx = outputCanvas.getContext('2d');
+
+        if (ctx) {
+          // Fill with white background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+
+          // Draw the WebGL canvas (the sash image)
+          ctx.drawImage(
+            webglCanvas,
+            0,
+            0,
+            webglCanvas.width,
+            webglCanvas.height,
+            0,
+            0,
+            outputCanvas.width,
+            outputCanvas.height,
+          );
+
+          // Now capture the HTML overlays (text, logos) with html-to-image
+          try {
+            const overlayDataUrl = await htmlToImage.toPng(container, {
+              cacheBust: true,
+              backgroundColor: 'transparent',
+              filter: (node) => {
+                // Exclude the canvas element since we already captured it
+                return node.tagName !== 'CANVAS';
+              },
+            });
+
+            // Draw the overlays on top
+            const overlayImg = document.createElement('img');
+            await new Promise<void>((resolve, reject) => {
+              overlayImg.onload = () => resolve();
+              overlayImg.onerror = reject;
+              overlayImg.src = overlayDataUrl;
+            });
+            ctx.drawImage(
+              overlayImg,
+              0,
+              0,
+              outputCanvas.width,
+              outputCanvas.height,
+            );
+          } catch (overlayErr) {
+            console.log(
+              'Overlay capture failed, using WebGL canvas only:',
+              overlayErr,
+            );
+          }
+
+          finalDataUrl = outputCanvas.toDataURL('image/jpeg', 0.8);
+        } else {
+          // Fallback to html-to-image if canvas context fails
+          finalDataUrl = await htmlToImage.toJpeg(container, {
+            cacheBust: true,
+            quality: 0.8,
+            backgroundColor: '#ffffff',
+          });
+        }
+      } else {
+        // No WebGL canvas found, use html-to-image directly
+        finalDataUrl = await htmlToImage.toJpeg(canvasContainerRef.current, {
+          cacheBust: true,
+          quality: 0.8,
+          backgroundColor: '#ffffff',
+        });
+      }
 
       // Compress the captured image to fit in sessionStorage
       const compressedImage = await compressImage(
-        dataUrl,
+        finalDataUrl,
         MAX_CAPTURE_DIMENSION,
         0.8,
       );
@@ -386,7 +471,7 @@ const ConfiguratorUnisexSpecial = () => {
 
       if (dataSize > maxSize) {
         // Further compress if still too large
-        const smallerImage = await compressImage(dataUrl, 600, 0.6);
+        const smallerImage = await compressImage(finalDataUrl, 600, 0.6);
         orderData.modelImage = smallerImage;
       }
 
