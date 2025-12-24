@@ -128,7 +128,7 @@ const Checkout = () => {
           email,
           tel,
           location: city,
-          items: orderItemsWithUrls,
+          // items: orderItemsWithUrls,
           subject: 'New Product Order',
           dateTime: new Date().toLocaleString('en-US', {
             year: 'numeric',
@@ -156,6 +156,9 @@ const Checkout = () => {
           customer: `${firstName} ${lastName}`,
           order: orderItemsWithUrls,
           total_amount: totalAmount,
+          customer_email: email,
+          customer_phone: tel,
+          customer_location: city,
         };
 
         await addOrder(orderData);
@@ -171,10 +174,15 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen px-6 py-12 bg-[rgba(197,195,195,0.165)] text-black">
+    <div
+      className={`${
+        items.length === 0 ? 'h-screen' : 'min-h-screen'
+      } px-6 py-12 bg-[rgba(197,195,195,0.165)] text-black`}
+    >
       {items.length === 0 ? (
-        <div className="flex flex-col mx-auto gap-4 items-center justify-center w-full">
+        <div className="flex flex-col mx-auto gap-4 items-center justify-center w-full h-full">
           {/* <LogoComponent /> */}
+          <Icon icon="mdi:cart-off" className="text-4xl text-gray-500" />
           <p>You have no products in cart</p>
           <Button onPress={() => navigate('/')}>Go Home</Button>
         </div>

@@ -6,7 +6,7 @@ import ScrollToTop from './components/shared/scroll_to_top';
 import { motion, useScroll } from 'framer-motion';
 import MainLayout from './layout/main_layout';
 import NotFound from './components/shared/not_found';
-// import AdminPage from './pages/admin';
+import AdminPage from './pages/admin';
 import PrivacyPolicy from './pages/info_pages/privacy';
 import TermsOfService from './pages/info_pages/terms-of-service';
 import Contact from './pages/info_pages/contact';
@@ -16,13 +16,14 @@ import ProductionAndReturns from './pages/info_pages/production-and-returns';
 // import ProductDetail from './pages/product/product[id]';
 // import Checkout from './pages/checkout/checkout';
 // import AllCategoriesPage from './pages/product/categories';
-// import AdminSignInPage from './pages/admin/auth/signin';
+import AdminSignInPage from './pages/admin/auth/signin';
+import ResetPasswordPage from './pages/admin/auth/reset-password';
 // import SelectedCategoryPage from './pages/product/categories[id]';
 // import TopDealsPage from './pages/product/top-deals-page';
 // import NewArrivalsPage from './pages/product/new-arrival-page';
 // import TopSellingPage from './pages/product/top-selling-page';
 // import SearchPage from './pages/product/search-page';
-// import OrderViewPage from './pages/admin/orders[id]';
+import OrderViewPage from './pages/admin/orders[id]';
 import { TemplatedSashesPage } from './pages/view-all/templated-sashes';
 import { ThreeDSashesPage } from './pages/view-all/3d-sashes';
 import ConfiguratorUnisexSpecial from './pages/product/product[id]';
@@ -57,18 +58,10 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             {/* <Route path="" element={<ComingSoon />} /> */}
             <Route path="" element={<Home />} />
-            {/* <Route path="signin" element={<AdminSignInPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="admin/orders/:id" element={<OrderViewPage />} />
-            <Route path="product/:name" element={<ProductDetail />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/products/deals" element={<TopDealsPage />} />
-            <Route path="/products/top-ranking" element={<TopSellingPage />} />
-            <Route path="/products/new" element={<NewArrivalsPage />} />
-
-            <Route path="categories/:name" element={<SelectedCategoryPage />} />
-            <Route path="checkout" element={<Checkout />} />
-            <Route path="categories" element={<AllCategoriesPage />} /> */}
+            <Route path="admin/signin" element={<AdminSignInPage />} />
+            <Route path="admin/reset-password" element={<ResetPasswordPage />} />
 
             {/* View All Pages */}
             <Route path="templated-sash" element={<TemplatedSashesPage />} />
@@ -84,7 +77,10 @@ function App() {
             {/* info pages  */}
             <Route path="about" element={<About />} />
             <Route path="faq" element={<FAQ />} />
-            <Route path="production-and-returns" element={<ProductionAndReturns />} />
+            <Route
+              path="production-and-returns"
+              element={<ProductionAndReturns />}
+            />
             <Route path="terms-of-service" element={<TermsOfService />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="contact" element={<Contact />} />

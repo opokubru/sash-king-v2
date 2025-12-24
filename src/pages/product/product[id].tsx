@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Canvas } from '@react-three/fiber';
 import { Image } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
+import * as htmlToImage from 'html-to-image';
 
 import 'primeicons/primeicons.css';
 
@@ -120,35 +121,111 @@ const ConfiguratorUnisexSpecial = () => {
   // Container ref for capturing the canvas
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleImageUploadLeft = async (file: File) => {
-    setUploadedImageLeft(URL.createObjectURL(file));
-    toast.success(
-      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
-    );
+  // Max file size for logo uploads (2MB)
+  const MAX_FILE_SIZE = 2 * 1024 * 1024;
+  // Max dimensions for logo images
+  const MAX_LOGO_DIMENSION = 400;
+  // Max dimensions for captured image
+  const MAX_CAPTURE_DIMENSION = 800;
 
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageLeft(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
+  // Compress and resize image to reduce storage size
+  const compressImage = (
+    dataUrl: string,
+    maxDimension: number,
+    quality: number = 0.7,
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        let { width, height } = img;
+
+        // Calculate new dimensions maintaining aspect ratio
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = dataUrl;
+    });
+  };
+
+  // Convert file to data URL for better capture compatibility
+  const fileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUploadLeft = async (file: File) => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
+
+    try {
+      // Convert to data URL
+      const dataUrl = await fileToDataURL(file);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageLeft(compressedDataUrl);
+      toast.success(
+        'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+      );
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      toast.error('Failed to upload image');
+    }
   };
 
   const handleImageUploadRight = async (file: File) => {
-    setUploadedImageRight(URL.createObjectURL(file));
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('Image too large. Please upload an image smaller than 2MB.');
+      return;
+    }
 
-    toast.success(
-      'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
-    );
-
-    // try {
-    //   const dataURL = await readFileAsDataURL(file);
-    //   const downloadURL = await uploadToStorage(dataURL, 'sash');
-    //   setFirebaseImageRight(downloadURL);
-    // } catch (error) {
-    //   console.error('Image upload failed:', error);
-    // }
+    try {
+      // Convert to data URL
+      const dataUrl = await fileToDataURL(file);
+      // Compress the image to reduce storage size
+      const compressedDataUrl = await compressImage(
+        dataUrl,
+        MAX_LOGO_DIMENSION,
+      );
+      setUploadedImageRight(compressedDataUrl);
+      toast.success(
+        'Image uploaded successfully. Focus would be on the pattern in your image, hence background may be removed where applicable',
+      );
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      toast.error('Failed to upload image');
+    }
   };
 
   const ImprintTextPosition = useMemo(() => {
@@ -266,147 +343,104 @@ const ConfiguratorUnisexSpecial = () => {
     setFontSizeRight((prevSize: any) => prevSize - 1);
   };
 
-  // Helper function to convert blob URL to data URL
-  const blobToDataURL = (blobUrl: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (!blobUrl.startsWith('blob:')) {
-        resolve(blobUrl);
-        return;
-      }
-      fetch(blobUrl)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        })
-        .catch(reject);
-    });
-  };
-
   const captureCanvasAsImage = async () => {
-    // Deactivate all editing mode first
-    setEditingText(null);
-    setShowTextEditor(false);
-    console.log('captureCanvasAsImage started');
+    if (!canvasContainerRef.current) return;
 
     try {
-      const containerElement = canvasContainerRef.current;
+      // Capture at reasonable size to avoid storage issues
+      const dataUrl = await htmlToImage.toJpeg(canvasContainerRef.current, {
+        cacheBust: true,
+        quality: 0.8,
+        backgroundColor: '#ffffff',
+      });
 
-      if (!containerElement) {
-        console.error('Container element not found');
-        return;
-      }
-
-      // Use getDisplayMedia to capture the current tab
-      // preferCurrentTab + selfBrowserSurface helps Chrome auto-select current tab
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          displaySurface: 'browser',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        preferCurrentTab: true,
-        selfBrowserSurface: 'include',
-        systemAudio: 'exclude',
-        surfaceSwitching: 'exclude',
-        monitorTypeSurfaces: 'exclude',
-      } as any);
-
-      // Create video element to capture frame
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      await video.play();
-
-      // Wait a frame for the video to be ready
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Get container position and dimensions
-      const rect = containerElement.getBoundingClientRect();
-      const scale = window.devicePixelRatio || 1;
-
-      // Create canvas to capture the frame
-      const canvas = document.createElement('canvas');
-      canvas.width = rect.width * scale;
-      canvas.height = rect.height * scale;
-      const ctx = canvas.getContext('2d');
-
-      if (!ctx) {
-        stream.getTracks().forEach((track) => track.stop());
-        console.error('Could not get 2D context');
-        return;
-      }
-
-      // Draw the cropped region from the video
-      ctx.drawImage(
-        video,
-        rect.left * scale,
-        rect.top * scale,
-        rect.width * scale,
-        rect.height * scale,
-        0,
-        0,
-        rect.width * scale,
-        rect.height * scale,
+      // Compress the captured image to fit in sessionStorage
+      const compressedImage = await compressImage(
+        dataUrl,
+        MAX_CAPTURE_DIMENSION,
+        0.8,
       );
 
-      // Stop the stream
-      stream.getTracks().forEach((track) => track.stop());
-
-      const dataUrl = canvas.toDataURL('image/png');
-      console.log('Image captured successfully');
-
-      // Convert blob URLs to data URLs for uploaded images
-      let uploadedImageLeftDataUrl = '';
-      let uploadedImageRightDataUrl = '';
-
-      if (uploadedImageLeft) {
-        try {
-          uploadedImageLeftDataUrl = await blobToDataURL(uploadedImageLeft);
-          console.log('Converted left image blob to data URL');
-        } catch (error) {
-          console.error('Failed to convert left image:', error);
-        }
-      }
-
-      if (uploadedImageRight) {
-        try {
-          uploadedImageRightDataUrl = await blobToDataURL(uploadedImageRight);
-          console.log('Converted right image blob to data URL');
-        } catch (error) {
-          console.error('Failed to convert right image:', error);
-        }
-      }
-
-      // Store the order data in sessionStorage
+      // store + navigate
       const orderData = {
-        productId: id, // Save product ID for restoration
+        productId: id,
         currencySymbol,
         total: Number(total),
         readyBy: selectedClothing?.readyIn || 0,
         name: selectedClothing?.name || '',
         textLeft: enteredTextLeft || '',
         textRight: enteredTextRight || '',
-        modelImage: dataUrl,
-        customSizeValues: {},
-        uploadedImageLeft: uploadedImageLeftDataUrl,
-        uploadedImageRight: uploadedImageRightDataUrl,
+        modelImage: compressedImage,
+        // Images are already compressed when uploaded, no need to re-convert
+        uploadedImageLeft: uploadedImageLeft || '',
+        uploadedImageRight: uploadedImageRight || '',
         fontSizeLeft,
         fontSizeRight,
         fontFamily,
         textColor,
       };
 
-      sessionStorage.setItem('orderData', JSON.stringify(orderData));
-      console.log('Order data stored, navigating to confirmation...');
+      // Check if data fits in sessionStorage (with some buffer)
+      const dataSize = JSON.stringify(orderData).length;
+      const maxSize = 4 * 1024 * 1024; // 4MB safe limit
 
-      // Navigate to confirmation page
+      if (dataSize > maxSize) {
+        // Further compress if still too large
+        const smallerImage = await compressImage(dataUrl, 600, 0.6);
+        orderData.modelImage = smallerImage;
+      }
+
+      sessionStorage.setItem('orderData', JSON.stringify(orderData));
       navigate('/confirmation');
-    } catch (error) {
-      console.error('Error capturing canvas:', error);
+    } catch (err) {
+      console.error('html-to-image failed:', err);
+      toast.error('Failed to capture design. Please try again.');
     }
   };
+
+  // const captureCanvasAsImage = async () => {
+  //   setEditingText(null);
+  //   setShowTextEditor(false);
+
+  //   const containerElement = canvasContainerRef.current;
+  //   if (!containerElement) return;
+
+  //   try {
+  //     const canvas = await html2canvas(containerElement, {
+  //       scale: window.devicePixelRatio || 2,
+  //       useCORS: true,
+  //       backgroundColor: null,
+  //     });
+
+  //     const dataUrl = canvas.toDataURL('image/png');
+
+  //     const orderData = {
+  //       productId: id,
+  //       currencySymbol,
+  //       total: Number(total),
+  //       readyBy: selectedClothing?.readyIn || 0,
+  //       name: selectedClothing?.name || '',
+  //       textLeft: enteredTextLeft || '',
+  //       textRight: enteredTextRight || '',
+  //       modelImage: dataUrl,
+  //       uploadedImageLeft: uploadedImageLeft
+  //         ? await blobToDataURL(uploadedImageLeft)
+  //         : '',
+  //       uploadedImageRight: uploadedImageRight
+  //         ? await blobToDataURL(uploadedImageRight)
+  //         : '',
+  //       fontSizeLeft,
+  //       fontSizeRight,
+  //       fontFamily,
+  //       textColor,
+  //     };
+
+  //     sessionStorage.setItem('orderData', JSON.stringify(orderData));
+  //     navigate('/confirmation');
+  //   } catch (err) {
+  //     console.error('DOM capture failed:', err);
+  //   }
+  // };
 
   // Create a state object to store the form field values
 
