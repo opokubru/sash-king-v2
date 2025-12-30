@@ -615,11 +615,11 @@ const HtmlComponent = ({
     for (let i = 0; i < word.length; i++) {
       const char = word[i];
       const testLine = currentLine + char;
-      measureSpan.textContent = testLine + '-';
+      measureSpan.textContent = testLine;
 
       if (measureSpan.offsetWidth > maxWidth && currentLine.length > 0) {
-        // Need to break here
-        result += currentLine + '-\n';
+        // Need to break here (no hyphen)
+        result += currentLine + '\n';
         currentLine = char;
       } else {
         currentLine = testLine;
