@@ -563,103 +563,23 @@ const HtmlComponent = ({
       typeof lineHeight === 'number' ? `${lineHeight}px` : lineHeight;
     measureDiv.style.textTransform = textTransform;
     measureDiv.style.letterSpacing = `${letterSpacing}px`;
+    // Match textarea word breaking behavior exactly
     measureDiv.style.wordWrap = 'break-word';
     measureDiv.style.overflowWrap = 'break-word';
+    measureDiv.style.wordBreak = 'break-word';
     measureDiv.style.whiteSpace = 'pre-wrap';
     measureDiv.style.padding = '0';
     measureDiv.style.margin = '0';
     measureDiv.style.border = 'none';
-    measureDiv.innerHTML = text
-      .split('\n')
-      .map((line) => line || '&nbsp;')
-      .join('<br>');
+    measureDiv.style.boxSizing = 'border-box';
+    // Use textContent to match how textarea handles text (no HTML interpretation)
+    measureDiv.textContent = text || ' ';
 
     document.body.appendChild(measureDiv);
     const height = measureDiv.offsetHeight;
     document.body.removeChild(measureDiv);
 
     return height;
-  };
-
-  // Helper function to hyphenate a word that's too long for the container width
-  const hyphenateWord = (
-    word: string,
-    maxWidth: number,
-    fontSize: number,
-    fontFamily: string,
-    letterSpacing: number,
-    textTransform: string,
-  ): string => {
-    // Create a hidden span to measure text width
-    const measureSpan = document.createElement('span');
-    measureSpan.style.position = 'absolute';
-    measureSpan.style.visibility = 'hidden';
-    measureSpan.style.whiteSpace = 'nowrap';
-    measureSpan.style.fontSize = `${fontSize}px`;
-    measureSpan.style.fontFamily = fontFamily;
-    measureSpan.style.letterSpacing = `${letterSpacing}px`;
-    measureSpan.style.textTransform = textTransform;
-    document.body.appendChild(measureSpan);
-
-    // Check if the word fits
-    measureSpan.textContent = word;
-    if (measureSpan.offsetWidth <= maxWidth) {
-      document.body.removeChild(measureSpan);
-      return word;
-    }
-
-    // Find where to break the word
-    let result = '';
-    let currentLine = '';
-
-    for (let i = 0; i < word.length; i++) {
-      const char = word[i];
-      const testLine = currentLine + char;
-      measureSpan.textContent = testLine + '-';
-
-      if (measureSpan.offsetWidth > maxWidth && currentLine.length > 0) {
-        // Need to break here
-        result += currentLine + '-\n';
-        currentLine = char;
-      } else {
-        currentLine = testLine;
-      }
-    }
-
-    // Add remaining characters
-    if (currentLine) {
-      result += currentLine;
-    }
-
-    document.body.removeChild(measureSpan);
-    return result;
-  };
-
-  // Helper function to process text and hyphenate long words
-  const processTextWithHyphenation = (
-    text: string,
-    maxWidth: number,
-    fontSize: number,
-    fontFamily: string,
-    letterSpacing: number,
-    textTransform: string,
-  ): string => {
-    const lines = text.split('\n');
-    const processedLines = lines.map((line) => {
-      const words = line.split(' ');
-      const processedWords = words.map((word) =>
-        hyphenateWord(
-          word,
-          maxWidth,
-          fontSize,
-          fontFamily,
-          letterSpacing,
-          textTransform,
-        ),
-      );
-      return processedWords.join(' ');
-    });
-    return processedLines.join('\n');
   };
 
   // Helper function to check if text would exceed container height
@@ -673,8 +593,9 @@ const HtmlComponent = ({
     letterSpacing: number,
     textTransform: string = 'uppercase',
   ): boolean => {
-    const widthPx = parseToPixels(containerWidth);
-    const heightPx = parseToPixels(containerHeight);
+    // Account for 2px border on each side (4px total)
+    const widthPx = parseToPixels(containerWidth) - 4;
+    const heightPx = parseToPixels(containerHeight) - 4;
 
     const measuredHeight = measureTextHeight(
       text,
@@ -686,7 +607,7 @@ const HtmlComponent = ({
       letterSpacing,
     );
 
-    return measuredHeight > heightPx;
+    return measuredHeight >= heightPx;
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -699,22 +620,10 @@ const HtmlComponent = ({
     const containerHeight = ImprintTextPosition?.left?.height || 100;
     const lineHeightValue =
       customLineHeight || ImprintTextPosition?.left?.lineHeight || '2.8rem';
-    const widthPx = parseToPixels(containerWidth);
 
-    // Process text with hyphenation for long words
-    const processedText = processTextWithHyphenation(
-      newText,
-      widthPx - 4, // Account for padding
-      textSizeleft,
-      fontFamily,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Check if text (or processed text) would exceed container height
-    const textToCheck = processedText !== newText ? processedText : newText;
+    // Check if new text would exceed container height (CSS handles word wrapping)
     const exceedsHeight = wouldExceedHeight(
-      textToCheck,
+      newText,
       containerWidth,
       containerHeight,
       textSizeleft,
@@ -724,32 +633,9 @@ const HtmlComponent = ({
       'uppercase',
     );
 
-    // Check if current text already exceeds (allow deletion)
-    const currentExceedsHeight = wouldExceedHeight(
-      currentText,
-      containerWidth,
-      containerHeight,
-      textSizeleft,
-      fontFamily,
-      lineHeightValue,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Allow if text is getting shorter or current already exceeds
-    if (textToCheck.length <= currentText.length || currentExceedsHeight) {
-      // If hyphenation was applied, use the processed text
-      if (processedText !== newText) {
-        setTempTextLeft(processedText);
-        // Update cursor position after hyphenation
-        setTimeout(() => {
-          if (textarea) {
-            textarea.value = processedText;
-          }
-        }, 0);
-      } else {
-        setTempTextLeft(newText);
-      }
+    // Always allow if text is getting shorter (deletions)
+    if (newText.length <= currentText.length) {
+      setTempTextLeft(newText);
       return;
     }
 
@@ -771,17 +657,7 @@ const HtmlComponent = ({
       return;
     }
 
-    // If hyphenation was applied, use the processed text
-    if (processedText !== newText) {
-      setTempTextLeft(processedText);
-      setTimeout(() => {
-        if (textarea) {
-          textarea.value = processedText;
-        }
-      }, 0);
-    } else {
-      setTempTextLeft(newText);
-    }
+    setTempTextLeft(newText);
   };
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -794,22 +670,10 @@ const HtmlComponent = ({
     const containerHeight = ImprintTextPosition?.right?.height || 100;
     const lineHeightValue =
       customLineHeight || ImprintTextPosition?.right?.lineHeight || '2.8rem';
-    const widthPx = parseToPixels(containerWidth);
 
-    // Process text with hyphenation for long words
-    const processedText = processTextWithHyphenation(
-      newText,
-      widthPx - 4, // Account for padding
-      textSizeRight,
-      fontFamily,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Check if text (or processed text) would exceed container height
-    const textToCheck = processedText !== newText ? processedText : newText;
+    // Check if new text would exceed container height (CSS handles word wrapping)
     const exceedsHeight = wouldExceedHeight(
-      textToCheck,
+      newText,
       containerWidth,
       containerHeight,
       textSizeRight,
@@ -819,31 +683,9 @@ const HtmlComponent = ({
       'uppercase',
     );
 
-    // Check if current text already exceeds (allow deletion)
-    const currentExceedsHeight = wouldExceedHeight(
-      currentText,
-      containerWidth,
-      containerHeight,
-      textSizeRight,
-      fontFamily,
-      lineHeightValue,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Allow if text is getting shorter or current already exceeds
-    if (textToCheck.length <= currentText.length || currentExceedsHeight) {
-      // If hyphenation was applied, use the processed text
-      if (processedText !== newText) {
-        setTempTextRight(processedText);
-        setTimeout(() => {
-          if (textarea) {
-            textarea.value = processedText;
-          }
-        }, 0);
-      } else {
-        setTempTextRight(newText);
-      }
+    // Always allow if text is getting shorter (deletions)
+    if (newText.length <= currentText.length) {
+      setTempTextRight(newText);
       return;
     }
 
@@ -865,17 +707,7 @@ const HtmlComponent = ({
       return;
     }
 
-    // If hyphenation was applied, use the processed text
-    if (processedText !== newText) {
-      setTempTextRight(processedText);
-      setTimeout(() => {
-        if (textarea) {
-          textarea.value = processedText;
-        }
-      }, 0);
-    } else {
-      setTempTextRight(newText);
-    }
+    setTempTextRight(newText);
   };
 
   const handleLeftTextBlur = () => {
@@ -913,21 +745,10 @@ const HtmlComponent = ({
     const containerHeight = ImprintTextPosition?.left?.height || 100;
     const lineHeightValue =
       customLineHeight || ImprintTextPosition?.left?.lineHeight || '2.8rem';
-    const widthPx = parseToPixels(containerWidth);
 
-    // Process text with hyphenation for long words
-    const processedText = processTextWithHyphenation(
-      newText,
-      widthPx - 4,
-      textSizeleft,
-      fontFamily,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Check if would exceed container height
+    // Check if would exceed container height (CSS handles word wrapping)
     const exceedsHeight = wouldExceedHeight(
-      processedText,
+      newText,
       containerWidth,
       containerHeight,
       textSizeleft,
@@ -1013,21 +834,12 @@ const HtmlComponent = ({
       const cursorPos = textarea.selectionStart ?? 0;
       const textBeforeCursor = currentValue.substring(0, cursorPos);
       const textAfterCursor = currentValue.substring(cursorPos);
-      const widthPx = parseToPixels(containerWidth);
 
-      // Process with hyphenation
+      // Check raw text - CSS handles word wrapping
       const newText = textBeforeCursor + e.key + textAfterCursor;
-      const processedText = processTextWithHyphenation(
-        newText,
-        widthPx - 4,
-        textSizeleft,
-        fontFamily,
-        letterSpacing,
-        'uppercase',
-      );
 
       const exceedsHeight = wouldExceedHeight(
-        processedText,
+        newText,
         containerWidth,
         containerHeight,
         textSizeleft,
@@ -1066,21 +878,10 @@ const HtmlComponent = ({
     const containerHeight = ImprintTextPosition?.right?.height || 100;
     const lineHeightValue =
       customLineHeight || ImprintTextPosition?.right?.lineHeight || '2.8rem';
-    const widthPx = parseToPixels(containerWidth);
 
-    // Process text with hyphenation for long words
-    const processedText = processTextWithHyphenation(
-      newText,
-      widthPx - 4,
-      textSizeRight,
-      fontFamily,
-      letterSpacing,
-      'uppercase',
-    );
-
-    // Check if would exceed container height
+    // Check if would exceed container height (CSS handles word wrapping)
     const exceedsHeight = wouldExceedHeight(
-      processedText,
+      newText,
       containerWidth,
       containerHeight,
       textSizeRight,
@@ -1166,21 +967,12 @@ const HtmlComponent = ({
       const cursorPos = textarea.selectionStart ?? 0;
       const textBeforeCursor = currentValue.substring(0, cursorPos);
       const textAfterCursor = currentValue.substring(cursorPos);
-      const widthPx = parseToPixels(containerWidth);
 
-      // Process with hyphenation
+      // Check raw text - CSS handles word wrapping
       const newText = textBeforeCursor + e.key + textAfterCursor;
-      const processedText = processTextWithHyphenation(
-        newText,
-        widthPx - 4,
-        textSizeRight,
-        fontFamily,
-        letterSpacing,
-        'uppercase',
-      );
 
       const exceedsHeight = wouldExceedHeight(
-        processedText,
+        newText,
         containerWidth,
         containerHeight,
         textSizeRight,
