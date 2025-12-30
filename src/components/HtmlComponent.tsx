@@ -607,7 +607,7 @@ const HtmlComponent = ({
       letterSpacing,
     );
 
-    return measuredHeight > heightPx;
+    return measuredHeight >= heightPx;
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
