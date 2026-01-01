@@ -85,7 +85,7 @@ export const TemplatedSash: Product[] = [
           height: '9rem',
           width: '4.4rem',
           lineHeight: '',
-          rotate: -2,
+          // rotate: -2,
         },
         image: {
           top: '-4rem',

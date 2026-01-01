@@ -193,3 +193,21 @@ input[type='number']::-webkit-outer-spin-button {
     }
   }
 }
+
+/* Fixed height textareas with no scrolling for overlay text areas */
+.overlay textarea,
+[data-text-container] textarea {
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+  resize: none !important;
+}
+
+.overlay textarea::-webkit-scrollbar,
+[data-text-container] textarea::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}

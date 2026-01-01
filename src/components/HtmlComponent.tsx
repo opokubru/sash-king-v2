@@ -593,9 +593,9 @@ const HtmlComponent = ({
     letterSpacing: number,
     textTransform: string = 'uppercase',
   ): boolean => {
-    // Account for 2px border on each side (4px total)
-    const widthPx = parseToPixels(containerWidth) - 4;
-    const heightPx = parseToPixels(containerHeight) - 4;
+    // Account for 2px border on each side (4px total) + 2px padding on each side (4px total)
+    const widthPx = parseToPixels(containerWidth) - 8;
+    const heightPx = parseToPixels(containerHeight) - 8;
 
     const measuredHeight = measureTextHeight(
       text,
@@ -607,13 +607,25 @@ const HtmlComponent = ({
       letterSpacing,
     );
 
+    // Strict check - if measured height meets or exceeds container, block it
     return measuredHeight >= heightPx;
+  };
+
+  // Prevent any scrolling on textareas
+  const preventScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    const textarea = e.currentTarget;
+    textarea.scrollTop = 0;
+    textarea.scrollLeft = 0;
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     const currentText = tempTextLeft;
     const textarea = e.target;
+
+    // Always reset scroll position
+    textarea.scrollTop = 0;
+    textarea.scrollLeft = 0;
 
     // Get container dimensions
     const containerWidth = ImprintTextPosition?.left?.width || 100;
@@ -636,6 +648,7 @@ const HtmlComponent = ({
     // Always allow if text is getting shorter (deletions)
     if (newText.length <= currentText.length) {
       setTempTextLeft(newText);
+      textarea.scrollTop = 0;
       return;
     }
 
@@ -649,6 +662,7 @@ const HtmlComponent = ({
 
       textarea.value = currentText;
       textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+      textarea.scrollTop = 0;
 
       toast.error('Text exceeds the available space', {
         duration: 2000,
@@ -658,12 +672,17 @@ const HtmlComponent = ({
     }
 
     setTempTextLeft(newText);
+    textarea.scrollTop = 0;
   };
 
   const handleRightTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     const currentText = tempTextRight;
     const textarea = e.target;
+
+    // Always reset scroll position
+    textarea.scrollTop = 0;
+    textarea.scrollLeft = 0;
 
     // Get container dimensions
     const containerWidth = ImprintTextPosition?.right?.width || 100;
@@ -686,6 +705,7 @@ const HtmlComponent = ({
     // Always allow if text is getting shorter (deletions)
     if (newText.length <= currentText.length) {
       setTempTextRight(newText);
+      textarea.scrollTop = 0;
       return;
     }
 
@@ -699,6 +719,7 @@ const HtmlComponent = ({
 
       textarea.value = currentText;
       textarea.setSelectionRange(savedCursorPos, savedCursorPos);
+      textarea.scrollTop = 0;
 
       toast.error('Text exceeds the available space', {
         duration: 2000,
@@ -708,6 +729,7 @@ const HtmlComponent = ({
     }
 
     setTempTextRight(newText);
+    textarea.scrollTop = 0;
   };
 
   const handleLeftTextBlur = () => {
@@ -1093,40 +1115,47 @@ const HtmlComponent = ({
                 onBlur={handleLeftTextBlur}
                 onKeyDown={handleLeftTextKeyDown}
                 onPaste={handleLeftTextPaste}
+                onScroll={preventScroll}
                 onClick={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  borderRadius: '4px',
-                  padding: '0',
-                  margin: '0',
-                  fontSize: textSizeleft,
-                  fontFamily: fontFamily,
-                  textTransform: 'uppercase',
-                  width: '100%',
-                  height: '100%',
-                  color: textColor,
-                  resize: 'none',
-                  overflow: 'hidden',
-                  wordWrap: 'normal',
-                  overflowWrap: 'normal',
-                  wordBreak: 'normal',
-                  whiteSpace: 'pre',
-                  lineHeight: customLineHeight
-                    ? `${customLineHeight}`
-                    : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
-                  textAlign: textAlignment,
-                  fontWeight: textBold ? 'bold' : 'normal',
-                  fontStyle: textItalic ? 'italic' : 'normal',
-                  textDecoration: textUnderline ? 'underline' : 'none',
-                  letterSpacing: `${letterSpacing}px`,
-                  display: 'block',
-                  boxSizing: 'border-box',
-                  caretColor: textColor,
-                  WebkitTapHighlightColor: 'transparent',
-                }}
+                style={
+                  {
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    borderRadius: '4px',
+                    padding: '0',
+                    margin: '0',
+                    fontSize: textSizeleft,
+                    fontFamily: fontFamily,
+                    textTransform: 'uppercase',
+                    width: '100%',
+                    height: '100%',
+                    color: textColor,
+                    resize: 'none',
+                    overflow: 'hidden',
+                    overflowX: 'hidden',
+                    overflowY: 'hidden',
+                    wordWrap: 'normal',
+                    overflowWrap: 'normal',
+                    wordBreak: 'normal',
+                    whiteSpace: 'pre',
+                    lineHeight: customLineHeight
+                      ? `${customLineHeight}`
+                      : `${ImprintTextPosition?.left?.lineHeight || '2.8rem'}`,
+                    textAlign: textAlignment,
+                    fontWeight: textBold ? 'bold' : 'normal',
+                    fontStyle: textItalic ? 'italic' : 'normal',
+                    textDecoration: textUnderline ? 'underline' : 'none',
+                    letterSpacing: `${letterSpacing}px`,
+                    display: 'block',
+                    boxSizing: 'border-box',
+                    caretColor: textColor,
+                    WebkitTapHighlightColor: 'transparent',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  } as React.CSSProperties
+                }
               />
             ) : (
               <div
@@ -1215,19 +1244,27 @@ const HtmlComponent = ({
               onChange={handleLeftTextChange}
               onBlur={handleLeftTextBlur}
               onKeyDown={handleLeftTextKeyDown}
+              onScroll={preventScroll}
               onClick={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
-              style={{
-                ...sharedTextStyle,
-                background: 'transparent',
-                border: '2px solid transparent',
-                padding: 0,
-                margin: 0,
-                width: '100%',
-                height: '100%',
-                resize: 'none',
-                color: textColor,
-              }}
+              style={
+                {
+                  ...sharedTextStyle,
+                  background: 'transparent',
+                  border: '2px solid transparent',
+                  padding: 0,
+                  margin: 0,
+                  width: '100%',
+                  height: '100%',
+                  resize: 'none',
+                  color: textColor,
+                  overflow: 'hidden',
+                  overflowX: 'hidden',
+                  overflowY: 'hidden',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                } as React.CSSProperties
+              }
             />
           ) : (
             <div
@@ -1318,42 +1355,49 @@ const HtmlComponent = ({
                     onBlur={handleRightTextBlur}
                     onKeyDown={handleRightTextKeyDown}
                     onPaste={handleRightTextPaste}
+                    onScroll={preventScroll}
                     onClick={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      borderRadius: '4px',
-                      padding: '0',
-                      margin: '0',
-                      fontSize: textSizeRight,
-                      fontFamily: fontFamily,
-                      textTransform: 'uppercase',
-                      width: '100%',
-                      height: '100%',
-                      color: textColor,
-                      resize: 'none',
-                      overflow: 'hidden',
-                      wordWrap: 'break-word',
-                      overflowWrap: 'break-word',
-                      wordBreak: 'normal',
-                      whiteSpace: 'pre-wrap',
-                      lineHeight: customLineHeight
-                        ? `${customLineHeight}`
-                        : `${
-                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
-                          }`,
-                      textAlign: textAlignment,
-                      fontWeight: textBold ? 'bold' : 'normal',
-                      fontStyle: textItalic ? 'italic' : 'normal',
-                      textDecoration: textUnderline ? 'underline' : 'none',
-                      letterSpacing: `${letterSpacing}px`,
-                      display: 'block',
-                      boxSizing: 'border-box',
-                      caretColor: textColor,
-                      WebkitTapHighlightColor: 'transparent',
-                    }}
+                    style={
+                      {
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        borderRadius: '4px',
+                        padding: '0',
+                        margin: '0',
+                        fontSize: textSizeRight,
+                        fontFamily: fontFamily,
+                        textTransform: 'uppercase',
+                        width: '100%',
+                        height: '100%',
+                        color: textColor,
+                        resize: 'none',
+                        overflow: 'hidden',
+                        overflowX: 'hidden',
+                        overflowY: 'hidden',
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        wordBreak: 'normal',
+                        whiteSpace: 'pre-wrap',
+                        lineHeight: customLineHeight
+                          ? `${customLineHeight}`
+                          : `${
+                              ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                            }`,
+                        textAlign: textAlignment,
+                        fontWeight: textBold ? 'bold' : 'normal',
+                        fontStyle: textItalic ? 'italic' : 'normal',
+                        textDecoration: textUnderline ? 'underline' : 'none',
+                        letterSpacing: `${letterSpacing}px`,
+                        display: 'block',
+                        boxSizing: 'border-box',
+                        caretColor: textColor,
+                        WebkitTapHighlightColor: 'transparent',
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                      } as React.CSSProperties
+                    }
                   />
                 ) : (
                   <div
@@ -1441,40 +1485,49 @@ const HtmlComponent = ({
                   onChange={handleRightTextChange}
                   onBlur={handleRightTextBlur}
                   onKeyDown={handleRightTextKeyDown}
+                  onScroll={preventScroll}
                   onClick={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    borderRadius: '4px',
-                    padding: '0',
-                    margin: '0',
-                    fontSize: textSizeRight,
-                    fontFamily: fontFamily,
-                    textTransform: 'uppercase',
-                    width: '100%',
-                    height: '100%',
-                    color: textColor,
-                    resize: 'none',
-                    overflow: 'hidden',
-                    wordWrap: 'break-word',
-                    overflowWrap: 'break-word',
-                    wordBreak: 'normal',
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: customLineHeight
-                      ? `${customLineHeight}`
-                      : `${ImprintTextPosition?.right?.lineHeight || '2.8rem'}`,
-                    textAlign: textAlignment,
-                    fontWeight: textBold ? 'bold' : 'normal',
-                    fontStyle: textItalic ? 'italic' : 'normal',
-                    textDecoration: textUnderline ? 'underline' : 'none',
-                    letterSpacing: `${letterSpacing}px`,
-                    display: 'block',
-                    boxSizing: 'border-box',
-                    caretColor: textColor,
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
+                  style={
+                    {
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      borderRadius: '4px',
+                      padding: '0',
+                      margin: '0',
+                      fontSize: textSizeRight,
+                      fontFamily: fontFamily,
+                      textTransform: 'uppercase',
+                      width: '100%',
+                      height: '100%',
+                      color: textColor,
+                      resize: 'none',
+                      overflow: 'hidden',
+                      overflowX: 'hidden',
+                      overflowY: 'hidden',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word',
+                      wordBreak: 'normal',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: customLineHeight
+                        ? `${customLineHeight}`
+                        : `${
+                            ImprintTextPosition?.right?.lineHeight || '2.8rem'
+                          }`,
+                      textAlign: textAlignment,
+                      fontWeight: textBold ? 'bold' : 'normal',
+                      fontStyle: textItalic ? 'italic' : 'normal',
+                      textDecoration: textUnderline ? 'underline' : 'none',
+                      letterSpacing: `${letterSpacing}px`,
+                      display: 'block',
+                      boxSizing: 'border-box',
+                      caretColor: textColor,
+                      WebkitTapHighlightColor: 'transparent',
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none',
+                    } as React.CSSProperties
+                  }
                 />
               ) : (
                 <div
