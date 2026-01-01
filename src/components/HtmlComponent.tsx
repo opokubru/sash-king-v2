@@ -593,9 +593,9 @@ const HtmlComponent = ({
     letterSpacing: number,
     textTransform: string = 'uppercase',
   ): boolean => {
-    // Account for 2px border on each side (4px total)
-    const widthPx = parseToPixels(containerWidth) - 4;
-    const heightPx = parseToPixels(containerHeight) - 4;
+    // Account for 2px border on each side (4px total) + 2px padding on each side (4px total) + small buffer for rendering differences
+    const widthPx = parseToPixels(containerWidth) - 8;
+    const heightPx = parseToPixels(containerHeight) - 8;
 
     const measuredHeight = measureTextHeight(
       text,
@@ -607,7 +607,8 @@ const HtmlComponent = ({
       letterSpacing,
     );
 
-    return measuredHeight >= heightPx;
+    // Use > instead of >= to allow text that fits exactly, with a small tolerance for rendering differences
+    return measuredHeight > heightPx + 2;
   };
 
   const handleLeftTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
