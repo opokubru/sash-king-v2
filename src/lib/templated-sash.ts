@@ -40,7 +40,7 @@ export const TemplatedSash: Product[] = [
         top: '2rem',
         left: '1.8rem',
         height: '9rem',
-        width: '3.6rem',
+        width: '3.8rem',
         lineHeight: '',
         rotate: -6,
       },
@@ -262,7 +262,7 @@ export const TemplatedSash: Product[] = [
           left: '-4.4rem',
           height: '8rem',
           width: '4rem',
-          lineHeight: '',
+          lineHeight: '2.2rem',
         },
         image: {
           top: '-6rem',
@@ -277,7 +277,7 @@ export const TemplatedSash: Product[] = [
           left: '3.1rem',
           height: '8.5rem',
           width: '4rem',
-          lineHeight: '',
+          lineHeight: '2.4rem',
         },
         image: {
           top: '-5rem',
@@ -433,7 +433,7 @@ export const TemplatedSash: Product[] = [
         text: {
           top: '2.3rem',
           left: '-4.2rem',
-          height: '8.5rem',
+          height: '9rem',
           width: '4rem',
           lineHeight: '',
           rotate: -2,
@@ -449,8 +449,8 @@ export const TemplatedSash: Product[] = [
         text: {
           top: '1rem',
           left: '1.8rem',
-          height: '8.4rem',
-          width: '3.7rem',
+          height: '9rem',
+          width: '4rem',
           lineHeight: '',
           rotate: -3,
         },
