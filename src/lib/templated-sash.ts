@@ -22,9 +22,9 @@ export const TemplatedSash: Product[] = [
     positioningLeft: {
       text: {
         top: '2rem',
-        left: '-5.5rem',
+        left: '-5.8rem',
         height: '9rem',
-        width: '3.8rem',
+        width: '4rem',
         lineHeight: '',
         rotate: 0,
       },
@@ -38,11 +38,11 @@ export const TemplatedSash: Product[] = [
     positioningRight: {
       text: {
         top: '2rem',
-        left: '2.1rem',
+        left: '1.8rem',
         height: '9rem',
-        width: '3rem',
+        width: '3.6rem',
         lineHeight: '',
-        rotate: -4,
+        rotate: -6,
       },
       image: {
         top: '-5.4rem',
@@ -144,9 +144,9 @@ export const TemplatedSash: Product[] = [
       positioningLeft: {
         text: {
           top: '1.8rem',
-          left: '-4.8rem',
+          left: '-5rem',
           height: '8rem',
-          width: '3.5rem',
+          width: '4rem',
           lineHeight: '2.4rem',
         },
         image: {
@@ -159,9 +159,9 @@ export const TemplatedSash: Product[] = [
       positioningRight: {
         text: {
           top: '1.8rem',
-          left: '2.2rem',
+          left: '1.9rem',
           height: '8rem',
-          width: '3.5rem',
+          width: '3.8rem',
           lineHeight: '2.4rem',
           rotate: 2,
         },
@@ -259,9 +259,9 @@ export const TemplatedSash: Product[] = [
       positioningLeft: {
         text: {
           top: '1.5rem',
-          left: '-4.2rem',
+          left: '-4.4rem',
           height: '8rem',
-          width: '3.5rem',
+          width: '4rem',
           lineHeight: '',
         },
         image: {
@@ -273,10 +273,10 @@ export const TemplatedSash: Product[] = [
       },
       positioningRight: {
         text: {
-          top: '2.8rem',
-          left: '3.4rem',
-          height: '8rem',
-          width: '3.5rem',
+          top: '2.5rem',
+          left: '3.1rem',
+          height: '8.5rem',
+          width: '4rem',
           lineHeight: '',
         },
         image: {
@@ -432,9 +432,9 @@ export const TemplatedSash: Product[] = [
       positioningLeft: {
         text: {
           top: '2.3rem',
-          left: '-3.7rem',
+          left: '-4.2rem',
           height: '8.5rem',
-          width: '3.4rem',
+          width: '4rem',
           lineHeight: '',
           rotate: -2,
         },
@@ -532,64 +532,64 @@ export const TemplatedSash: Product[] = [
     //   colors: [],
     //   in_stock: true,
     // },
-    {
-      id: generateUUID(),
-      name: 'Sash Seven',
-      title: 'Sash Seven',
-      description: '',
-      image: '/images/templates/13.jpg',
-      model_image: "/images/templates/14.jpg",
-      // model: sash14_actual,
-      // confirm_image: sash14_actual,
-      positioningLeft: {
-        text: {
-          top: '1.8rem',
-          left: '-3.6rem',
-          height: '8.1rem',
-          width: '3.2rem',
-          lineHeight: '',
-        },
-        image: {
-          top: '-4.8rem',
-          left: '-3.8rem',
-          height: '3rem',
-          width: '3rem',
-        },
-      },
-      positioningRight: {
-        text: {
-          top: '1.4rem',
-          left: '1.8rem',
-          height: '8rem',
-          width: '3.2rem',
-          lineHeight: '',
-          rotate: 2,
-        },
-        image: {
-          top: '-5.3rem',
-          left: '2.4rem',
-          height: '3rem',
-          width: '3rem',
-        },
-      },
-      otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
-      myZoom: 1.1,
-      price: 110,
-      readyIn: 7,
-      // sizeGuide: sash_guide,
-      sizeOptions: [
-        { label: 'S', value: 0.5 },
-        { label: 'M', value: 1 },
-        { label: 'L', value: 2 },
-      ],
-      extra_image_urls: [],
-      sizes: [],
-      colors: [],
-      in_stock: true,
-      scale: 1.1,
-      aspect: 0.7,
+    // {
+    //   id: generateUUID(),
+    //   name: 'Sash Seven',
+    //   title: 'Sash Seven',
+    //   description: '',
+    //   image: '/images/templates/13.jpg',
+    //   model_image: "/images/templates/14.jpg",
+    //   // model: sash14_actual,
+    //   // confirm_image: sash14_actual,
+    //   positioningLeft: {
+    //     text: {
+    //       top: '1.8rem',
+    //       left: '-3.6rem',
+    //       height: '8.1rem',
+    //       width: '3.2rem',
+    //       lineHeight: '',
+    //     },
+    //     image: {
+    //       top: '-4.8rem',
+    //       left: '-3.8rem',
+    //       height: '3rem',
+    //       width: '3rem',
+    //     },
+    //   },
+    //   positioningRight: {
+    //     text: {
+    //       top: '1.4rem',
+    //       left: '1.8rem',
+    //       height: '8rem',
+    //       width: '4rem',
+    //       lineHeight: '',
+    //       rotate: 2,
+    //     },
+    //     image: {
+    //       top: '-5.3rem',
+    //       left: '2.4rem',
+    //       height: '3rem',
+    //       width: '3rem',
+    //     },
+    //   },
+    //   otherYards: { small: 3, large: 4, extraLarge: 5, extraExtraLarge: 5 },
+    //   myZoom: 1.1,
+    //   price: 110,
+    //   readyIn: 7,
+    //   // sizeGuide: sash_guide,
+    //   sizeOptions: [
+    //     { label: 'S', value: 0.5 },
+    //     { label: 'M', value: 1 },
+    //     { label: 'L', value: 2 },
+    //   ],
+    //   extra_image_urls: [],
+    //   sizes: [],
+    //   colors: [],
+    //   in_stock: true,
+    //   scale: 1.1,
+    //   aspect: 0.7,
 
-    },
+    // },
     // {
     //   id: generateUUID(),
     //   name: 'Sash Fourteen',
